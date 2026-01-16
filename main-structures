@@ -1,0 +1,292 @@
+// Recommended Next.js App Router Structure
+
+src/
+├── app/
+│   ├── (auth)/
+│   │   ├── sign-in/
+│   │   │   └── page.tsx
+│   │   ├── sign-up/
+│   │   │   └── page.tsx
+│   │   ├── forgot-password/
+│   │   │   └── page.tsx
+│   │   └── reset-password/
+│   │       └── page.tsx
+│   │
+│   ├── (marketing)/
+│   │   ├── page.tsx                    // Landing page
+│   │   ├── pricing/
+│   │   │   └── page.tsx
+│   │   ├── features/
+│   │   │   └── page.tsx
+│   │   ├── about/
+│   │   │   └── page.tsx
+│   │   ├── contact/
+│   │   │   └── page.tsx
+│   │   └── blog/
+│   │       └── page.tsx
+│   │
+│   ├── (dashboard)/
+│   │   └── dashboard/
+│   │       ├── layout.tsx              // Dashboard shell
+│   │       │
+│   │       ├── (landlord)/
+│   │       │   ├── properties/
+│   │       │   │   ├── page.tsx        // List properties
+│   │       │   │   ├── new/
+│   │       │   │   │   └── page.tsx    // Add property
+│   │       │   │   └── [id]/
+│   │       │   │       ├── page.tsx    // Property details
+│   │       │   │       ├── edit/
+│   │       │   │       │   └── page.tsx
+│   │       │   │       └── units/
+│   │       │   │           └── page.tsx
+│   │       │   │
+│   │       │   ├── tenants/
+│   │       │   │   ├── page.tsx
+│   │       │   │   └── [id]/
+│   │       │   │       └── page.tsx
+│   │       │   │
+│   │       │   ├── leases/
+│   │       │   │   ├── page.tsx
+│   │       │   │   ├── new/
+│   │       │   │   │   └── page.tsx
+│   │       │   │   └── [id]/
+│   │       │   │       └── page.tsx
+│   │       │   │
+│   │       │   ├── applications/
+│   │       │   │   ├── page.tsx
+│   │       │   │   └── [id]/
+│   │       │   │       └── page.tsx
+│   │       │   │
+│   │       │   ├── payments/
+│   │       │   │   ├── page.tsx
+│   │       │   │   └── [id]/
+│   │       │   │       └── page.tsx
+│   │       │   │
+│   │       │   ├── maintenance/
+│   │       │   │   ├── page.tsx
+│   │       │   │   └── [id]/
+│   │       │   │       └── page.tsx
+│   │       │   │
+│   │       │   ├── expenses/
+│   │       │   │   ├── page.tsx
+│   │       │   │   └── new/
+│   │       │   │       └── page.tsx
+│   │       │   │
+│   │       │   ├── reports/
+│   │       │   │   └── page.tsx
+│   │       │   │
+│   │       │   ├── documents/
+│   │       │   │   └── page.tsx
+│   │       │   │
+│   │       │   └── settings/
+│   │       │       ├── page.tsx
+│   │       │       ├── profile/
+│   │       │       │   └── page.tsx
+│   │       │       ├── subscription/
+│   │       │       │   └── page.tsx
+│   │       │       └── billing/
+│   │       │           └── page.tsx
+│   │       │
+│   │       ├── (tenant)/
+│   │       │   ├── my-lease/
+│   │       │   │   └── page.tsx
+│   │       │   ├── payments/
+│   │       │   │   ├── page.tsx
+│   │       │   │   └── pay/
+│   │       │   │       └── page.tsx
+│   │       │   ├── maintenance/
+│   │       │   │   ├── page.tsx
+│   │       │   │   └── new/
+│   │       │   │       └── page.tsx
+│   │       │   ├── documents/
+│   │       │   │   └── page.tsx
+│   │       │   └── messages/
+│   │       │       └── page.tsx
+│   │       │
+│   │       ├── (vendor)/
+│   │       │   ├── tickets/
+│   │       │   │   ├── page.tsx
+│   │       │   │   └── [id]/
+│   │       │   │       └── page.tsx
+│   │       │   ├── schedule/
+│   │       │   │   └── page.tsx
+│   │       │   ├── invoices/
+│   │       │   │   └── page.tsx
+│   │       │   └── reviews/
+│   │       │       └── page.tsx
+│   │       │
+│   │       └── (admin)/
+│   │           ├── users/
+│   │           │   └── page.tsx
+│   │           ├── subscriptions/
+│   │           │   └── page.tsx
+│   │           ├── analytics/
+│   │           │   └── page.tsx
+│   │           └── system/
+│   │               └── page.tsx
+│   │
+│   ├── api/
+│   │   ├── auth/
+│   │   │   └── [...nextauth]/
+│   │   │       └── route.ts
+│   │   │
+│   │   ├── webhooks/
+│   │   │   ├── stripe/
+│   │   │   │   └── route.ts
+│   │   │   └── plaid/
+│   │   │       └── route.ts
+│   │   │
+│   │   ├── properties/
+│   │   │   ├── route.ts
+│   │   │   └── [id]/
+│   │   │       └── route.ts
+│   │   │
+│   │   ├── tenants/
+│   │   │   └── route.ts
+│   │   │
+│   │   ├── leases/
+│   │   │   └── route.ts
+│   │   │
+│   │   ├── payments/
+│   │   │   ├── route.ts
+│   │   │   └── process/
+│   │   │       └── route.ts
+│   │   │
+│   │   ├── maintenance/
+│   │   │   └── route.ts
+│   │   │
+│   │   ├── documents/
+│   │   │   └── upload/
+│   │   │       └── route.ts
+│   │   │
+│   │   └── notifications/
+│   │       └── route.ts
+│   │
+│   ├── layout.tsx
+│   └── globals.css
+│
+├── components/
+│   ├── ui/                             // shadcn/ui components
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── dialog.tsx
+│   │   ├── form.tsx
+│   │   ├── input.tsx
+│   │   ├── select.tsx
+│   │   ├── table.tsx
+│   │   └── ...
+│   │
+│   ├── auth/
+│   │   ├── sign-in-form.tsx
+│   │   ├── sign-up-form.tsx
+│   │   └── oauth-buttons.tsx
+│   │
+│   ├── dashboard/
+│   │   ├── sidebar.tsx
+│   │   ├── header.tsx
+│   │   ├── stats-card.tsx
+│   │   └── recent-activity.tsx
+│   │
+│   ├── properties/
+│   │   ├── property-card.tsx
+│   │   ├── property-form.tsx
+│   │   ├── property-list.tsx
+│   │   └── unit-card.tsx
+│   │
+│   ├── tenants/
+│   │   ├── tenant-card.tsx
+│   │   ├── tenant-list.tsx
+│   │   └── screening-status.tsx
+│   │
+│   ├── leases/
+│   │   ├── lease-card.tsx
+│   │   ├── lease-form.tsx
+│   │   ├── lease-timeline.tsx
+│   │   └── e-signature.tsx
+│   │
+│   ├── payments/
+│   │   ├── payment-form.tsx
+│   │   ├── payment-list.tsx
+│   │   ├── payment-method-card.tsx
+│   │   └── stripe-elements.tsx
+│   │
+│   ├── maintenance/
+│   │   ├── ticket-card.tsx
+│   │   ├── ticket-form.tsx
+│   │   ├── ticket-list.tsx
+│   │   └── ticket-timeline.tsx
+│   │
+│   ├── notifications/
+│   │   ├── notification-bell.tsx
+│   │   ├── notification-item.tsx
+│   │   └── notification-list.tsx
+│   │
+│   └── shared/
+│       ├── data-table.tsx
+│       ├── file-upload.tsx
+│       ├── image-upload.tsx
+│       ├── date-picker.tsx
+│       ├── search-input.tsx
+│       ├── pagination.tsx
+│       └── empty-state.tsx
+│
+├── lib/
+│   ├── actions/
+│   │   ├── auth.ts                     // ✅ Done
+│   │   ├── properties.ts
+│   │   ├── tenants.ts
+│   │   ├── leases.ts
+│   │   ├── payments.ts
+│   │   ├── maintenance.ts
+│   │   └── documents.ts
+│   │
+│   ├── services/
+│   │   ├── stripe.ts
+│   │   ├── email.ts
+│   │   ├── sms.ts
+│   │   ├── storage.ts                  // S3/Cloudinary
+│   │   ├── screening.ts                // Background checks
+│   │   └── notifications.ts
+│   │
+│   ├── utils/
+│   │   ├── date.ts
+│   │   ├── currency.ts
+│   │   ├── validation.ts
+│   │   ├── permissions.ts
+│   │   └── formatting.ts
+│   │
+│   ├── hooks/
+│   │   ├── use-current-user.ts
+│   │   ├── use-properties.ts
+│   │   ├── use-tenants.ts
+│   │   ├── use-payments.ts
+│   │   └── use-notifications.ts
+│   │
+│   ├── types/
+│   │   ├── index.ts
+│   │   └── api.ts
+│   │
+│   ├── constants/
+│   │   ├── permissions.ts
+│   │   ├── routes.ts
+│   │   └── config.ts
+│   │
+│   ├── prisma.ts                       // ✅ Done
+│   └── generated/                      // ✅ Prisma client
+│
+├── middleware.ts                        // Auth & role checks
+├── auth.ts                              // ✅ Done
+└── package.json
+
+// Configuration Files
+├── .env.local
+├── .env.example
+├── prisma/
+│   ├── schema.prisma                   // ✅ Done
+│   ├── seed.ts
+│   └── migrations/
+├── next.config.js
+├── tailwind.config.ts
+├── tsconfig.json
+└── components.json                     // shadcn/ui

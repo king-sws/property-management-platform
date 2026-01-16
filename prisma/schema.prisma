@@ -1,0 +1,1817 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// USER MANAGEMENT & AUTHENTICATION
+// ============================================================================
+
+enum UserRole {
+  ADMIN           // Platform admin
+  LANDLORD        // Property owner/manager
+  TENANT          // Renter
+  VENDOR          // Maintenance/service provider
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+  PENDING_VERIFICATION
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  phone         String?
+  avatar        String?
+  role          UserRole  @default(TENANT)
+  status        AccountStatus @default(PENDING_VERIFICATION)
+  
+  // Auth
+  password      String?   // For email/password auth
+  accounts      Account[] // OAuth accounts
+  sessions      Session[]
+  
+  // Two-Factor Authentication
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String?
+  
+  // Relations based on role
+  landlordProfile  Landlord?
+  tenantProfile    Tenant?
+  vendorProfile    Vendor?
+  
+  // Activity
+  createdTickets   MaintenanceTicket[] @relation("TicketCreator")
+  assignedTickets  MaintenanceTicket[] @relation("TicketAssignee")
+  payments         Payment[]
+  documents        Document[]
+  notifications    Notification[]
+  activityLogs     ActivityLog[]
+  
+  // Communication
+  sentMessages     Message[] @relation("MessageSender")
+  receivedMessages Message[] @relation("MessageRecipient")
+  conversations    ConversationParticipant[]
+  
+  // Reviews
+  givenTenantReviews  TenantReview[] @relation("ReviewAuthor")
+  givenVendorReviews  VendorReview[] @relation("VendorReviewAuthor")
+  
+  // Consent & Privacy
+  consents         ConsentLog[]
+  
+  // Soft delete
+  deletedAt     DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+// AuthJS compatible models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================================================
+// LANDLORD & SUBSCRIPTION
+// ============================================================================
+
+enum SubscriptionTier {
+  BASIC       // $29/month - Up to 5 properties
+  PROFESSIONAL // $49/month - Up to 10 properties
+  PREMIUM     // $79/month - Up to 20 properties
+  ENTERPRISE  // Custom pricing
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  TRIAL
+  PAST_DUE
+  CANCELED
+  PAUSED
+}
+
+model Landlord {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  businessName    String?
+  businessAddress String?
+  taxId           String?   // EIN or SSN for tax reporting
+  
+  // Subscription
+  subscriptionTier    SubscriptionTier   @default(BASIC)
+  subscriptionStatus  SubscriptionStatus @default(TRIAL)
+  stripeCustomerId    String?            @unique
+  stripeSubscriptionId String?           @unique
+  currentPeriodEnd    DateTime?
+  propertyLimit       Int                @default(5)
+  trialUsed           Boolean            @default(false)
+  trialEndsAt         DateTime?
+  
+  // Relations
+  properties      Property[]
+  expenses        Expense[]
+  leaseTemplates  LeaseTemplate[]
+  applications    RentalApplication[]
+  tenantReviews   TenantReview[]
+  financialReports FinancialReport[]
+  
+  // Soft delete
+  deletedAt       DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([stripeCustomerId])
+  @@index([subscriptionStatus])
+  @@index([deletedAt])
+  vendorInvoices VendorInvoice[]
+}
+
+// ============================================================================
+// PROPERTY & UNIT MANAGEMENT
+// ============================================================================
+
+enum PropertyType {
+  SINGLE_FAMILY
+  MULTI_FAMILY
+  APARTMENT
+  CONDO
+  TOWNHOUSE
+  COMMERCIAL
+  OTHER
+}
+
+model Property {
+  id          String       @id @default(cuid())
+  landlordId  String
+  landlord    Landlord     @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  
+  name        String
+  type        PropertyType
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  country     String       @default("US")
+  
+  // Location
+  latitude    Decimal?     @db.Decimal(10, 8)
+  longitude   Decimal?     @db.Decimal(11, 8)
+  
+  description String?      @db.Text
+  yearBuilt   Int?
+  squareFeet  Int?
+  lotSize     Float?
+  
+  // Images
+  images      PropertyImage[]
+  
+  // Financial
+  purchasePrice    Decimal?  @db.Decimal(12, 2)
+  currentValue     Decimal?  @db.Decimal(12, 2)
+  propertyTax      Decimal?  @db.Decimal(10, 2)
+  insurance        Decimal?  @db.Decimal(10, 2)
+  hoaFees          Decimal?  @db.Decimal(10, 2)
+  
+  // Relations
+  units            Unit[]
+  expenses         Expense[]
+  documents        Document[]
+  maintenanceTickets MaintenanceTicket[]
+  inspections      Inspection[]
+  policies         PropertyPolicy[]
+  utilities        Utility[]
+  insuranceClaims  InsuranceClaim[]
+  parkingSpaces    ParkingSpace[]
+  
+  isActive    Boolean  @default(true)
+  deletedAt   DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([landlordId])
+  @@index([landlordId, isActive])
+  @@index([city, state])
+  @@index([deletedAt])
+}
+
+model PropertyImage {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  url        String
+  storageProvider String @default("s3") // s3, cloudinary, etc.
+  storageKey      String? // Key for deletion
+  caption    String?
+  isPrimary  Boolean  @default(false)
+  order      Int      @default(0)
+  
+  createdAt  DateTime @default(now())
+  
+  @@index([propertyId])
+  @@index([isPrimary])
+}
+
+model PropertyPolicy {
+  id          String   @id @default(cuid())
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  name        String   // "Pet Policy", "Smoking Policy", etc.
+  description String   @db.Text
+  isRequired  Boolean  @default(false)
+  order       Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([propertyId])
+}
+
+enum UnitStatus {
+  VACANT
+  OCCUPIED
+  MAINTENANCE
+  UNAVAILABLE
+}
+
+model Unit {
+  id         String     @id @default(cuid())
+  propertyId String
+  property   Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  unitNumber String     // e.g., "Apt 1", "Unit A", "House" for single-family
+  bedrooms   Int
+  bathrooms  Decimal    @db.Decimal(3, 1)
+  squareFeet Int?
+  floor      Int?
+  
+  rentAmount Decimal    @db.Decimal(10, 2)
+  deposit    Decimal    @db.Decimal(10, 2)
+  status     UnitStatus @default(VACANT)
+  
+  description String?   @db.Text
+  
+  // Relations
+  amenities  UnitAmenity[]
+  leases     Lease[]
+  applications RentalApplication[]
+  parkingSpaces ParkingSpace[]
+  
+  isActive   Boolean   @default(true)
+  deletedAt  DateTime?
+  
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  
+  @@unique([propertyId, unitNumber])
+  @@index([propertyId])
+  @@index([propertyId, status])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model Amenity {
+  id          String   @id @default(cuid())
+  name        String   @unique // "Parking", "Balcony", "Washer/Dryer"
+  description String?
+  icon        String?  // Icon identifier for UI
+  category    String?  // "Appliances", "Outdoor", "Building", etc.
+  
+  units       UnitAmenity[]
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([category])
+}
+
+model UnitAmenity {
+  id        String   @id @default(cuid())
+  unitId    String
+  unit      Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  amenityId String
+  amenity   Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+  
+  notes     String?  // Unit-specific notes about this amenity
+  
+  @@unique([unitId, amenityId])
+  @@index([unitId])
+  @@index([amenityId])
+}
+
+model ParkingSpace {
+  id          String   @id @default(cuid())
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  unitId      String?
+  unit        Unit?    @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  
+  spaceNumber String   // "A1", "Garage 1", etc.
+  type        String   // "Covered", "Uncovered", "Garage"
+  isAssigned  Boolean  @default(false)
+  monthlyFee  Decimal? @db.Decimal(10, 2)
+  
+  notes       String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([propertyId, spaceNumber])
+  @@index([propertyId])
+  @@index([unitId])
+}
+
+// ============================================================================
+// TENANT MANAGEMENT
+// ============================================================================
+
+model Tenant {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  dateOfBirth     DateTime?
+  ssn             String?   @db.Char(11) // Encrypted in production
+  ssnEncrypted    Boolean   @default(false) // Flag for encrypted data
+  employerName    String?
+  employerPhone   String?
+  annualIncome    Decimal?  @db.Decimal(12, 2)
+  
+  // Emergency Contact
+  emergencyName   String?
+  emergencyPhone  String?
+  emergencyRelation String?
+  
+  // Relations
+  leaseMembers    LeaseTenant[]
+  payments        Payment[]
+  screenings      TenantScreening[]
+  applications    RentalApplication[]
+  reviews         TenantReview[]
+  
+  deletedAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([deletedAt])
+}
+
+// ============================================================================
+// RENTAL APPLICATION
+// ============================================================================
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  SCREENING_IN_PROGRESS
+  APPROVED
+  CONDITIONALLY_APPROVED
+  DENIED
+  WITHDRAWN
+  EXPIRED
+  CONVERTED_TO_LEASE
+}
+
+model RentalApplication {
+  id          String            @id @default(cuid())
+  unitId      String
+  unit        Unit              @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  tenantId    String
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  landlordId  String
+  landlord    Landlord          @relation(fields: [landlordId], references: [id], onDelete: Restrict)
+  
+  status      ApplicationStatus @default(DRAFT)
+  
+  // Application details
+  desiredMoveInDate DateTime
+  numberOfOccupants Int
+  hasPets           Boolean @default(false)
+  petDetails        String? @db.Text
+  
+  // Additional occupants
+  occupants   Json?  // Array of {name, relationship, age}
+  
+  // Previous address
+  previousAddress   String?
+  previousLandlord  String?
+  previousLandlordPhone String?
+  reasonForMoving   String? @db.Text
+  
+  // Financial info
+  monthlyIncome     Decimal? @db.Decimal(12, 2)
+  employer          String?
+  employmentLength  String?
+  
+  // References
+  references  Json? // Array of reference objects
+  
+  // Screening
+  screeningId String?
+  screening   TenantScreening? @relation(fields: [screeningId], references: [id], onDelete: SetNull)
+  
+  // Decision
+  approvedAt  DateTime?
+  deniedAt    DateTime?
+  denialReason String? @db.Text
+  
+  // Documents
+  applicationFee Decimal? @db.Decimal(10, 2)
+  feePaid       Boolean  @default(false)
+  
+  notes       String?  @db.Text
+  submittedAt DateTime?
+  expiresAt   DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([unitId])
+  @@index([tenantId])
+  @@index([landlordId])
+  @@index([status])
+  @@index([submittedAt])
+
+  @@index([landlordId, status]) // ⭐ Critical for landlord stats
+  @@index([tenantId, status])   // ⭐ Critical for tenant stats
+}
+
+// ============================================================================
+// TENANT SCREENING
+// ============================================================================
+
+enum ScreeningStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum ScreeningResult {
+  APPROVED
+  CONDITIONAL
+  DENIED
+  PENDING
+}
+
+model TenantScreening {
+  id          String          @id @default(cuid())
+  tenantId    String
+  tenant      Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // Screening details
+  status      ScreeningStatus @default(PENDING)
+  result      ScreeningResult @default(PENDING)
+  
+  // Background check
+  backgroundCheckId    String?  @unique // External service ID
+  backgroundCheckStatus String?
+  criminalHistory      Json?    // Store structured data
+  
+  // Credit check
+  creditCheckId    String?  @unique
+  creditScore      Int?
+  creditReportUrl  String?
+  
+  // Employment verification
+  employmentVerified Boolean @default(false)
+  incomeVerified     Boolean @default(false)
+  
+  // Rental history
+  rentalHistoryChecked Boolean @default(false)
+  previousLandlords    Json?   // Array of landlord contacts
+  
+  // Relations
+  applications RentalApplication[]
+  
+  notes       String?  @db.Text
+  requestedAt DateTime @default(now())
+  completedAt DateTime?
+  
+  @@index([tenantId])
+  @@index([status])
+  @@index([result])
+}
+
+// ============================================================================
+// LEASE MANAGEMENT
+// ============================================================================
+
+enum LeaseStatus {
+  DRAFT
+  PENDING_SIGNATURE
+  ACTIVE
+  EXPIRING_SOON
+  EXPIRED
+  TERMINATED
+  RENEWED
+}
+
+enum LeaseType {
+  FIXED_TERM
+  MONTH_TO_MONTH
+  YEAR_TO_YEAR
+}
+
+model Lease {
+  id          String      @id @default(cuid())
+  unitId      String
+  unit        Unit        @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  
+  // Primary tenant (for backwards compatibility)
+  primaryTenantId String?
+  
+  status      LeaseStatus @default(DRAFT)
+  type        LeaseType   @default(FIXED_TERM)
+  
+  // Terms
+  startDate   DateTime
+  endDate     DateTime?
+  rentAmount  Decimal     @db.Decimal(10, 2)
+  deposit     Decimal     @db.Decimal(10, 2)
+  lateFeeAmount Decimal?  @db.Decimal(10, 2)
+  lateFeeDays   Int?      @default(5) // Days after due date before late fee applies
+  
+  // Payment schedule
+  rentDueDay  Int         @default(1) // Day of month rent is due
+  paymentFrequency String  @default("MONTHLY") // MONTHLY, WEEKLY, etc.
+  
+  // Document
+  documentUrl String?     // Signed lease document
+  templateId  String?
+  template    LeaseTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  
+  // E-signature
+  landlordSignedAt DateTime?
+  allTenantsSignedAt DateTime?
+  landlordSignature String?
+  
+  // Terms and conditions
+  terms       String?     @db.Text
+  
+  // Relations
+  tenants     LeaseTenant[]
+  payments    Payment[]
+  recurringPayments RecurringPayment[]
+  violations  LeaseViolation[]
+  renewalOffers LeaseRenewalOffer[]
+  depositDeductions DepositDeduction[]
+  
+  // Renewal tracking
+  renewals    Lease[]     @relation("LeaseRenewal")
+  renewedFrom Lease?      @relation("LeaseRenewal", fields: [renewedFromId], references: [id], onDelete: SetNull)
+  renewedFromId String?
+  
+  notes       String?     @db.Text
+  deletedAt   DateTime?
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@index([unitId])
+  @@index([primaryTenantId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@index([deletedAt])
+}
+
+// Junction table for multiple tenants per lease
+model LeaseTenant {
+  id              String   @id @default(cuid())
+  leaseId         String
+  lease           Lease    @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  
+  isPrimaryTenant Boolean  @default(false)
+  signedAt        DateTime?
+  signature       String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@unique([leaseId, tenantId])
+  @@index([leaseId])
+  @@index([tenantId])
+
+  @@index([tenantId, leaseId]) // ⭐ Helps with groupBy queries
+
+}
+
+model LeaseTemplate {
+  id          String   @id @default(cuid())
+  landlordId  String
+  landlord    Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  
+  name        String
+  content     String   @db.Text // HTML or rich text content
+  variables   Json?    // {tenant_name, rent_amount, etc.}
+  
+  isDefault   Boolean  @default(false)
+  leases      Lease[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([landlordId])
+  @@index([isDefault])
+}
+
+enum RenewalOfferStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  COUNTERED
+  EXPIRED
+}
+
+model LeaseRenewalOffer {
+  id              String             @id @default(cuid())
+  leaseId         String
+  lease           Lease              @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  
+  status          RenewalOfferStatus @default(DRAFT)
+  
+  // Proposed terms
+  proposedStartDate DateTime
+  proposedEndDate   DateTime
+  proposedRentAmount Decimal         @db.Decimal(10, 2)
+  proposedDeposit    Decimal?        @db.Decimal(10, 2)
+  
+  // Tenant response
+  tenantResponse  String?           @db.Text
+  counterOffer    Json?             // Counter offer details
+  
+  sentAt          DateTime?
+  respondedAt     DateTime?
+  expiresAt       DateTime
+  
+  notes           String?           @db.Text
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@index([leaseId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model LeaseViolation {
+  id          String   @id @default(cuid())
+  leaseId     String
+  lease       Lease    @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  
+  type        String   // "Late Payment", "Noise Complaint", "Unauthorized Pet", etc.
+  description String   @db.Text
+  severity    String   // "Warning", "Minor", "Major", "Critical"
+  
+  issuedDate  DateTime
+  resolvedDate DateTime?
+  isResolved  Boolean  @default(false)
+  
+  actionTaken String?  @db.Text
+  notes       String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([leaseId])
+  @@index([isResolved])
+}
+
+model DepositDeduction {
+  id          String   @id @default(cuid())
+  leaseId     String
+  lease       Lease    @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  
+  description String
+  amount      Decimal  @db.Decimal(10, 2)
+  category    String   // "Cleaning", "Damage", "Unpaid Rent", etc.
+  
+  receiptUrl  String?  // Receipt or invoice for work done
+  notes       String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([leaseId])
+}
+
+// ============================================================================
+// PAYMENT MANAGEMENT
+// ============================================================================
+
+enum PaymentType {
+  RENT
+  DEPOSIT
+  LATE_FEE
+  UTILITY
+  PET_FEE
+  PARKING
+  APPLICATION_FEE
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentMethod {
+  STRIPE_CARD
+  STRIPE_ACH
+  CASH
+  CHECK
+  BANK_TRANSFER
+  OTHER
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  leaseId     String?
+  lease       Lease?        @relation(fields: [leaseId], references: [id], onDelete: SetNull)
+  tenantId    String
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  userId      String        // User who made payment
+  user        User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  
+  type        PaymentType
+  status      PaymentStatus @default(PENDING)
+  method      PaymentMethod
+  
+  amount      Decimal       @db.Decimal(10, 2)
+  fee         Decimal?      @db.Decimal(10, 2) // Processing fee
+  netAmount   Decimal       @db.Decimal(10, 2) // Amount after fees
+  
+  // Stripe integration
+  stripePaymentIntentId String? @unique
+  stripeChargeId        String? @unique
+  stripeRefundId        String?
+  
+  // Period this payment covers
+  periodStart DateTime?
+  periodEnd   DateTime?
+  
+  // Metadata
+  description String?
+  receiptUrl  String?
+  invoiceUrl  String?
+  
+  // Allocation to multiple invoices
+  allocations PaymentAllocation[]
+  
+  // Dates
+  dueDate     DateTime?
+  paidAt      DateTime?
+  failedAt    DateTime?
+  refundedAt  DateTime?
+  
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([leaseId])
+  @@index([tenantId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([paidAt])
+  @@index([type])
+
+  @@index([status, dueDate])           // ⭐ Critical for overdue payments
+  @@index([leaseId, status, dueDate])  // ⭐ Critical for landlord payment stats
+}
+
+model PaymentAllocation {
+  id          String   @id @default(cuid())
+  paymentId   String
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  
+  invoiceId   String   // Reference to invoice or charge
+  amount      Decimal  @db.Decimal(10, 2)
+  description String?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([paymentId])
+  @@index([invoiceId])
+}
+
+model RecurringPayment {
+  id              String   @id @default(cuid())
+  leaseId         String
+  lease           Lease    @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  
+  isActive        Boolean  @default(true)
+  paymentType     PaymentType @default(RENT)
+  amount          Decimal  @db.Decimal(10, 2)
+  frequency       String   // "MONTHLY", "WEEKLY", "BIWEEKLY"
+  dayOfMonth      Int?     // For monthly payments
+  dayOfWeek       Int?     // For weekly payments
+  
+  // Stripe
+  stripePaymentMethodId String?
+  stripeScheduleId      String? @unique
+  
+  nextPaymentDate DateTime
+  lastPaymentDate DateTime?
+  
+  startDate       DateTime
+  endDate         DateTime?
+  
+  notes           String?  @db.Text
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([leaseId])
+  @@index([isActive])
+  @@index([nextPaymentDate])
+}
+
+// ============================================================================
+// EXPENSE TRACKING
+// ============================================================================
+
+enum ExpenseCategory {
+  MORTGAGE
+  PROPERTY_TAX
+  INSURANCE
+  HOA_FEES
+  UTILITIES
+  MAINTENANCE
+  REPAIRS
+  LANDSCAPING
+  CLEANING
+  PROPERTY_MANAGEMENT
+  LEGAL
+  ACCOUNTING
+  MARKETING
+  SUPPLIES
+  CAPITAL_IMPROVEMENT
+  OTHER
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  landlordId  String
+  landlord    Landlord        @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  propertyId  String?
+  property    Property?       @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  
+  category    ExpenseCategory
+  amount      Decimal         @db.Decimal(10, 2)
+  description String
+  vendor      String?
+  
+  // Tax reporting
+  isTaxDeductible Boolean     @default(true)
+  taxYear         Int
+  taxCategory     String?
+  
+  // Receipt
+  receiptUrl  String?
+  storageProvider String?
+  storageKey  String?
+  
+  date        DateTime
+  paidDate    DateTime?
+  
+  notes       String?         @db.Text
+  deletedAt   DateTime?
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  @@index([landlordId])
+  @@index([propertyId])
+  @@index([category])
+  @@index([date])
+  @@index([taxYear])
+  @@index([deletedAt])
+}
+
+model FinancialReport {
+  id          String   @id @default(cuid())
+  landlordId  String
+  landlord    Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  
+  reportType  String   // "MONTHLY", "QUARTERLY", "ANNUAL", "CUSTOM"
+  startDate   DateTime
+  endDate     DateTime
+  
+  // Cached calculations
+  totalIncome    Decimal @db.Decimal(12, 2)
+  totalExpenses  Decimal @db.Decimal(12, 2)
+  netIncome      Decimal @db.Decimal(12, 2)
+  
+  // Detailed data
+  reportData  Json     // Detailed breakdown
+  
+  generatedAt DateTime @default(now())
+  
+  @@index([landlordId])
+  @@index([reportType])
+  @@index([startDate, endDate])
+}
+
+// ============================================================================
+// MAINTENANCE MANAGEMENT
+// ============================================================================
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_VENDOR
+  WAITING_PARTS
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model MaintenanceTicket {
+  id          String         @id @default(cuid())
+  propertyId  String
+  property    Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String         @db.Text
+  category    String         // "Plumbing", "Electrical", "HVAC", etc.
+  priority    TicketPriority @default(MEDIUM)
+  status      TicketStatus   @default(OPEN)
+  
+  // Assignment
+  createdById String
+  createdBy   User           @relation("TicketCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  assignedToId String?
+  assignedTo  User?          @relation("TicketAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  vendorId    String?
+  vendor      Vendor?        @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  
+  // Location
+  location    String?        // Unit number or specific location
+  
+  // Cost
+  estimatedCost Decimal?     @db.Decimal(10, 2)
+  actualCost    Decimal?     @db.Decimal(10, 2)
+  
+  // Dates
+  scheduledDate DateTime?
+  completedDate DateTime?
+  
+  // Relations
+  images      TicketImage[]
+  updates     TicketUpdate[]
+  appointments ServiceAppointment[]
+  
+  notes       String?        @db.Text
+  deletedAt   DateTime?
+  
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  @@index([propertyId])
+  @@index([propertyId, status])
+  @@index([status])
+  @@index([priority])
+  @@index([createdById])
+  @@index([vendorId])
+  @@index([deletedAt])
+  vendorInvoices VendorInvoice[]
+
+  @@index([vendorId, status])     // ⭐ Critical for vendor stats
+  @@index([createdById, status])  // ⭐ Critical for tenant maintenance count
+}
+
+model TicketImage {
+  id        String            @id @default(cuid())
+  ticketId  String
+  ticket    MaintenanceTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  url       String
+  storageProvider String @default("s3")
+  storageKey      String?
+  caption   String?
+  order     Int               @default(0)
+  
+  createdAt DateTime          @default(now())
+  
+  @@index([ticketId])
+}
+
+model TicketUpdate {
+  id        String            @id @default(cuid())
+  ticketId  String
+  ticket    MaintenanceTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  message   String            @db.Text
+  isInternal Boolean          @default(false) // Internal notes vs customer-facing
+  
+  createdAt DateTime          @default(now())
+  
+  @@index([ticketId])
+  @@index([createdAt])
+}
+
+model ServiceAppointment {
+  id          String            @id @default(cuid())
+  ticketId    String?
+  ticket      MaintenanceTicket? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  vendorId    String
+  vendor      Vendor            @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  
+  scheduledStart DateTime
+  scheduledEnd   DateTime
+  actualStart    DateTime?
+  actualEnd      DateTime?
+  
+  status      String            @default("SCHEDULED") // SCHEDULED, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED
+  notes       String?           @db.Text
+  
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  @@index([ticketId])
+  @@index([vendorId])
+  @@index([scheduledStart])
+  @@index([status])
+}
+
+// ============================================================================
+// VENDOR MANAGEMENT
+// ============================================================================
+
+enum VendorCategory {
+  PLUMBER
+  ELECTRICIAN
+  HVAC
+  LANDSCAPING
+  CLEANING
+  PEST_CONTROL
+  GENERAL_CONTRACTOR
+  HANDYMAN
+  APPLIANCE_REPAIR
+  LOCKSMITH
+  PAINTER
+  ROOFER
+  OTHER
+}
+
+model Vendor {
+  id          String         @id @default(cuid())
+  userId      String         @unique
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  businessName String
+  category    VendorCategory
+  services    String[]       // Array of services offered
+  
+  address     String?
+  city        String?
+  state       String?
+  zipCode     String?
+  
+  licenseNumber String?
+  isInsured     Boolean      @default(false)
+  insuranceExp  DateTime?
+  
+  // Ratings
+  rating      Decimal?       @db.Decimal(3, 2)
+  reviewCount Int            @default(0)
+  
+  // Availability
+  isActive    Boolean        @default(true)
+  availability Json?         // Structured availability data
+  
+  // Relations
+  tickets     MaintenanceTicket[]
+  appointments ServiceAppointment[]
+  reviews     VendorReview[]
+  
+  notes       String?        @db.Text
+  deletedAt   DateTime?
+  
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  @@index([userId])
+  @@index([category])
+  @@index([isActive])
+  @@index([deletedAt])
+  vendorInvoices VendorInvoice[]
+}
+
+model VendorReview {
+  id          String   @id @default(cuid())
+  vendorId    String
+  vendor      Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User     @relation("VendorReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  
+  rating      Int      // 1-5
+  title       String?
+  comment     String?  @db.Text
+  
+  // Specific ratings
+  qualityRating      Int?
+  punctualityRating  Int?
+  professionalismRating Int?
+  valueRating        Int?
+  
+  // Response
+  vendorResponse String? @db.Text
+  respondedAt    DateTime?
+  
+  isVerified  Boolean  @default(false) // Verified completed work
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([vendorId])
+  @@index([authorId])
+  @@index([rating])
+}
+
+// ============================================================================
+// TENANT REVIEWS
+// ============================================================================
+
+model TenantReview {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  landlordId  String
+  landlord    Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User     @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  
+  rating      Int      // 1-5
+  
+  // Specific ratings
+  paymentReliability Int? // 1-5
+  propertyCondition  Int? // 1-5
+  communication      Int? // 1-5
+  
+  comment     String?  @db.Text
+  wouldRentAgain Boolean?
+  
+  // Privacy
+  isPublic    Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([landlordId])
+  @@index([rating])
+}
+
+// ============================================================================
+// PROPERTY INSPECTION
+// ============================================================================
+
+enum InspectionType {
+  MOVE_IN
+  MOVE_OUT
+  ROUTINE
+  ANNUAL
+  MAINTENANCE
+  EMERGENCY
+}
+
+model Inspection {
+  id          String         @id @default(cuid())
+  propertyId  String
+  property    Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  type        InspectionType
+  scheduledDate DateTime
+  completedDate DateTime?
+  
+  inspectorName String?
+  inspectorCompany String?
+  
+  // Results
+  overallCondition String? // "Excellent", "Good", "Fair", "Poor"
+  summary      String?     @db.Text
+  
+  // Checklist
+  items        InspectionItem[]
+  
+  // Report
+  reportUrl    String?
+  
+  notes        String?     @db.Text
+  
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  
+  @@index([propertyId])
+  @@index([type])
+  @@index([scheduledDate])
+}
+
+model InspectionItem {
+  id            String      @id @default(cuid())
+  inspectionId  String
+  inspection    Inspection  @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  
+  category      String      // "Kitchen", "Bathroom", "Bedroom", etc.
+  item          String      // "Walls", "Flooring", "Appliances", etc.
+  condition     String      // "Good", "Fair", "Poor", "Damaged"
+  notes         String?     @db.Text
+  
+  requiresAction Boolean    @default(false)
+  photoUrls     String[]
+  
+  order         Int         @default(0)
+  
+  createdAt     DateTime    @default(now())
+  
+  @@index([inspectionId])
+}
+
+// ============================================================================
+// UTILITIES MANAGEMENT
+// ============================================================================
+
+enum UtilityType {
+  ELECTRICITY
+  GAS
+  WATER
+  SEWER
+  TRASH
+  INTERNET
+  CABLE
+  OTHER
+}
+
+model Utility {
+  id          String      @id @default(cuid())
+  propertyId  String
+  property    Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  type        UtilityType
+  provider    String
+  accountNumber String?
+  
+  isPaidByLandlord Boolean @default(true)
+  
+  // Billing
+  averageMonthlyAmount Decimal? @db.Decimal(10, 2)
+  
+  // Meter
+  meterNumber String?
+  meterReadings MeterReading[]
+  
+  notes       String?     @db.Text
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@index([propertyId])
+  @@index([type])
+}
+
+model MeterReading {
+  id          String   @id @default(cuid())
+  utilityId   String
+  utility     Utility  @relation(fields: [utilityId], references: [id], onDelete: Cascade)
+  
+  reading     Decimal  @db.Decimal(10, 2)
+  readingDate DateTime
+  photoUrl    String?
+  notes       String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([utilityId])
+  @@index([readingDate])
+}
+
+// ============================================================================
+// INSURANCE CLAIMS
+// ============================================================================
+
+enum ClaimStatus {
+  FILED
+  UNDER_REVIEW
+  APPROVED
+  DENIED
+  PAID
+  CLOSED
+}
+
+model InsuranceClaim {
+  id          String      @id @default(cuid())
+  propertyId  String
+  property    Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  claimNumber String      @unique
+  status      ClaimStatus @default(FILED)
+  
+  incidentDate DateTime
+  filedDate    DateTime
+  description  String      @db.Text
+  
+  claimAmount  Decimal     @db.Decimal(12, 2)
+  approvedAmount Decimal?  @db.Decimal(12, 2)
+  paidAmount   Decimal?    @db.Decimal(12, 2)
+  
+  adjusterName  String?
+  adjusterPhone String?
+  adjusterEmail String?
+  
+  documents    String[]    // URLs to claim documents
+  
+  notes        String?     @db.Text
+  
+  closedDate   DateTime?
+  
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  
+  @@index([propertyId])
+  @@index([status])
+  @@index([claimNumber])
+}
+
+// ============================================================================
+// COMMUNICATION SYSTEM
+// ============================================================================
+
+model Conversation {
+  id          String   @id @default(cuid())
+  subject     String?
+  
+  // Relations
+  participants ConversationParticipant[]
+  messages    Message[]
+  
+  lastMessageAt DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([lastMessageAt])
+}
+
+model ConversationParticipant {
+  id              String       @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  isArchived      Boolean      @default(false)
+  lastReadAt      DateTime?
+  
+  joinedAt        DateTime     @default(now())
+  
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+}
+
+model Message {
+  id              String       @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId        String
+  sender          User         @relation("MessageSender", fields: [senderId], references: [id], onDelete: Restrict)
+  
+  content         String       @db.Text
+  
+  // Attachments
+  attachments     String[]
+  
+  // Read receipts
+  readBy          String[]     // Array of user IDs who have read
+  
+  // Reply
+  replyToId       String?
+  replyTo         Message?     @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies         Message[]    @relation("MessageReplies")
+  
+  isEdited        Boolean      @default(false)
+  editedAt        DateTime?
+  
+  deletedAt       DateTime?
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  users User[] @relation("MessageRecipient")
+}
+
+// ============================================================================
+// DOCUMENT MANAGEMENT
+// ============================================================================
+
+enum DocumentType {
+  LEASE
+  AMENDMENT
+  NOTICE
+  INSPECTION_REPORT
+  RECEIPT
+  TAX_DOCUMENT
+  INSURANCE
+  WARRANTY
+  W9
+  BANK_STATEMENT
+  OTHER
+}
+
+model Document {
+  id          String       @id @default(cuid())
+  propertyId  String?
+  property    Property?    @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  uploadedById String
+  uploadedBy  User         @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  
+  name        String
+  type        DocumentType
+  description String?      @db.Text
+  
+  fileUrl     String
+  storageProvider String   @default("s3")
+  storageKey  String?
+  fileSize    Int          // in bytes
+  mimeType    String
+  
+  // Metadata
+  tags        String[]
+  
+  // Access control
+  isPublic    Boolean      @default(false)
+  
+  // Expiration (for time-sensitive docs)
+  expiresAt   DateTime?
+  
+  deletedAt   DateTime?
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  @@index([propertyId])
+  @@index([uploadedById])
+  @@index([type])
+  @@index([deletedAt])
+  @@index([expiresAt])
+}
+
+// ============================================================================
+// NOTIFICATIONS & REMINDERS
+// ============================================================================
+
+enum NotificationType {
+  RENT_DUE
+  RENT_OVERDUE
+  LEASE_EXPIRING
+  LEASE_RENEWAL_OFFER
+  LEASE_CREATED           // ✅ Add this
+  LEASE_SIGNED            // ✅ Add this
+  MAINTENANCE_REQUEST
+  MAINTENANCE_SCHEDULED
+  MAINTENANCE_ASSIGNED
+  MAINTENANCE_COMPLETED
+  PAYMENT_RECEIVED
+  PAYMENT_FAILED
+  DOCUMENT_UPLOADED
+  MESSAGE
+  APPLICATION_RECEIVED
+  APPLICATION_APPROVED
+  APPLICATION_DENIED
+  INSPECTION_SCHEDULED
+  SYSTEM
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+  PUSH
+}
+
+model Notification {
+  id        String             @id @default(cuid())
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type      NotificationType
+  channel   NotificationChannel @default(IN_APP)
+  
+  title     String
+  message   String             @db.Text
+  actionUrl String?
+  
+  isRead    Boolean            @default(false)
+  readAt    DateTime?
+  
+  // Metadata for linking
+  metadata  Json?
+  
+  createdAt DateTime           @default(now())
+  
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// Schedule for automated notifications/reminders
+model ScheduledNotification {
+  id            String             @id @default(cuid())
+  type          NotificationType
+  
+  // Who to notify
+  userId        String?
+  
+  // When to send
+  scheduledFor  DateTime
+  sent          Boolean            @default(false)
+  sentAt        DateTime?
+  
+  // Content
+  title         String
+  message       String             @db.Text
+  
+  // Recurring
+  isRecurring   Boolean            @default(false)
+  recurringRule String?            // Cron-like expression
+  
+  metadata      Json?
+  
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  
+  @@index([scheduledFor])
+  @@index([sent])
+  @@index([userId])
+}
+
+// ============================================================================
+// ACTIVITY LOGGING
+// ============================================================================
+
+enum ActivityType {
+  USER_LOGIN
+  USER_LOGOUT
+  PROPERTY_CREATED
+  PROPERTY_UPDATED
+  PROPERTY_DELETED
+  LEASE_CREATED
+  LEASE_SIGNED
+  LEASE_TERMINATED
+  MAINTENANCE_ASSIGNED
+  PAYMENT_MADE
+  PAYMENT_FAILED
+  PAYMENT_REFUNDED
+  TICKET_CREATED
+  TICKET_UPDATED
+  TICKET_COMPLETED
+  DOCUMENT_UPLOADED
+  DOCUMENT_DELETED
+  EXPENSE_ADDED
+  TENANT_SCREENED
+  APPLICATION_SUBMITTED
+  APPLICATION_APPROVED
+  NOTIFICATION_SENT
+  MESSAGE_SENT
+  INSPECTION_COMPLETED
+}
+
+model ActivityLog {
+  id          String       @id @default(cuid())
+  userId      String?
+  user        User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  type        ActivityType
+  action      String       // Description of action
+  ipAddress   String?
+  userAgent   String?
+  
+  // Related entities
+  entityType  String?      // "Property", "Lease", etc.
+  entityId    String?
+  
+  metadata    Json?        // Additional context
+  
+  createdAt   DateTime     @default(now())
+  
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([entityType, entityId])
+}
+
+// ============================================================================
+// CONSENT & PRIVACY MANAGEMENT (GDPR/CCPA)
+// ============================================================================
+
+enum ConsentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  MARKETING_EMAILS
+  SMS_NOTIFICATIONS
+  DATA_PROCESSING
+  BACKGROUND_CHECK
+  CREDIT_CHECK
+}
+
+model ConsentLog {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type        ConsentType
+  granted     Boolean
+  
+  ipAddress   String?
+  userAgent   String?
+  
+  version     String      // Version of terms/policy
+  
+  grantedAt   DateTime    @default(now())
+  revokedAt   DateTime?
+  
+  @@index([userId])
+  @@index([type])
+  @@index([grantedAt])
+}
+
+model DataRetentionPolicy {
+  id          String   @id @default(cuid())
+  entityType  String   // "User", "Payment", "Document", etc.
+  
+  retentionDays Int    // Days to keep data
+  description String   @db.Text
+  
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([entityType])
+  @@index([isActive])
+}
+
+// ============================================================================
+// SYSTEM SETTINGS
+// ============================================================================
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  type      String   // "string", "number", "boolean", "json"
+  
+  description String?
+  isPublic    Boolean @default(false) // Can be accessed by non-admin users
+  
+  updatedAt DateTime @updatedAt
+  
+  @@index([key])
+}
+
+// ============================================================================
+// VENDOR INVOICING
+// ============================================================================
+
+enum InvoiceStatus {
+  DRAFT          // Vendor is still editing
+  PENDING        // Submitted, waiting for landlord review
+  APPROVED       // Landlord approved
+  PAID           // Marked as paid
+  REJECTED       // Landlord rejected
+  CANCELLED      // Cancelled by vendor
+}
+
+model VendorInvoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique  // e.g., "INV-20231215-A1B2"
+  
+  vendorId        String
+  vendor          Vendor        @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  
+  ticketId        String?
+  ticket          MaintenanceTicket? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  
+  landlordId      String
+  landlord        Landlord      @relation(fields: [landlordId], references: [id], onDelete: Restrict)
+  
+  status          InvoiceStatus @default(DRAFT)
+  
+  // Line items stored as JSON array
+  // [{ description, quantity, unitPrice, amount }]
+  items           Json
+  
+  // Amounts
+  subtotal        Decimal       @db.Decimal(10, 2)
+  tax             Decimal?      @db.Decimal(10, 2)
+  discount        Decimal?      @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
+  
+  // Dates
+  dueDate         DateTime?
+  approvedAt      DateTime?
+  paidAt          DateTime?
+  
+  // Notes and rejection
+  notes           String?       @db.Text
+  rejectionReason String?       @db.Text
+
+  paymentMethod      String?       // BANK_TRANSFER, CHECK, CASH, etc.
+  paymentReference   String?       // Check number, transaction ID
+  paymentDate        DateTime?     // When payment was actually made
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([vendorId])
+  @@index([landlordId])
+  @@index([ticketId])
+  @@index([status])
+  @@index([createdAt])
+
+  @@index([vendorId, status]) // ⭐ Critical for vendor invoice stats
+}
