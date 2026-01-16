@@ -34,11 +34,11 @@ import {
   Pen,
 } from "lucide-react";
 import { format } from "date-fns";
-import { signLeaseAgreement } from "@/actions/lease-signing";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import SignatureCanvas from "react-signature-canvas";
 import Image from "next/image";
+import { signLease } from "@/actions/lease-signing";
 
 interface LeaseSigningFormProps {
   leaseData: any;
@@ -96,9 +96,12 @@ export function LeaseSigningForm({ leaseData }: LeaseSigningFormProps) {
 
     setIsSubmitting(true);
 
-    const result = await signLeaseAgreement(
+    const result = await signLease(
       lease.id,
-      signatureData
+      {
+        signature: signatureData,
+        agreedToTerms: true,
+      }
     );
 
     if (result.success) {

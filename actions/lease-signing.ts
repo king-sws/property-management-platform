@@ -397,7 +397,7 @@ export async function signLease(
       });
 
       if (updatedLease) {
-        const allTenantsSigned = updatedLease.tenants.every((lt) => lt.signedAt);
+        const allTenantsSigned = updatedLease.tenants.every((lt: { signedAt: any; }) => lt.signedAt);
         const landlordSigned = !!updatedLease.landlordSignedAt;
 
         // If all parties have signed, activate the lease
@@ -472,7 +472,7 @@ export async function signLease(
     revalidatePath("/dashboard/my-lease");
 
     // Check if lease is now fully signed
-    const allSigned = result?.tenants.every((lt) => lt.signedAt) && result?.landlordSignedAt;
+    const allSigned = result?.tenants.every((lt: { signedAt: any; }) => lt.signedAt) && result?.landlordSignedAt;
 
     return {
       success: true,
