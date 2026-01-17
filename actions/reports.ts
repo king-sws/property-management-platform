@@ -93,33 +93,40 @@ export async function generateFinancialReport(
     const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
     const netIncome = totalIncome - totalExpenses;
 
-    // Calculate by property if no specific property selected
-    let byProperty = [];
-    if (!propertyId) {
-      const properties = await prisma.property.findMany({
-        where: { landlordId: landlord.id, isActive: true },
-      });
+// Calculate by property if no specific property selected
+let byProperty: Array<{
+  propertyId: string;
+  propertyName: string;
+  income: number;
+  expenses: number;
+  netIncome: number;
+}> = [];
 
-      byProperty = await Promise.all(
-        properties.map(async (property) => {
-          const propPayments = payments.filter(
-            (p) => p.lease?.unit?.propertyId === property.id
-          );
-          const propExpenses = expenses.filter((e) => e.propertyId === property.id);
+if (!propertyId) {
+  const properties = await prisma.property.findMany({
+    where: { landlordId: landlord.id, isActive: true },
+  });
 
-          const income = propPayments.reduce((sum, p) => sum + Number(p.netAmount), 0);
-          const expense = propExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
-
-          return {
-            propertyId: property.id,
-            propertyName: property.name,
-            income,
-            expenses: expense,
-            netIncome: income - expense,
-          };
-        })
+  byProperty = await Promise.all(
+    properties.map(async (property) => {
+      const propPayments = payments.filter(
+        (p) => p.lease?.unit?.propertyId === property.id
       );
-    }
+      const propExpenses = expenses.filter((e) => e.propertyId === property.id);
+
+      const income = propPayments.reduce((sum, p) => sum + Number(p.netAmount), 0);
+      const expense = propExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+
+      return {
+        propertyId: property.id,
+        propertyName: property.name,
+        income,
+        expenses: expense,
+        netIncome: income - expense,
+      };
+    })
+  );
+}
 
     return {
       success: true,
@@ -324,22 +331,28 @@ export async function generateMaintenanceReport(
           }, 0) / completedTickets.length
         : 0;
 
-    // By property breakdown
-    let byProperty = [];
-    if (!propertyId) {
-      const propertyIds = [...new Set(tickets.map((t) => t.propertyId))];
-      byProperty = propertyIds.map((propId) => {
-        const propTickets = tickets.filter((t) => t.propertyId === propId);
-        const property = propTickets[0]?.property;
+// By property breakdown
+let byProperty: Array<{
+  propertyId: string;
+  propertyName: string;
+  ticketCount: number;
+  totalCost: number;
+}> = [];
 
-        return {
-          propertyId: propId,
-          propertyName: property?.name || "Unknown",
-          ticketCount: propTickets.length,
-          totalCost: propTickets.reduce((sum, t) => sum + Number(t.actualCost || 0), 0),
-        };
-      });
-    }
+if (!propertyId) {
+  const propertyIds = [...new Set(tickets.map((t) => t.propertyId))];
+  byProperty = propertyIds.map((propId) => {
+    const propTickets = tickets.filter((t) => t.propertyId === propId);
+    const property = propTickets[0]?.property;
+
+    return {
+      propertyId: propId,
+      propertyName: property?.name || "Unknown",
+      ticketCount: propTickets.length,
+      totalCost: propTickets.reduce((sum, t) => sum + Number(t.actualCost || 0), 0),
+    };
+  });
+}
 
     return {
       success: true,
