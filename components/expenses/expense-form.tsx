@@ -63,7 +63,7 @@ const expenseFormSchema = z.object({
   vendor: z.string().optional(),
   date: z.string().min(1, "Date is required"),
   paidDate: z.string().optional(),
-  isTaxDeductible: z.boolean().default(true),
+  isTaxDeductible: z.boolean(), // Remove .default(true)
   taxCategory: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -103,25 +103,25 @@ export function ExpenseForm({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<ExpenseFormValues>({
-    resolver: zodResolver(expenseFormSchema),
-    defaultValues: {
-      propertyId: expense?.propertyId || "",
-      category: expense?.category || "",
-      amount: expense?.amount?.toString() || "",
-      description: expense?.description || "",
-      vendor: expense?.vendor || "",
-      date: expense?.date
-        ? new Date(expense.date).toISOString().split("T")[0]
-        : new Date().toISOString().split("T")[0],
-      paidDate: expense?.paidDate
-        ? new Date(expense.paidDate).toISOString().split("T")[0]
-        : "",
-      isTaxDeductible: expense?.isTaxDeductible ?? true,
-      taxCategory: expense?.taxCategory || "",
-      notes: expense?.notes || "",
-    },
-  });
+const form = useForm<ExpenseFormValues>({
+  resolver: zodResolver(expenseFormSchema),
+  defaultValues: {
+    propertyId: expense?.propertyId || "",
+    category: expense?.category || "",
+    amount: expense?.amount?.toString() || "",
+    description: expense?.description || "",
+    vendor: expense?.vendor || "",
+    date: expense?.date
+      ? new Date(expense.date).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0],
+    paidDate: expense?.paidDate
+      ? new Date(expense.paidDate).toISOString().split("T")[0]
+      : "",
+    isTaxDeductible: expense?.isTaxDeductible ?? true, // Keep this as is
+    taxCategory: expense?.taxCategory || "",
+    notes: expense?.notes || "",
+  },
+});
 
   async function onSubmit(data: ExpenseFormValues) {
     setIsLoading(true);

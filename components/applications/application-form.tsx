@@ -43,7 +43,7 @@ const applicationFormSchema = z.object({
   unitId: z.string().min(1, "Please select a unit"),
   desiredMoveInDate: z.string().min(1, "Move-in date is required"),
   numberOfOccupants: z.string().min(1, "Number of occupants is required"),
-  hasPets: z.boolean().default(false),
+  hasPets: z.boolean(), // Remove .default(false) and .optional()
   petDetails: z.string().optional(),
   occupants: z.array(
     z.object({
@@ -85,27 +85,27 @@ export function ApplicationForm({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<ApplicationFormValues>({
-    resolver: zodResolver(applicationFormSchema),
-    defaultValues: {
-      unitId: application?.unitId || "",
-      desiredMoveInDate: application?.desiredMoveInDate
-        ? new Date(application.desiredMoveInDate).toISOString().split("T")[0]
-        : "",
-      numberOfOccupants: application?.numberOfOccupants?.toString() || "1",
-      hasPets: application?.hasPets || false,
-      petDetails: application?.petDetails || "",
-      occupants: application?.occupants || [],
-      previousAddress: application?.previousAddress || "",
-      previousLandlord: application?.previousLandlord || "",
-      previousLandlordPhone: application?.previousLandlordPhone || "",
-      reasonForMoving: application?.reasonForMoving || "",
-      monthlyIncome: application?.monthlyIncome?.toString() || "",
-      employer: application?.employer || "",
-      employmentLength: application?.employmentLength || "",
-      references: application?.references || [],
-    },
-  });
+const form = useForm<ApplicationFormValues>({
+  resolver: zodResolver(applicationFormSchema),
+  defaultValues: {
+    unitId: application?.unitId || "",
+    desiredMoveInDate: application?.desiredMoveInDate
+      ? new Date(application.desiredMoveInDate).toISOString().split("T")[0]
+      : "",
+    numberOfOccupants: application?.numberOfOccupants?.toString() || "1",
+    hasPets: application?.hasPets ?? false, // Use ?? instead of ||
+    petDetails: application?.petDetails || "",
+    occupants: application?.occupants || [],
+    previousAddress: application?.previousAddress || "",
+    previousLandlord: application?.previousLandlord || "",
+    previousLandlordPhone: application?.previousLandlordPhone || "",
+    reasonForMoving: application?.reasonForMoving || "",
+    monthlyIncome: application?.monthlyIncome?.toString() || "",
+    employer: application?.employer || "",
+    employmentLength: application?.employmentLength || "",
+    references: application?.references || [],
+  },
+});
 
   const {
     fields: occupantFields,

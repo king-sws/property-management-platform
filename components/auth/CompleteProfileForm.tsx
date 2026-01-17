@@ -23,15 +23,16 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+
 const profileSchema = z.object({
   role: z.enum(['LANDLORD', 'TENANT', 'VENDOR']),
   phone: z.string().min(10, 'Phone must be at least 10 digits').optional().or(z.literal('')),
   // Vendor-specific fields
   businessName: z.string().optional(),
   category: z.string().optional(),
-  services: z.array(z.string()).default([]),
+  services: z.array(z.string()).optional(),
   licenseNumber: z.string().optional(),
-  isInsured: z.boolean().default(false),
+  isInsured: z.boolean(), // Remove .default(false)
 }).superRefine((data, ctx) => {
   // Only validate vendor fields if role is VENDOR
   if (data.role === 'VENDOR') {
@@ -108,19 +109,20 @@ export function CompleteProfileForm({ user }: { user: any }) {
   const [loading, setLoading] = useState(false)
   const [currentService, setCurrentService] = useState('')
 
-  const { register, handleSubmit, watch, setValue, control, formState: { errors } } = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: {
-      role: 'TENANT',
-      services: [],
-      isInsured: false,
-      phone: '',
-      businessName: '',
-      category: '',
-      licenseNumber: '',
-    },
-  })
+const { register, handleSubmit, watch, setValue, control, formState: { errors } } = useForm<ProfileFormData>({
+  resolver: zodResolver(profileSchema),
+  defaultValues: {
+    role: 'TENANT',
+    services: [],
+    isInsured: false, // This is already correct
+    phone: '',
+    businessName: '',
+    category: '',
+    licenseNumber: '',
+  },
+});
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedRole = watch('role')
   const services = watch('services') || []
 
