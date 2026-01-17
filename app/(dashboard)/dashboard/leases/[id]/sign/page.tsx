@@ -1,11 +1,11 @@
 // ============================================================================
 // FILE 2: app/(dashboard)/dashboard/leases/[id]/sign/page.tsx
 // ============================================================================
-import { getPendingLeaseForSigning } from "@/actions/lease-signing";
 import { LeaseSigningForm } from "@/components/lease/lease-signing-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { getLeaseForSigning } from "@/actions/lease-signing"; 
 
 interface LeaseSigningPageProps {
   params: {
@@ -14,7 +14,7 @@ interface LeaseSigningPageProps {
 }
 
 export default async function LeaseSigningPage({ params }: LeaseSigningPageProps) {
-  const result = await getPendingLeaseForSigning(params.id);
+  const result = await getLeaseForSigning(params.id); // ✅ Use correct function name
 
   if (!result.success) {
     return (
@@ -27,10 +27,10 @@ export default async function LeaseSigningPage({ params }: LeaseSigningPageProps
     );
   }
 
-  const { signingStatus, signedAt } = result.data;
+  const { lease, userSigningStatus, signingProgress } = result.data; // ✅ Destructure correct properties
 
   // If already signed, show confirmation
-  if (signedAt) {
+  if (userSigningStatus.hasSigned) { // ✅ Use userSigningStatus.hasSigned
     return (
       <div className="container mx-auto p-6 max-w-4xl">
         <Card>
@@ -44,26 +44,26 @@ export default async function LeaseSigningPage({ params }: LeaseSigningPageProps
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-sm">
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950 dark:border-green-800">
+              <p className="text-sm font-medium">
                 <strong>Signing Status:</strong>
               </p>
               <ul className="mt-2 space-y-1 text-sm">
                 <li>✅ You have signed the lease</li>
                 <li>
-                  {signingStatus.allTenantsSigned 
+                  {signingProgress.isFullySigned
                     ? "✅ All tenants have signed" 
-                    : `⏳ ${signingStatus.signedTenants} of ${signingStatus.totalTenants} tenants have signed`}
+                    : `⏳ ${signingProgress.tenantsSignedCount} of ${lease.tenants.length} tenants have signed`}
                 </li>
                 <li>
-                  {signingStatus.landlordSigned 
+                  {signingProgress.landlordSigned
                     ? "✅ Landlord has signed" 
                     : "⏳ Waiting for landlord signature"}
                 </li>
               </ul>
             </div>
             
-            {signingStatus.allTenantsSigned && signingStatus.landlordSigned && (
+            {signingProgress.isFullySigned && (
               <Alert>
                 <CheckCircle2 className="h-4 w-4" />
                 <AlertDescription>
