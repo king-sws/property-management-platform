@@ -1,7 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
-/* eslint-disable react/no-unescaped-entities */
 import React, { useState } from 'react';
 import { Star, Quote, GripVertical } from 'lucide-react';
 
@@ -70,20 +69,20 @@ const initialTestimonials = [
 
 export default function TestimonialsSection() {
   const [testimonials, setTestimonials] = useState(initialTestimonials);
-  const [draggedItem, setDraggedItem] = useState(null);
-  const [dragOverItem, setDragOverItem] = useState(null);
+  const [draggedItem, setDraggedItem] = useState<number | null>(null); // ✅ Fixed type
+  const [dragOverItem, setDragOverItem] = useState<number | null>(null); // ✅ Fixed type
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number | React.SetStateAction<null>) => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => { // ✅ Fixed parameter type
     setDraggedItem(index);
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, index: number | React.SetStateAction<null>) => {
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, index: number) => { // ✅ Fixed parameter type
     e.preventDefault();
     setDragOverItem(index);
   };
 
-  const handleDragOver = (e: { preventDefault: () => void; }) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { // ✅ Fixed parameter type
     e.preventDefault();
   };
 
@@ -197,34 +196,6 @@ export default function TestimonialsSection() {
             </div>
           ))}
         </div>
-
-        {/* Trust badges */}
-        {/* <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-          <div className="text-center">
-            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-2">
-              1,000+
-            </div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Active Landlords</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-2">
-              5,000+
-            </div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Properties Managed</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-2">
-              $10M+
-            </div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Rent Collected</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-2">
-              4.9/5
-            </div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Customer Rating</div>
-          </div>
-        </div> */}
       </div>
     </section>
   );

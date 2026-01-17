@@ -3,7 +3,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Star, Shield, Zap } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import Link from "next/link";
 
 function WordSwitcher({ words, index }: { words: string[]; index: number }) {
@@ -38,7 +38,7 @@ export function HeroSection() {
     return () => clearInterval(interval);
   }, []);
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -49,7 +49,7 @@ export function HeroSection() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { y: 30, opacity: 0 },
     visible: { 
       y: 0, 
@@ -74,7 +74,7 @@ export function HeroSection() {
           <div className="absolute top-1/3 left-1/3 w-[400px] h-[400px] bg-gradient-to-br from-pink-300/20 to-purple-300/20 dark:from-pink-600/10 dark:to-purple-600/10 rounded-full blur-3xl" />
         </div>
 
-{/* Subtle grid */}
+        {/* Subtle grid */}
         <div 
           className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]"
           style={{
@@ -100,33 +100,31 @@ export function HeroSection() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10"
           >
             {[
-              
               {
-    icon: <Shield className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />,
-    text: "Enterprise-grade security"
-  },
-  {
-    icon: <Zap className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />,
-    text: "Trusted by 1,000+ property owners"
-  }
+                icon: <Shield className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />,
+                text: "Enterprise-grade security"
+              },
+              {
+                icon: <Zap className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />,
+                text: "Trusted by 1,000+ property owners"
+              }
             ].map((item, idx) => (
               <div
-  key={idx}
-  className={`text-xs border border-slate-200/50 dark:border-slate-700/40
-  flex items-center gap-2 px-3 py-1.5 rounded-md
-  bg-transparent dark:bg-transparent backdrop-blur
-  shadow-sm hover:shadow transition-all duration-200
-  ${idx < 2 ? "hidden lg:flex" : ""}`}
->
-  <span className="text-slate-500 dark:text-slate-400">
-    {item.icon}
-  </span>
+                key={idx}
+                className={`text-xs border border-slate-200/50 dark:border-slate-700/40
+                flex items-center gap-2 px-3 py-1.5 rounded-md
+                bg-transparent dark:bg-transparent backdrop-blur
+                shadow-sm hover:shadow transition-all duration-200
+                ${idx < 2 ? "hidden lg:flex" : ""}`}
+              >
+                <span className="text-slate-500 dark:text-slate-400">
+                  {item.icon}
+                </span>
 
-  <span className="font-normal text-slate-700 dark:text-slate-300 whitespace-nowrap">
-    {item.text}
-  </span>
-</div>
-
+                <span className="font-normal text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                  {item.text}
+                </span>
+              </div>
             ))}
           </motion.div>
 
@@ -144,19 +142,6 @@ export function HeroSection() {
           >
             Streamline property management with automation, smart analytics, and tenant communication tools designed for modern landlords.
           </motion.p>
-
-          {/* Feature highlights */}
-          {/* <motion.div
-            variants={itemVariants}
-            className="flex flex-wrap justify-center gap-4 mb-12"
-          >
-            {["No credit card required", "14-day free trial", "Cancel anytime"].map((feature, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                <span>{feature}</span>
-              </div>
-            ))}
-          </motion.div> */}
 
           {/* CTA */}
           <motion.div 
@@ -177,7 +162,6 @@ export function HeroSection() {
               className="px-10 py-6 text-base bg-white/60 dark:bg-white/5 backdrop-blur-sm border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-white/10"
             >
               <Link href="/#features">See How It Works</Link>
-
             </Button>
           </motion.div>
 

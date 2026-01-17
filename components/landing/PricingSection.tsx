@@ -125,7 +125,7 @@ export default function PricingSection() {
                     <span className={`text-5xl font-normal ${
                       plan.highlighted ? 'text-white' : 'text-slate-900 dark:text-white'
                     }`}>
-                      ${billingCycle === 'yearly' ? Math.round(plan.price * 0.83) : plan.price}
+                      ${billingCycle === 'yearly' ? Math.round(Number(plan.price) * 0.83) : plan.price}
                     </span>
                     <span className={`text-sm ${
                       plan.highlighted ? 'text-slate-300' : 'text-slate-500 dark:text-slate-400'
