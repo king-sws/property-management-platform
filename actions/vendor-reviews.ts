@@ -213,7 +213,7 @@ export async function createVendorReview(
         where: { vendorId: validated.vendorId },
       });
       
-      const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+      const avgRating = allReviews.reduce((sum: any, r: { rating: any; }) => sum + r.rating, 0) / allReviews.length;
       
       await tx.vendor.update({
         where: { id: validated.vendorId },
@@ -404,7 +404,7 @@ export async function updateVendorReview(
         where: { vendorId: review.vendorId },
       });
       
-      const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+      const avgRating = allReviews.reduce((sum: any, r: { rating: any; }) => sum + r.rating, 0) / allReviews.length;
       
       await tx.vendor.update({
         where: { id: review.vendorId },
@@ -583,7 +583,7 @@ export async function deleteVendorReview(reviewId: string): Promise<ReviewResult
       });
       
       const avgRating = allReviews.length > 0
-        ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
+        ? allReviews.reduce((sum: any, r: { rating: any; }) => sum + r.rating, 0) / allReviews.length
         : null;
       
       await tx.vendor.update({

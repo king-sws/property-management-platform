@@ -44,14 +44,28 @@ const vendorSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   phone: z.string().min(10, "Phone must be at least 10 digits"),
   businessName: z.string().min(2, "Business name is required"),
-  category: z.string().min(1, "Category is required"),
+  category: z.enum([
+    "PLUMBER",
+    "ELECTRICIAN",
+    "HVAC",
+    "LANDSCAPING",
+    "CLEANING",
+    "PEST_CONTROL",
+    "GENERAL_CONTRACTOR",
+    "HANDYMAN",
+    "APPLIANCE_REPAIR",
+    "LOCKSMITH",
+    "PAINTER",
+    "ROOFER",
+    "OTHER",
+  ]),
   services: z.array(z.string()).min(1, "At least one service is required"),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
   zipCode: z.string().optional(),
   licenseNumber: z.string().optional(),
-  isInsured: z.boolean().default(false),
+  isInsured: z.boolean(),
   insuranceExp: z.string().optional(),
 });
 
@@ -81,16 +95,24 @@ export function VendorHeader({ children }: VendorHeaderProps) {
   const [loading, setLoading] = useState(false);
   const [currentService, setCurrentService] = useState("");
 
-  const form = useForm<z.infer<typeof vendorSchema>>({
+  type VendorFormData = z.infer<typeof vendorSchema>;
+
+  const form = useForm<VendorFormData>({
     resolver: zodResolver(vendorSchema),
     defaultValues: {
       email: "",
       name: "",
       phone: "",
       businessName: "",
-      category: "",
+      category: undefined,
       services: [],
       isInsured: false,
+      address: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      licenseNumber: "",
+      insuranceExp: "",
     },
   });
 

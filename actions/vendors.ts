@@ -692,7 +692,7 @@ export async function addVendorReview(
         where: { vendorId: vendorId },
       });
       
-      const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+      const avgRating = reviews.reduce((sum: any, r: { rating: any; }) => sum + r.rating, 0) / reviews.length;
       
       await tx.vendor.update({
         where: { id: vendorId },
