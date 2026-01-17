@@ -197,7 +197,7 @@ export function AssignVendorDialog({
 
           {/* Vendor List */}
           <div className="border rounded-lg overflow-hidden">
-            <div className="max-h-[400px] overflow-y-auto">
+            <div className="max-h-100 overflow-y-auto">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

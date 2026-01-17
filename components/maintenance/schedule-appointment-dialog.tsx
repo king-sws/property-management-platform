@@ -117,7 +117,7 @@ export function ScheduleAppointmentDialog({
             <p className="text-sm font-medium">Vendor: {vendorName}</p>
             {availability && (
               <div className="mt-2 flex gap-2">
-                <Badge variant={availability.isAvailable ? "success" : "secondary"}>
+                <Badge variant={availability.isAvailable ? "default" : "secondary"}>
                   {availability.isAvailable ? "Available" : `${availability.appointments.length} appointment(s)`}
                 </Badge>
                 {availability.activeTickets > 0 && (
