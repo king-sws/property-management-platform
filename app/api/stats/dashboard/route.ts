@@ -20,7 +20,8 @@ interface DashboardStats {
   pendingInvoices?: number;
 }
 
-export const revalidate = CACHE_DURATION; // Next.js route cache
+// ✅ Only runtime is allowed in route.ts (optional)
+export const runtime = 'nodejs';
 
 export async function GET() {
   try {
@@ -63,8 +64,8 @@ export async function GET() {
           where: {
             users: { some: { id: session.user.id } },
             NOT: {
-            readBy: { has: session.user.id }
-          },
+              readBy: { has: session.user.id }
+            },
           },
         }),
 
@@ -131,8 +132,8 @@ export async function GET() {
             where: {
               users: { some: { id: session.user.id } },
               NOT: {
-  readBy: { has: session.user.id }
-},
+                readBy: { has: session.user.id }
+              },
             },
           }),
 
@@ -171,8 +172,8 @@ export async function GET() {
           where: {
             users: { some: { id: session.user.id } },
             NOT: {
-  readBy: { has: session.user.id }
-},
+              readBy: { has: session.user.id }
+            },
           },
         }),
 
@@ -198,7 +199,7 @@ export async function GET() {
       stats.pendingInvoices = pendingInvoices;
     }
 
-    // Return with cache headers
+    // Return with cache headers for CDN/browser caching
     return NextResponse.json(stats, {
       headers: {
         "Cache-Control": `public, s-maxage=${CACHE_DURATION}, stale-while-revalidate=${CACHE_DURATION * 2}`,
