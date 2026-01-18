@@ -47,14 +47,15 @@ const textVariants = cva("text-foreground", {
 });
 
 export interface TextProps
-  extends React.HTMLAttributes<HTMLParagraphElement>,
+  extends React.HTMLAttributes<HTMLElement>,
     VariantProps<typeof textVariants> {
   as?: "p" | "span" | "div" | "label";
   truncate?: boolean;
   clamp?: 1 | 2 | 3 | 4 | 5;
 }
 
-export const Text = React.forwardRef<HTMLParagraphElement, TextProps>(
+// Use HTMLElement for the ref type since it can be multiple element types
+export const Text = React.forwardRef<HTMLElement, TextProps>(
   (
     {
       className,
@@ -72,7 +73,7 @@ export const Text = React.forwardRef<HTMLParagraphElement, TextProps>(
   ) => {
     return (
       <Component
-        ref={ref}
+        ref={ref as any}
         className={cn(
           textVariants({ size, weight, variant, align }),
           truncate && "truncate",
@@ -154,7 +155,7 @@ export const Heading = React.forwardRef<HTMLHeadingElement, HeadingProps>(
 
     return (
       <Component
-        ref={ref}
+        ref={ref as any}
         className={cn(
           headingVariants({ level: level || (as as any), weight, variant, align }),
           className
@@ -236,16 +237,16 @@ const displayVariants = cva(
 );
 
 export interface DisplayProps
-  extends React.HTMLAttributes<HTMLHeadingElement>,
+  extends React.HTMLAttributes<HTMLElement>,
     VariantProps<typeof displayVariants> {
   as?: "h1" | "h2" | "h3" | "p" | "div";
 }
 
-export const Display = React.forwardRef<HTMLHeadingElement, DisplayProps>(
+export const Display = React.forwardRef<HTMLElement, DisplayProps>(
   ({ className, size, variant, as: Component = "h1", children, ...props }, ref) => {
     return (
       <Component
-        ref={ref}
+        ref={ref as any}
         className={cn(displayVariants({ size, variant }), className)}
         {...props}
       >
