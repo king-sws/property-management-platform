@@ -8,21 +8,63 @@ import Link from "next/link";
 
 function WordSwitcher({ words, index }: { words: string[]; index: number }) {
   return (
-    <AnimatePresence mode="wait">
-      <motion.span
-        key={words[index]}
-        initial={{ opacity: 0, rotateX: -90 }}
-        animate={{ opacity: 1, rotateX: 0 }}
-        exit={{ opacity: 0, rotateY: 90 }}
-        transition={{ 
-          duration: 0.5,
-          ease: "easeOut"
-        }}
-        className="inline-block bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent font-normal"
-      >
-        {words[index]}
-      </motion.span>
-    </AnimatePresence>
+    <span className="relative inline-block align-bottom">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={words[index]}
+          initial={{ 
+            opacity: 0, 
+            y: 20,
+            filter: "blur(8px)",
+            scale: 0.95
+          }}
+          animate={{ 
+            opacity: 1, 
+            y: 0,
+            filter: "blur(0px)",
+            scale: 1
+          }}
+          exit={{ 
+            opacity: 0, 
+            y: -20,
+            filter: "blur(8px)",
+            scale: 0.95
+          }}
+          transition={{ 
+            duration: 0.6,
+            ease: [0.23, 1, 0.32, 1],
+            opacity: { duration: 0.4 },
+            filter: { duration: 0.4 }
+          }}
+          className="inline-block relative"
+        >
+          <span className="relative inline-block">
+            {/* Background glow effect */}
+            <span 
+              className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 blur-xl opacity-30 dark:opacity-20"
+              aria-hidden="true"
+            />
+            
+            {/* Main gradient text */}
+            <span className="relative bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent font-normal whitespace-nowrap">
+              {words[index]}
+            </span>
+            
+            {/* Animated underline */}
+            <motion.span
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ 
+                duration: 0.5, 
+                delay: 0.2,
+                ease: [0.23, 1, 0.32, 1]
+              }}
+              className="absolute -bottom-1 left-0 right-0 h-[3px] bg-gradient-to-r from-pink-500/40 via-purple-500/40 to-cyan-500/40 rounded-full origin-left"
+            />
+          </span>
+        </motion.span>
+      </AnimatePresence>
+    </span>
   );
 }
 
@@ -111,10 +153,7 @@ export function HeroSection() {
             ].map((item, idx) => (
               <div
                 key={idx}
-                className={`text-xs border border-slate-200/50 dark:border-slate-700/40
-                flex items-center gap-2 px-3 py-1.5 rounded-md
-                bg-transparent dark:bg-transparent backdrop-blur
-                shadow-sm hover:shadow transition-all duration-200
+                className={`flex items-center gap-2 text-sm border border-[#222]/10  px-3 py-1 rounded-lg dark:border-slate-700/60
                 ${idx < 2 ? "hidden lg:flex" : ""}`}
               >
                 <span className="text-slate-500 dark:text-slate-400">
@@ -145,25 +184,51 @@ export function HeroSection() {
 
           {/* CTA */}
           <motion.div 
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
-          >
-            <Button
-              size="lg"
-              className="group relative overflow-hidden rounded-lg bg-linear-to-br from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500 px-10 py-6 text-base font-medium text-white shadow-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 ease-in-out"
-            >
-              <Link href="/sign-up">Start Free Trial</Link>
-              <ArrowRight className="h-4 w-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
-            </Button>
+  variants={itemVariants}
+  className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-16"
+>
+  <Button
+    size="lg"
+    className="
+      w-full sm:w-auto
+      min-w-[200px] sm:min-w-[220px]
+      group relative overflow-hidden rounded-lg
+      bg-gradient-to-br from-purple-600 to-pink-600
+      dark:from-purple-500 dark:to-pink-500
+      px-6 sm:px-10 py-3 sm:py-6
+      text-sm sm:text-base font-medium text-white
+      shadow-xl
+      hover:from-purple-700 hover:to-pink-700
+      transition-all duration-300 ease-in-out
+    "
+    asChild
+  >
+    <Link href="/sign-up" className="flex items-center justify-center gap-2">
+      Start Free Trial
+      <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 group-hover:translate-x-1" />
+    </Link>
+  </Button>
 
-            <Button
-              size="lg"
-              variant="outline"
-              className="px-10 py-6 text-base bg-white/60 dark:bg-white/5 backdrop-blur-sm border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-white/10"
-            >
-              <Link href="/#features">See How It Works</Link>
-            </Button>
-          </motion.div>
+  <Button
+    size="lg"
+    variant="outline"
+    className="
+      w-full sm:w-auto
+      min-w-[200px] sm:min-w-[220px]
+      px-6 sm:px-10 py-3 sm:py-6
+      text-sm sm:text-base
+      bg-white/60 dark:bg-white/5 backdrop-blur-sm
+      border-slate-200 dark:border-slate-700
+      hover:bg-white dark:hover:bg-white/10
+    "
+    asChild
+  >
+    <Link href="/#features" className="flex items-center justify-center">
+      See How It Works
+    </Link>
+  </Button>
+</motion.div>
+
 
           {/* Stats */}
           <motion.div 

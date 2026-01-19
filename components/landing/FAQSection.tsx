@@ -69,7 +69,7 @@ export function FAQSection() {
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="rounded-3xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-lg"
+              className="rounded-lg bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-lg"
             >
               <button
                 onClick={() => setActiveIndex(activeIndex === index ? null : index)}
@@ -118,49 +118,55 @@ export function FAQSection() {
 
 export function CTASection() {
   return (
-    <section className="py-24 relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-gray-950 dark:via-[#0a0a0b] dark:to-gray-950">
-      {/* Background decoration */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-purple-200/30 dark:bg-purple-600/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-pink-200/30 dark:bg-pink-600/20 rounded-full blur-3xl" />
-      </div>
+    <section className="relative py-20 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-gray-950 dark:via-[#0a0a0b] dark:to-gray-950">
       
-      <div className="container relative z-10 px-4 mx-auto">
-        <div className="max-w-5xl mx-auto">
-          <div className="relative rounded-3xl bg-gradient-to-br from-purple-600 via-purple-500 to-pink-600 dark:from-purple-700 dark:via-purple-600 dark:to-pink-700 p-12 md:p-16 shadow-2xl overflow-hidden">
-            {/* Subtle pattern overlay */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:24px_24px]" />
-            
-            {/* Content */}
-            <div className="relative text-center space-y-8">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-normal tracking-tight text-white">
-                Ready to Simplify Your Property Management?
+      {/* Background decoration (same language as features) */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-purple-200/20 dark:bg-purple-600/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-cyan-200/20 dark:bg-cyan-600/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="container relative z-10 px-4 mx-auto max-w-6xl">
+        <div className="max-w-4xl mx-auto">
+          
+          <div className="relative rounded-3xl bg-white dark:bg-[#121216] border border-slate-200/60 dark:border-slate-800/60 shadow-xl">
+            <div className="px-10 py-16 text-center space-y-6">
+              
+              <h2 className="text-3xl md:text-4xl font-normal tracking-tight text-slate-900 dark:text-white">
+                Ready to{' '}
+                <span className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                  simplify
+                </span>{' '}
+                property management?
               </h2>
 
-              <p className="text-base md:text-sm text-white/70 max-w-2xl mx-auto">
-                Join 1,000+ landlords who are saving time and increasing profits with our platform
+              <p className="text-[14px] md:text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                Join landlords, tenants, and vendors who manage everything —
+                properties, payments, and maintenance — in one place.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-                <button className="px-3 py-3 rounded-lg bg-white text-black hover:bg-slate-50 font-semibold text-base min-w-50 flex items-center justify-center gap-2 group shadow-xl hover:shadow-2xl transition-all duration-300">
-                  <Link href="/sign-up">Get Started Free</Link>
-                  <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </button>
-                {/* <button className="px-4 py-3 rounded-lg border-2 border-white text-black hover:bg-white hover:text-purple-600 font-semibold text-base min-w-[200px] transition-all duration-300">
-                  Schedule Demo
-                </button> */}
+              <div className="flex justify-center pt-4">
+                <Link
+                  href="/sign-up"
+                  className="inline-flex items-center gap-2 rounded-lg bg-purple-400 hover:bg-purple-300 text-white dark:text-black px-6 py-3.5 text-base font-semibold shadow-lg transition-all"
+                >
+                  Get started free
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
               </div>
 
-              <p className="text-[12px] text-white/70 pt-2">
-                No credit card required • 14-day free trial • Cancel anytime
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                No credit card required · 14-day free trial
               </p>
             </div>
           </div>
+
         </div>
       </div>
     </section>
   );
 }
+
 
 export default function FAQAndCTA() {
   return (

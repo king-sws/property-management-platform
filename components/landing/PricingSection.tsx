@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Check, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 
 const plans = [
   {
@@ -96,7 +97,7 @@ export default function PricingSection() {
               {plan.badge && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
                   <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-sm bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500 text-white text-xs font-normal shadow-lg">
-                    <Sparkles className="w-3.5 h-3.5" />
+                    
                     {plan.badge}
                   </div>
                 </div>
@@ -104,7 +105,7 @@ export default function PricingSection() {
 
               <div className={`relative h-full rounded-lg p-8 transition-all duration-300 ${
                 plan.highlighted
-                  ? 'bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 text-white shadow-2xl border border-purple-500/50 dark:border-purple-400/50'
+                  ? 'bg-linear-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 text-white shadow-2xl border border-purple-500/50 dark:border-purple-400/50'
                   : 'bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-xl'
               }`}>
                 
@@ -141,7 +142,7 @@ export default function PricingSection() {
                     ? 'bg-white text-slate-900 hover:bg-slate-100 shadow-lg hover:shadow-xl hover:scale-105'
                     : 'bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500 text-white hover:shadow-lg hover:scale-105'
                 }`}>
-                  {plan.cta}
+                  <Link href="/sign-up">{plan.cta}</Link>
                 </button>
 
                 {/* Features list */}
