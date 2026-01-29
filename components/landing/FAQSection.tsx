@@ -1,193 +1,123 @@
-"use client";
+'use client'
+import React, { useState } from 'react';
 
-import React from 'react';
-import { ChevronDown, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+const FAQSection = () => {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-const faqs = [
-  {
-    question: "How does the 14-day free trial work?",
-    answer: "Sign up without a credit card and get full access to all features for 14 days. You can cancel anytime during the trial period without any charges. After the trial, choose a plan that fits your needs."
-  },
-  {
-    question: "Can I upgrade or downgrade my plan anytime?",
-    answer: "Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll pro-rate any difference in your billing."
-  },
-  {
-    question: "What payment methods do you accept?",
-    answer: "We accept all major credit cards (Visa, Mastercard, American Express) and ACH bank transfers. All payments are processed securely through Stripe."
-  },
-  {
-    question: "Is my data secure?",
-    answer: "Absolutely. We use bank-level 256-bit SSL encryption, regular security audits, and are GDPR compliant. Your data is backed up daily and stored in secure data centers."
-  },
-  {
-    question: "Can tenants access the platform?",
-    answer: "Yes! Each tenant gets their own secure portal where they can pay rent, submit maintenance requests, view documents, and communicate with you."
-  },
-  {
-    question: "Do you offer customer support?",
-    answer: "Yes! All plans include email support. Professional and Premium plans get priority support and phone access. We typically respond within 2-4 hours during business days."
-  },
-  {
-    question: "Can I import my existing data?",
-    answer: "Yes, we provide tools to import your properties, tenants, and lease data. Our support team can help you migrate from other platforms."
-  },
-  {
-    question: "What happens if I exceed my property limit?",
-    answer: "We'll send you a notification when you're approaching your limit. You can easily upgrade to a higher tier plan to add more properties without any service interruption."
-  }
-];
+  const faqs = [
+    {
+      question: "What features are included in Propely?",
+      answer: "Propely includes comprehensive property management tools: property and unit management, tenant applications and screening, lease management with e-signatures, automated rent collection and payment tracking, maintenance ticket system with vendor coordination, financial reporting and expense tracking, document management, communication tools, and activity logging. Everything you need to manage your rental properties efficiently."
+    },
+    {
+      question: "How does tenant screening work?",
+      answer: "Propely streamlines tenant screening with integrated background checks, credit reports, employment verification, and rental history checks. Landlords can review applications, request screenings, and make informed decisions all within the system. Results are securely stored and easily accessible for future reference."
+    },
+    {
+      question: "Can I manage multiple properties and units?",
+      answer: "Yes! Propely supports unlimited properties and units based on your subscription tier. Each property can have multiple units with individual rent amounts, deposits, and amenities. Track everything from a unified dashboard with detailed views for each property or unit."
+    },
+    {
+      question: "How does the maintenance management system work?",
+      answer: "Tenants submit maintenance requests through their portal. Landlords receive notifications and can assign tickets to verified vendors. The system includes priority levels, status tracking, cost estimation, scheduling, and completion verification. Vendors can update progress in real-time and submit invoices directly through Propely."
+    },
+    {
+      question: "What subscription plans are available?",
+      answer: "Propely offers flexible subscription tiers: Basic (up to 5 properties), Professional (up to 10 properties), Premium (up to 20 properties), and Enterprise (custom). All plans include core features with trial options available. Subscriptions include automated billing and can be upgraded anytime as your portfolio grows."
+    },
+    {
+      question: "How does rent collection and payment processing work?",
+      answer: "Propely supports automated rent collection with multiple payment methods including credit cards and ACH transfers. Set up recurring payments, track payment history, manage late fees, and generate receipts automatically. Payment processing is secure and PCI-compliant."
+    },
+    {
+      question: "Can vendors submit and manage invoices?",
+      answer: "Yes! Vendors can create detailed invoices directly in Propely with line items, tax calculations, and attachments. Landlords review and approve invoices, track payment status, and maintain a complete record of all vendor transactions. The system supports draft, pending, approved, and paid statuses."
+    },
+    {
+      question: "What lease management features are included?",
+      answer: "Create custom lease templates, manage fixed-term and month-to-month leases, track lease status and renewals, collect e-signatures, manage multiple tenants per lease, calculate late fees, track security deposits and deductions, and send automated renewal offers. All lease documents are securely stored in Propely."
+    },
+    {
+      question: "How does the financial reporting work?",
+      answer: "Generate comprehensive financial reports including income statements, expense tracking by category, property-level profitability, tax reporting, and custom date ranges. Track all revenue and expenses with detailed categorization, receipt storage, and export capabilities for your accountant."
+    },
+    {
+      question: "Is Propely secure and compliant?",
+      answer: "Security and compliance are top priorities. Propely includes role-based access control, encrypted data storage, secure authentication with two-factor authentication support, activity logging, GDPR/CCPA consent management, and data retention policies. All sensitive information including SSNs and payment data is properly secured."
+    },
+    {
+      question: "What communication tools are available?",
+      answer: "Propely includes a built-in messaging system for landlord-tenant-vendor communication, automated notifications for important events (rent due, lease expiring, maintenance updates), email and SMS notification options, conversation threading, and document sharing capabilities. Keep all communication centralized and documented."
+    },
+    {
+      question: "Can I track property inspections and utilities?",
+      answer: "Yes! Schedule and document move-in, move-out, and routine inspections with detailed checklists and photo uploads. Track utility providers, account numbers, meter readings, and determine who pays for each utility. Maintain complete records for compliance and reference."
+    }
+  ];
 
-export function FAQSection() {
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
+  const toggleFAQ = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
 
   return (
-    <section id='faq' className="py-20 relative overflow-hidden bg-gradient-to-b from-white via-slate-50 to-white dark:from-[#0a0a0b] dark:via-gray-950 dark:to-[#0a0a0b]">
-      {/* Background decoration */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 right-1/3 w-96 h-96 bg-purple-200/20 dark:bg-purple-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-200/20 dark:bg-pink-600/10 rounded-full blur-3xl" />
-      </div>
-      
-      <div className="container relative z-10 px-4 mx-auto max-w-4xl">
-        {/* Section header */}
-        <div className="text-center mb-20">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-normal tracking-tight text-slate-900 dark:text-white mb-4">
-            Frequently Asked{' '}
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
-              Questions
-            </span>
+    <section id="faq" className="w-full scroll-mt-8 py-fluid-lg pt-fluid-sm">
+      <div className="containe flex flex-col gap-fluid-sm">
+        {/* Header */}
+        <div className="flex w-full flex-col gap-y-4 items-center text-center">
+          <h2 className="font-display font-medium text-pretty text-3xl tracking-tighter md:text-4xl">
+            Frequently Asked Questions
           </h2>
-          <p className="text-base text-slate-600 dark:text-slate-400">
-            Everything you need to know about our platform
+          
+          <p className="text-muted-foreground text-base md:text-lg   [word-break:break-word] md:text-lg [&_a]:font-semibold [&_a]:text-foreground [&_a]:hover:text-foreground/85 max-w-2xl">
+            Have questions about Propely? We&#39;ve answered the most common ones below. For additional support, please contact us.
           </p>
         </div>
 
-        {/* FAQ items */}
-        <div className="space-y-4">
+        {/* FAQ Items */}
+        <div className="flex flex-col gap-2 p-2 bg-card/50 rounded-xl w-full max-w-2xl mx-auto my-10">
           {faqs.map((faq, index) => (
-            <div
-              key={index}
-              className="rounded-lg bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-lg"
-            >
+            <div key={index} className="bg-background rounded-lg overflow-hidden">
               <button
-                onClick={() => setActiveIndex(activeIndex === index ? null : index)}
-                className="w-full p-6 text-left flex items-center justify-between gap-4 group"
+                onClick={() => toggleFAQ(index)}
+                className="group flex items-start justify-between w-full gap-4 py-3.5 px-4 text-start text-secondary-foreground duration-100 hover:text-foreground data-[state=open]:text-foreground"
+                data-state={openIndex === index ? 'open' : 'closed'}
               >
-                <span className="font-semibold text-base text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                  {faq.question}
-                </span>
-                <div className={`flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-all duration-300 ${
-                  activeIndex === index ? 'bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500' : ''
-                }`}>
-                  <ChevronDown 
-                    className={`h-5 w-5 transition-all duration-300 ${
-                      activeIndex === index 
-                        ? 'rotate-180 text-white' 
-                        : 'text-slate-600 dark:text-slate-400'
-                    }`}
-                  />
-                </div>
+                <span className="font-medium text-base md:text-lg pr-2">{faq.question}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`flex-shrink-0 mt-0.5 transition-transform duration-200 ${
+                    openIndex === index ? 'rotate-45' : ''
+                  }`}
+                  aria-hidden="true"
+                >
+                  <path d="M5 12h14"></path>
+                  <path d="M12 5v14"></path>
+                </svg>
               </button>
               
-              <div className={`transition-all duration-300 ease-in-out ${
-                activeIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-              } overflow-hidden`}>
-                <div className="px-6 pb-6 text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-4 text-sm">
+              <div 
+                className={`overflow-hidden transition-all duration-200 ease-in-out ${
+                  openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                }`}
+              >
+                <div className="px-4 pb-4 text-sm md:text-base text-[#b3b3b3] leading-relaxed">
                   {faq.answer}
                 </div>
               </div>
             </div>
           ))}
         </div>
-
-        {/* Contact CTA */}
-        <div className="mt-16 text-center">
-          <p className="text-slate-600 dark:text-slate-400 mb-4 text-sm">
-            Still have questions?
-          </p>
-          <button className="px-6 py-3 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white hover:border-purple-400 dark:hover:border-purple-600 hover:bg-slate-50 dark:hover:bg-slate-900 font-semibold transition-all duration-300 text-sm">
-            Contact Support
-          </button>
-        </div>
       </div>
     </section>
   );
-}
+};
 
-export function CTASection() {
-  return (
-    <section className="relative py-20 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-gray-950 dark:via-[#0a0a0b] dark:to-gray-950">
-      
-      {/* Background decoration (same language as features) */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-purple-200/20 dark:bg-purple-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-cyan-200/20 dark:bg-cyan-600/10 rounded-full blur-3xl" />
-      </div>
-
-      <div className="container relative z-10 px-4 mx-auto max-w-6xl">
-        <div className="max-w-4xl mx-auto">
-          
-          <div className="relative rounded-3xl bg-white dark:bg-[#121216] border border-slate-200/60 dark:border-slate-800/60 shadow-xl">
-            <div className="px-10 py-16 text-center space-y-6">
-              
-              <h2 className="text-3xl md:text-4xl font-normal tracking-tight text-slate-900 dark:text-white">
-                Ready to{' '}
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
-                  simplify
-                </span>{' '}
-                property management?
-              </h2>
-
-              <p className="text-[14px] md:text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                Join landlords, tenants, and vendors who manage everything —
-                properties, payments, and maintenance — in one place.
-              </p>
-
-              <div className="flex justify-center pt-4">
-                <Link
-                  href="/sign-up"
-                  className="inline-flex items-center gap-2 rounded-lg bg-purple-400 hover:bg-purple-300 text-white dark:text-black px-6 py-3.5 text-base font-semibold shadow-lg transition-all"
-                >
-                  Get started free
-                  <ArrowRight className="h-5 w-5" />
-                </Link>
-              </div>
-
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                No credit card required · 14-day free trial
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-  );
-}
-
-
-export default function FAQAndCTA() {
-  return (
-    <>
-      <FAQSection />
-      
-      {/* Animated divider line */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50 to-slate-50 dark:from-[#0a0a0b] dark:via-gray-950 dark:to-gray-950">
-        <div className="container mx-auto px-4">
-          <div className="h-px w-full relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500 to-transparent animate-gradient"></div>
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-pink-500 to-transparent animate-gradient-delayed"></div>
-          </div>
-        </div>
-      </div>
-      
-      <style jsx>{`
-        
-      `}</style>
-      
-      <CTASection />
-    </>
-  );
-}
+export default FAQSection;

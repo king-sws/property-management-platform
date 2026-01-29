@@ -1,29 +1,29 @@
 // app/page.tsx
 
-import { CTASection, FAQSection } from "@/components/landing/FAQSection";
+import CTASection from "@/components/landing/CTASection";
+import FAQSection from "@/components/landing/FAQSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
-import { HeroSection } from "@/components/landing/HeroSection";
-import { LandingFooter } from "@/components/landing/LandingFooter";
-import { LandingNavbar } from "@/components/landing/LandingNavbar";
+import  HeroSection  from "@/components/landing/HeroSection";
 import PricingSection from "@/components/landing/PricingSection";
+import TechStackSection from "@/components/landing/TechStackSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <LandingNavbar />
+    <div className="min-h-screen flex flex-col overflow-x-hidden">
+      {/* <Navbar /> */}
       
       <main className="flex-1">
         <HeroSection />
+        <TechStackSection />
         <FeaturesSection />
         <PricingSection />
-        <TestimonialsSection />
         <FAQSection />
-        <CTASection />
+        <TestimonialsSection />
+        {/* <CTASection /> */}
       </main>
       
-      <LandingFooter />
     </div>
   );
 }

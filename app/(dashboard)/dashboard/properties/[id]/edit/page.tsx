@@ -7,6 +7,8 @@ import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import PropertyForm from "@/components/properties/property-form";
+import { Typography } from "@/components/ui/typography";
+import { Container, Stack } from "@/components/ui/container";
 
 interface EditPropertyPageProps {
   params: Promise<{ id: string }>;
@@ -84,18 +86,22 @@ export default async function EditPropertyPage({
   }));
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Edit Property</h1>
-        <p className="text-gray-500 mt-1">
-          Update the details of {property.name}
-        </p>
-      </div>
-      <PropertyForm
-        propertyId={property.id}
-        initialData={initialData}
-        images={images}
-      />
-    </div>
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
+        <div>
+          <Typography variant="h2" className="mb-1">
+            Edit Property
+          </Typography>
+          <Typography variant="muted">
+            Update the details of {property.name}
+          </Typography>
+        </div>
+        <PropertyForm
+          propertyId={property.id}
+          initialData={initialData}
+          images={images}
+        />
+      </Stack>
+    </Container>
   );
 }

@@ -419,28 +419,31 @@ export function DashboardSidebar({
       <div className="flex h-full flex-col">
         {/* Logo */}
         <div className="flex h-16 shrink-0 items-center px-6">
-          <Link 
-            href={dashboardPath} 
-            className="flex items-center gap-2"
-            onClick={() => isMobile && onMobileClose()}
-          >
-            {!effectiveCollapsed ? (
-                <Link href="/" className="flex items-center gap-2.5">
-                          <Image
-                            src={logoSrc}
-                            alt="Propely"
-                            width={120}
-                            height={36}
-                            className="h-9 w-auto"
-                            priority
-                          />
-                        
-                      </Link>
-            ) : (
-              <Home className="h-6 w-6 text-blue-600 dark:text-blue-400 mx-auto" />
-            )}
-          </Link>
-        </div>
+  {!effectiveCollapsed ? (
+    <Link 
+      href="/" 
+      className="flex items-center gap-2.5"
+      onClick={() => isMobile && onMobileClose()}
+    >
+      <Image
+        src={logoSrc}
+        alt="Propely"
+        width={120}
+        height={36}
+        className="h-9 w-auto"
+        priority
+      />
+    </Link>
+  ) : (
+    <Link
+      href={dashboardPath}
+      className="flex items-center gap-2"
+      onClick={() => isMobile && onMobileClose()}
+    >
+      <Home className="h-6 w-6 text-blue-600 dark:text-blue-400 mx-auto" />
+    </Link>
+  )}
+</div>
 
         {/* Navigation - Scrollable */}
 <ScrollArea className="flex-1 px-3 overflow-y-auto">

@@ -1,170 +1,179 @@
-"use client";
-
+'use client'
 import React from 'react';
-import { Mail, MapPin, Phone } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useTheme } from 'next-themes';
 
-export function LandingFooter() {
-  const footerLinks = {
-    product: [
-      { name: 'Features', href: '#features' },
-      { name: 'Pricing', href: '#pricing' },
-      { name: 'FAQ', href: '#faq' },
-      { name: 'Roadmap', href: '/roadmap' },
-    ],
-    company: [
-      { name: 'About Us', href: '/about' },
-      { name: 'Blog', href: '/blog' },
-      { name: 'Careers', href: '/careers' },
-      { name: 'Contact', href: '/contact' },
-    ],
-    legal: [
-      { name: 'Privacy Policy', href: '/privacy' },
-      { name: 'Terms of Service', href: '/terms' },
-      { name: 'Cookie Policy', href: '/cookies' },
-      { name: 'GDPR', href: '/gdpr' },
-    ],
-    support: [
-      { name: 'Help Center', href: '/help' },
-      { name: 'Documentation', href: '/docs' },
-      { name: 'API Reference', href: '/api' },
-      { name: 'Status', href: '/status' },
-    ],
-  };
-
-  const { theme } = useTheme();
-
-  const logoSrc = theme === 'dark' ? '/propely-dark.svg' : '/propely-light.svg';
-
-
+const FooterSection = () => {
   return (
-    <footer className="border-t bg-muted/50">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-8">
-          {/* Brand column */}
-          <div className="col-span-2">
-            <Link href="/" className="flex items-center gap-2.5">
-                                      <Image
-                                        src={logoSrc}
-                                        alt="Propely"
-                                        width={120}
-                                        height={36}
-                                        className="h-9 mb-7 w-auto"
-                                        priority
-                                      />
-                                    
-                                  </Link>
-            <p className="text-sm text-muted-foreground mb-4 max-w-xs">
-              The modern property management platform for landlords who want to save time and maximize profits.
+    <footer className="w-full scroll-mt-8 py-fluid-sm mt-auto">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Top Section */}
+        <div className="flex flex-wrap items-start gap-fluid-lg">
+          {/* Brand Column */}
+          <div className="flex gap-x-3 gap-y-2 flex-col items-start flex-wrap sm:grow">
+            <Image src='/propely-dark.svg' alt='logo' width={120} height={60} className='flex gap-x-2 gap-y-1 flex-row items-center place-content-start text-sm hover:opacity-70' />
+            <p className="max-w-64 text-sm text-muted-foreground">
+              Next.js directory template for building profitable directory websites.
             </p>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                <span>support@Propely.com</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                <span>(555) 123-4567</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <span>San Francisco, CA</span>
-              </div>
+            
+            {/* Social Icons */}
+            <div className="flex gap-x-3 gap-y-2 flex-row items-center place-content-start flex-wrap mt-4">
+              <Link
+                href="https://github.com"
+                className="group/button inline-flex items-center justify-center font-medium text-[0.8125rem] text-start leading-tight whitespace-nowrap rounded-md hover:z-10 disabled:opacity-60 disabled:pointer-events-none bg-foreground/15 text-foreground hover:bg-foreground/10 px-3 py-2 gap-[0.66ch]"
+                aria-label="GitHub"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" >
+                  <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
+                  <path d="M9 18c-4.51 2-5-2-7-2"></path>
+                </svg>
+              </Link>
+
+              <Link
+                href="https://twitter.com"
+                className="group/button inline-flex items-center justify-center font-medium text-[0.8125rem] text-start leading-tight whitespace-nowrap rounded-md hover:z-10 disabled:opacity-60 disabled:pointer-events-none bg-foreground/15 text-foreground hover:bg-foreground/10 px-3 py-2 gap-[0.66ch]"
+                aria-label="Twitter"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </Link>
+
+              <Link
+                href="https://bsky.app"
+                className="group/button inline-flex items-center justify-center font-medium text-[0.8125rem] text-start leading-tight whitespace-nowrap rounded-md hover:z-10 disabled:opacity-60 disabled:pointer-events-none bg-foreground/15 text-foreground hover:bg-foreground/10 px-3 py-2 gap-[0.66ch]"
+                aria-label="Bluesky"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z"></path>
+                </svg>
+              </Link>
+
+              <Link
+                href="mailto:hello@dirstarter.com"
+                className="group/button inline-flex items-center justify-center font-medium text-[0.8125rem] text-start leading-tight whitespace-nowrap rounded-md hover:z-10 disabled:opacity-60 disabled:pointer-events-none bg-foreground/15 text-foreground hover:bg-foreground/10 px-3 py-2 gap-[0.66ch]"
+                aria-label="Email"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                </svg>
+              </Link>
             </div>
           </div>
 
-          {/* Links columns */}
-          <div>
-            <h3 className="font-semibold mb-4">Product</h3>
-            <ul className="space-y-2">
-              {footerLinks.product.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Product Column */}
+          <div className="grid grid-cols-2 gap-12 sm:gap-16 mt-5 md:mt-5 lg:mt-0">
+  {/* Product Column */}
+  <div className="space-y-4">
+    <h3 className="font-mono text-[11px] font-medium tracking-wider uppercase text-foreground/50">
+      Product
+    </h3>
 
-          <div>
-            <h3 className="font-semibold mb-4">Company</h3>
-            <ul className="space-y-2">
-              {footerLinks.company.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+    <ul className="space-y-3">
+      {[
+        { label: 'Buy Now', href: '#pricing' },
+        { label: 'Demo', href: '#demo' },
+        { label: 'Pricing', href: '#pricing' },
+        { label: 'Features', href: '#features' },
+      ].map((item) => (
+        <li key={item.label}>
+          <Link
+            href={item.href}
+            className="
+              group inline-flex items-center gap-1
+              text-xs font-[450] text-foreground
+              transition-all duration-200
+              hover:text-secondary-foreground
+            "
+          >
+            <span className="relative">
+              {item.label}
+              <span
+                className="
+                  absolute -bottom-0.5 left-0 h-px w-0
+                  bg-current transition-all duration-200
+                  group-hover:w-full
+                "
+              />
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  </div>
 
-          <div>
-            <h3 className="font-semibold mb-4">Legal</h3>
-            <ul className="space-y-2">
-              {footerLinks.legal.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+  {/* Resources Column */}
+  <div className="space-y-4 mb-5">
+    <h3 className="font-mono text-[11px] font-medium tracking-wider uppercase text-foreground/50">
+      Resources
+    </h3>
 
-          <div>
-            <h3 className="font-semibold mb-4">Support</h3>
-            <ul className="space-y-2">
-              {footerLinks.support.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+    <ul className="flex gap-x-3 flex-col items-start flex-wrap gap-y-1.5">
+      {[
+        { label: 'Blog', href: '/blog' },
+        { label: 'Showcase', href: '/showcase' },
+        { label: 'Changelog', href: '/changelog' },
+        { label: 'Documentation', href: '/docs' },
+        { label: 'Become an Affiliate', href: '/affiliate' },
+      ].map((item) => (
+        <li key={item.label}>
+          <Link
+            href={item.href}
+            className="
+              group inline-flex items-center gap-1
+              text-xs font-[450] text-foreground
+              transition-all duration-200
+              hover:text-secondary-foreground
+            "
+          >
+            <span className="relative">
+              {item.label}
+              <span
+                className="
+                  absolute -bottom-0.5 left-0 h-px w-0
+                  bg-current transition-all duration-200
+                  group-hover:w-full 
+                "
+              />
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
         </div>
 
-        {/* Bottom bar */}
-        <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Propely. All rights reserved.
-          </p>
-          <div className="flex items-center gap-6">
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
-              </svg>
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-              </svg>
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-              </svg>
-            </a>
-          </div>
+        {/* Bottom Section */}
+        <div className="flex flex-wrap items-center justify-start gap-5 border-t pt-5">
+          <Link 
+            href="/privacy" 
+            className="text-xs font-[450] text-foreground hover:text-secondary-foreground"
+          >
+            Privacy Policy
+          </Link>
+          <Link 
+            href="/terms" 
+            className="text-xs font-[450] text-foreground hover:text-secondary-foreground"
+          >
+            Terms of Service
+          </Link>
+          <Link 
+            href="/license" 
+            className="text-xs font-[450] text-foreground hover:text-secondary-foreground"
+          >
+            License Policy
+          </Link>
+          
+          <span className="text-xs text-muted-foreground">
+            © 2026 Dirstarter. All rights reserved.
+          </span>
         </div>
       </div>
     </footer>
   );
-}
+};
+
+export default FooterSection;

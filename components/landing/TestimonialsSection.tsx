@@ -1,202 +1,214 @@
 /* eslint-disable react/no-unescaped-entities */
-"use client";
+'use client'
+import React from 'react';
+import Image from 'next/image';
 
-import React, { useState } from 'react';
-import { Star, Quote, GripVertical } from 'lucide-react';
+const TestimonialsSection = () => {
+  const testimonials = [
+    {
+      id: 1,
+      rating: 5,
+      text: "Propely has completely transformed how I manage my rental properties. The maintenance tracking and vendor coordination alone save me hours every week. Highly recommend!",
+      author: "Sarah Mitchell",
+      company: "Mitchell Properties",
+      avatar: "/images/dudu.webp",
+    },
+    {
+      id: 2,
+      rating: 5,
+      text: "Finally, a property management system that actually works! The tenant screening is thorough, rent collection is automated, and the financial reports are exactly what I need for tax season. Best investment I've made for my business.",
+      author: "James Rodriguez",
+      company: "Urban Living Rentals",
+      avatar: "/images/avatar-2.png",
+    },
+    {
+      id: 3,
+      rating: 5,
+      text: "As someone managing 15 units, Propely is a game-changer. The lease management and automated notifications keep everything running smoothly. My tenants love the portal too!",
+      author: "Emily Chen",
+      company: "Chen Property Group",
+      avatar: "/images/avatar-6.png",
+    },
+    {
+      id: 4,
+      rating: 5,
+      text: "I'm really impressed by the attention to detail. Every feature I need is here - from application tracking to expense categorization. The vendor invoice system is particularly brilliant! 🎉",
+      author: "Michael Thompson",
+      company: "Thompson Residential",
+      avatar: "/images/avatar-4.png",
+    },
+    {
+      id: 5,
+      rating: 5,
+      text: "Best property management platform I've used. Clean interface, powerful features, and excellent support. Managing my properties has never been easier. 5 stars ⭐",
+      author: "Lisa Anderson",
+      company: "Anderson Estates",
+      avatar: "/images/avatar-8.png",
+    },
+    {
+      id: 6,
+      rating: 5,
+      text: "The automated rent collection and late fee tracking have improved my cash flow significantly. Plus, having all documents in one secure place is invaluable. Love this platform!",
+      author: "David Park",
+      company: "Park Property Management",
+      avatar: "/images/avatar-3.png",
+    },
+    {
+      id: 7,
+      rating: 5,
+      text: "Switched from spreadsheets and it's like night and day. The financial reporting, maintenance tracking, and tenant communication tools are exactly what landlords need. Respect!",
+      author: "Rachel Green",
+      company: "Green Rentals LLC",
+      avatar: "/images/avatar-5.png",
+    },
+    {
+      id: 8,
+      rating: 5,
+      text: "The inspection checklists and photo documentation features have saved me from several disputes. Everything is timestamped and organized. This is professional-grade software! 🎉",
+      author: "Marcus Johnson",
+      company: "Johnson Property Services",
+      avatar: "/images/avatar-7.png",
+    },
+    // Duplicate for continuous scroll
+{
+  id: 9,
+  rating: 5,
+  text: "Propely completely changed how we manage our portfolio. From tracking maintenance requests to coordinating vendors, everything is finally in one place. What used to take hours every week now takes minutes.",
+  author: "Emma Collins",
+  company: "Collins Property Group",
+  avatar: "/images/dudu.webp",
+},
+{
+  id: 10,
+  rating: 5,
+  text: "We’ve tried multiple property management tools, but Propely is the first one that truly fits our workflow. Automated rent collection, clear financial reports, and smooth tenant management — it just works.",
+  author: "Daniel Perez",
+  company: "UrbanStay Management",
+  avatar: "/images/tiago.webp",
+},
 
-const initialTestimonials = [
-  {
-    id: 1,
-    name: "Sarah Johnson",
-    role: "Property Manager",
-    company: "Metro Properties",
-    rating: 5,
-    content: "This platform has transformed how I manage my 15 properties. The automated rent collection alone saves me hours every month. Highly recommend!",
-    bgColor: "bg-blue-50 dark:bg-blue-950/30",
-    borderColor: "border-blue-200 dark:border-blue-800/50"
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-    role: "Landlord",
-    company: "8 Units",
-    rating: 5,
-    content: "The maintenance tracking feature is a game-changer. My tenants submit requests through the app, and I can assign vendors instantly. Everything is organized in one place.",
-    bgColor: "bg-purple-50 dark:bg-purple-950/30",
-    borderColor: "border-purple-200 dark:border-purple-800/50"
-  },
-  {
-    id: 3,
-    name: "Emily Rodriguez",
-    role: "Real Estate Investor",
-    company: "12 Properties",
-    rating: 5,
-    content: "Financial reporting is incredibly detailed. I can see exactly where every dollar goes and generate tax reports in seconds. Worth every penny!",
-    bgColor: "bg-pink-50 dark:bg-pink-950/30",
-    borderColor: "border-pink-200 dark:border-pink-800/50"
-  },
-  {
-    id: 4,
-    name: "David Thompson",
-    role: "Property Owner",
-    company: "5 Units",
-    rating: 5,
-    content: "The tenant portal has reduced my workload significantly. Tenants can pay rent, view documents, and communicate all in one place. No more back-and-forth emails!",
-    bgColor: "bg-green-50 dark:bg-green-950/30",
-    borderColor: "border-green-200 dark:border-green-800/50"
-  },
-  {
-    id: 5,
-    name: "Lisa Martinez",
-    role: "Portfolio Manager",
-    company: "20+ Properties",
-    rating: 5,
-    content: "Switched from another platform and couldn't be happier. The interface is intuitive, and the customer support team is incredibly responsive. Best decision I've made!",
-    bgColor: "bg-orange-50 dark:bg-orange-950/30",
-    borderColor: "border-orange-200 dark:border-orange-800/50"
-  },
-  {
-    id: 6,
-    name: "James Wilson",
-    role: "Landlord",
-    company: "3 Properties",
-    rating: 5,
-    content: "As a first-time landlord, this platform made everything so easy. The lease templates and automated reminders ensure I never miss important dates.",
-    bgColor: "bg-teal-50 dark:bg-teal-950/30",
-    borderColor: "border-teal-200 dark:border-teal-800/50"
-  }
-];
+  ];
 
-export default function TestimonialsSection() {
-  const [testimonials, setTestimonials] = useState(initialTestimonials);
-  const [draggedItem, setDraggedItem] = useState<number | null>(null); // ✅ Fixed type
-  const [dragOverItem, setDragOverItem] = useState<number | null>(null); // ✅ Fixed type
-
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => { // ✅ Fixed parameter type
-    setDraggedItem(index);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, index: number) => { // ✅ Fixed parameter type
-    e.preventDefault();
-    setDragOverItem(index);
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { // ✅ Fixed parameter type
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, dropIndex: number) => {
-    e.preventDefault();
-    
-    if (draggedItem === null || draggedItem === dropIndex) {
-      setDraggedItem(null);
-      setDragOverItem(null);
-      return;
-    }
-
-    const newTestimonials = [...testimonials];
-    const draggedContent = newTestimonials[draggedItem];
-    
-    newTestimonials.splice(draggedItem, 1);
-    newTestimonials.splice(dropIndex, 0, draggedContent);
-    
-    setTestimonials(newTestimonials);
-    setDraggedItem(null);
-    setDragOverItem(null);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedItem(null);
-    setDragOverItem(null);
+  const StarRating = ({ rating }: { rating: number }) => {
+    return (
+      <div className="flex gap-1 mb-3">
+        {[...Array(5)].map((_, i) => (
+          <svg
+            key={i}
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill={i < rating ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+            className={i < rating ? "text-yellow-400" : "text-gray-300"}
+            aria-hidden="true"
+          >
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+        ))}
+      </div>
+    );
   };
 
   return (
-    <section id='testimonials' className="py-20 relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-gray-950 dark:via-[#0a0a0b] dark:to-gray-950">
-      {/* Background decoration */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-purple-200/20 dark:bg-purple-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-200/20 dark:bg-pink-600/10 rounded-full blur-3xl" />
-      </div>
-      
-      <div className="container relative z-10 px-4 mx-auto max-w-6xl">
-        {/* Section header */}
-        <div className="max-w-3xl mx-auto text-center mb-20">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-normal tracking-tight text-slate-900 dark:text-white mb-4">
-            Loved by{' '}
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
-              Property Managers
-            </span>
-          </h2>
-          <p className="text-base text-slate-600 dark:text-slate-400">
-            See what landlords and property managers are saying about our platform
+    <section className="w-full scroll-mt-8 bg-background text-foreground py-16 sm:py-20 md:py-24">
+      <div className="container max-w-5xl mx-auto flex flex-col gap-6">
+        {/* Header */}
+        <div className="flex w-full flex-col gap-y-4 items-center text-center px-4">
+          <p className="font-mono font-medium tracking-wider text-foreground/50 uppercase [&[href]]:hover:text-foreground/75 text-[12px] -mb-2">
+            TESTIMONIALS
           </p>
-          <p className="text-sm text-slate-500 dark:text-slate-500 mt-2 flex items-center justify-center gap-2">
-            <GripVertical className="w-4 h-4" />
-            Drag cards to reorder
+
+          <h2 className="font-display font-medium text-pretty text-3xl tracking-tighter md:text-4xl">
+            Trusted by property managers nationwide
+          </h2>
+
+          <p className="text-pretty text-muted-foreground [word-break:break-word] md:text-lg [&_a]:font-semibold [&_a]:text-foreground [&_a]:hover:text-foreground/85 max-w-2xl mb-10">
+            Join hundreds of landlords and property managers who have streamlined their operations
+            and improved their bottom line with Propely.
           </p>
         </div>
 
-        {/* Testimonials grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {testimonials.map((testimonial, index) => (
-            <div
-              key={testimonial.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragEnter={(e) => handleDragEnter(e, index)}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, index)}
-              onDragEnd={handleDragEnd}
-              className={`group cursor-move transition-all duration-200 ${
-                draggedItem === index ? 'opacity-50 scale-95' : ''
-              } ${
-                dragOverItem === index && draggedItem !== index ? 'scale-105' : ''
-              }`}
-            >
-              <div className={`relative rounded-3xl ${testimonial.bgColor} p-8 h-full flex flex-col border ${testimonial.borderColor} transition-all duration-300 hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-purple-900/20`}>
-                
-                {/* Drag handle indicator */}
-                <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-50 transition-opacity">
-                  <GripVertical className="w-5 h-5 text-slate-400 dark:text-slate-600" />
-                </div>
-
-                {/* Quote icon */}
-                <div className="absolute top-6 right-6 opacity-10 dark:opacity-20">
-                  <Quote className="w-12 h-12 text-slate-900 dark:text-white" />
-                </div>
-
-                {/* Rating stars */}
-                <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-
-                {/* Testimonial content */}
-                <p className="text-sm text-slate-700 dark:text-slate-300 mb-6 flex-1 leading-relaxed">
-                  "{testimonial.content}"
+        {/* First Row - Scrolling Left to Right */}
+        <div className="group overflow-clip mask-l-from-90 mask-r-from-90">
+          <div 
+            className="flex gap-6 w-max animate-marquee group-hover:paused"
+            style={{ animationDuration: '95.84s', animationDirection: 'normal' }}
+          >
+            {testimonials.slice(0, 10).map((testimonial) => (
+              <div
+                key={`row1-${testimonial.id}`}
+                className="flex flex-col gap-4 w-80 bg-foreground/5 rounded-xl p-6 shrink-0"
+              >
+                <StarRating rating={testimonial.rating} />
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  "{testimonial.text}"
                 </p>
-
-                {/* Author info */}
-                <div className="flex items-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 flex items-center justify-center text-white font-semibold text-sm">
-                    {testimonial.name.split(' ').map(n => n[0]).join('')}
-                  </div>
+                <div className="flex items-center gap-3 mt-auto">
+                  <Image
+                    src={testimonial.avatar}
+                    alt={testimonial.author}
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-full"
+                  />
                   <div>
-                    <p className="font-semibold text-sm text-slate-900 dark:text-white">
-                      {testimonial.name}
+                    <p className="font-semibold text-sm text-foreground">
+                      {testimonial.author}
                     </p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">
-                      {testimonial.role} • {testimonial.company}
+                    <p className="text-xs text-muted-foreground">
+                      {testimonial.company}
                     </p>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* Second Row - Scrolling Right to Left */}
+        <div className="group overflow-clip mask-l-from-90 mask-r-from-90">
+          <div 
+            className="flex gap-6 w-max animate-marquee group-hover:paused"
+            style={{ animationDuration: '95.84s', animationDirection: 'reverse' }}
+          >
+            {testimonials.slice(0, 10).map((testimonial) => (
+              <div
+                key={`row2-${testimonial.id}`}
+                className="flex flex-col gap-4 w-80 bg-foreground/5 rounded-xl p-6 shrink-0"
+              >
+                <StarRating rating={testimonial.rating} />
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  "{testimonial.text}"
+                </p>
+                <div className="flex items-center gap-3 mt-auto">
+                  <Image
+                    src={testimonial.avatar}
+                    alt={testimonial.author}
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-full"
+                  />
+                  <div>
+                    <p className="font-semibold text-sm text-foreground">
+                      {testimonial.author}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {testimonial.company}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
+      
     </section>
   );
-}
+};
+
+export default TestimonialsSection;
