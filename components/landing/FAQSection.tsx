@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 
 const FAQSection = () => {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const faqs = [
     {
@@ -61,7 +61,7 @@ const FAQSection = () => {
 
   return (
     <section id="faq" className="w-full scroll-mt-8 py-fluid-lg pt-fluid-sm">
-      <div className="containe flex flex-col gap-fluid-sm">
+      <div className="container flex flex-col gap-fluid-sm">
         {/* Header */}
         <div className="flex w-full flex-col gap-y-4 items-center text-center">
           <h2 className="font-display font-medium text-pretty text-3xl tracking-tighter md:text-4xl">

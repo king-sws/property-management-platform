@@ -5,6 +5,7 @@ import { getApplicationById } from "@/actions/applications";
 import { ApplicationDetailHeader } from "@/components/applications/application-detail-header";
 import { ApplicationDetailContent } from "@/components/applications/application-detail-content";
 import { ApplicationActions } from "@/components/applications/application-actions";
+import { Container, Stack } from "@/components/ui/container";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -38,24 +39,26 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
   const isTenant = session.user.role === "TENANT";
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <ApplicationDetailHeader 
-        application={application}
-        isLandlord={isLandlord}
-        isTenant={isTenant}
-      />
-      
-      <ApplicationDetailContent 
-        application={application}
-        isLandlord={isLandlord}
-        isTenant={isTenant}
-      />
-      
-      <ApplicationActions 
-        application={application}
-        isLandlord={isLandlord}
-        isTenant={isTenant}
-      />
-    </div>
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
+        <ApplicationDetailHeader 
+          application={application}
+          isLandlord={isLandlord}
+          isTenant={isTenant}
+        />
+        
+        <ApplicationDetailContent 
+          application={application}
+          isLandlord={isLandlord}
+          isTenant={isTenant}
+        />
+        
+        <ApplicationActions 
+          application={application}
+          isLandlord={isLandlord}
+          isTenant={isTenant}
+        />
+      </Stack>
+    </Container>
   );
 }

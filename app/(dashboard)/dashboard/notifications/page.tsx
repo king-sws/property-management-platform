@@ -3,6 +3,8 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getNotifications, getUnreadNotificationCount } from "@/actions/notifications";
 import { NotificationsList } from "@/components/notifications/notifications-list";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 
 export const metadata = {
   title: "Notifications",
@@ -29,18 +31,21 @@ export default async function NotificationsPage() {
     : 0;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
-        <p className="text-muted-foreground mt-2">
-          Stay updated with your property management activities
-        </p>
-      </div>
-
-      <NotificationsList
-        initialNotifications={initialNotifications}
-        initialUnreadCount={initialUnreadCount}
-      />
-    </div>
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
+        <div>
+          <Typography variant="h2" className="mb-1">
+            Notifications
+          </Typography>
+          <Typography variant="muted">
+            Stay updated with your property management activities
+          </Typography>
+        </div>
+        <NotificationsList 
+          initialNotifications={initialNotifications}
+          initialUnreadCount={initialUnreadCount}
+        />
+      </Stack>
+    </Container>
   );
 }

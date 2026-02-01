@@ -112,10 +112,10 @@ const FooterSection = () => {
     <ul className="flex gap-x-3 flex-col items-start flex-wrap gap-y-1.5">
       {[
         { label: 'Blog', href: '/blog' },
-        { label: 'Showcase', href: '/showcase' },
-        { label: 'Changelog', href: '/changelog' },
-        { label: 'Documentation', href: '/docs' },
-        { label: 'Become an Affiliate', href: '/affiliate' },
+        { label: 'Showcase', href: '/#showcase' },
+        { label: 'Changelog', href: '/#changelog' },
+        { label: 'Documentation', href: '/#docs' },
+        { label: 'Become an Affiliate', href: '/#affiliate' },
       ].map((item) => (
         <li key={item.label}>
           <Link

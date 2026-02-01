@@ -306,7 +306,7 @@ function PropertyCard({ property }: { property: PropertyType }) {
 
   return (
     <Link href={`/dashboard/browse-properties/${property.id}`}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
+      <Card className="overflow-hidden hover:shadow-lg -py-6 transition-shadow cursor-pointer group">
         {/* Image */}
         <div className="relative aspect-video overflow-hidden bg-muted">
           {property.images[0] ? (

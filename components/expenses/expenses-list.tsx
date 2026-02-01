@@ -207,37 +207,47 @@ export function ExpensesList({ initialData }: ExpensesListProps) {
       </Card>
 
       {/* Filters */}
-      <Card className="p-6 shadow-sm dark:shadow-none dark:border-gray-800">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search expenses..."
-              value={search}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10 h-11"
-            />
-          </div>
-          
-          <Select value={category} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="w-full sm:w-56 h-11">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Categories</SelectItem>
-              {Object.entries(categoryLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <Card className="p-4 bg-transparent border border-border/50 shadow-none">
+  <div className="flex flex-col sm:flex-row gap-3">
+    
+    {/* Search */}
+    <div className="flex-1 relative">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Input
+        placeholder="Search expenses..."
+        value={search}
+        onChange={(e) => handleSearch(e.target.value)}
+        className="h-9 pl-9 text-sm bg-transparent border-border/50 focus:border-primary focus:ring-0"
+      />
+    </div>
 
-          <Button variant="outline" size="icon" className="h-11 w-11">
-            <Download className="h-4 w-4" />
-          </Button>
-        </div>
-      </Card>
+    {/* Category Filter */}
+    <Select value={category} onValueChange={handleCategoryChange}>
+      <SelectTrigger className="h-9 w-full sm:w-52 text-sm bg-transparent border-border/50 focus:ring-0">
+        <SelectValue placeholder="Filter by category" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="ALL">All Categories</SelectItem>
+        {Object.entries(categoryLabels).map(([value, label]) => (
+          <SelectItem key={value} value={value}>
+            {label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+
+    {/* Download */}
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-9 w-9 text-muted-foreground hover:text-foreground"
+    >
+      <Download className="h-4 w-4" />
+    </Button>
+
+  </div>
+</Card>
+
 
       {/* Expenses Table */}
       <Card className="shadow-sm dark:shadow-none dark:border-gray-800">

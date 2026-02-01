@@ -1,9 +1,10 @@
 // app/(dashboard)/dashboard/documents/upload/page.tsx
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { FileUp } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { DocumentUpload } from "@/components/document/document-upload";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 
 export const metadata = {
   title: "Upload Document | Property Management",
@@ -41,20 +42,19 @@ export default async function UploadDocumentPage() {
   const properties = user?.landlordProfile?.properties || [];
   
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-          <FileUp className="h-6 w-6 text-primary" />
-        </div>
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Upload Document</h1>
-          <p className="text-muted-foreground">
+          <Typography variant="h2" className="mb-1">
+            Upload Document
+          </Typography>
+          <Typography variant="muted">
             Add a new document to your library
-          </p>
+          </Typography>
         </div>
-      </div>
-      
-      <DocumentUpload properties={properties} />
-    </div>
+        
+        <DocumentUpload properties={properties} />
+      </Stack>
+    </Container>
   );
 }

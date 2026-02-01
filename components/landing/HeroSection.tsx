@@ -2,6 +2,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { Meteors } from '../ui/meteors';
+import Link from 'next/link';
 
 const HeroSection = () => {
   // Generate random stars
@@ -73,19 +74,21 @@ const HeroSection = () => {
 
             {/* CTA Button */}
             <div className="pt-4">
-              <button className="group/button inline-flex items-center justify-center gap-2 font-medium text-base sm:text-lg leading-tight whitespace-nowrap hover:z-10 relative text-background animate-rainbow hover:opacity-85 bg-[linear-gradient(var(--foreground),var(--foreground)),linear-gradient(var(--background)_50%,rgba(18,18,19,0.6)_80%,rgba(18,18,19,0)),linear-gradient(90deg,#10b981,#06b6d4,#8b5cf6,#3b82f6,#6366f1,#a855f7,#ec4899,#f43f5e,#f97316,#eab308,#84cc16,#10b981)] bg-size-[200%] [background-clip:padding-box,border-box,border-box] bg-origin-border [border:calc(0.125rem)_solid_transparent] before:absolute before:bottom-[-20%] before:left-1/2 before:z-0 before:h-1/5 before:w-3/5 before:-translate-x-1/2 before:animate-rainbow before:bg-[linear-gradient(90deg,#10b981,#06b6d4,#8b5cf6,#3b82f6,#6366f1,#a855f7,#ec4899,#f43f5e,#f97316,#eab308,#84cc16,#10b981)] before:filter-[blur(0.75rem)] px-8 py-4 rounded-lg">
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 216 251" 
-    role="img" 
-    aria-label="Logo" 
-    className="w-5 h-5 sm:w-6 sm:h-6 fill-current"
-  >
-    <path d="M0 105v93c0 3.18.29 6.35 2.53 8.6l42.25 42.24C48.56 252.62 55 250.34 55 245v-93c0-3.19-1.05-6.36-3.31-8.62l-42.6-42.6C5.28 96.97-.02 99.64 0 105Zm74-49v132c0 3.18.79 6.14 3.03 8.38l42.25 42.24c3.77 3.78 10.72.73 10.72-4.62V103c0-3.18-1.55-6.5-3.8-8.76L83.56 51.62C79.8 47.84 74 50.66 74 56Zm74-50v155c0 3.18.84 6.6 3.08 8.85l54.99 54.98c3.78 3.78 9.93 1.02 9.93-4.33v-155c0-3.18-.76-6.1-3.01-8.36L157.62 1.77C153.84-2 148 .66 148 6Z"/>
-  </svg>
-  Start Managing Today
-</button>
-            </div>
+  <Link href="/sign-up">
+    <button className="group/button inline-flex items-center justify-center gap-2 font-medium text-base sm:text-lg leading-tight whitespace-nowrap hover:z-10 relative text-background animate-rainbow hover:opacity-85 bg-[linear-gradient(var(--foreground),var(--foreground)),linear-gradient(var(--background)_50%,rgba(18,18,19,0.6)_80%,rgba(18,18,19,0)),linear-gradient(90deg,#10b981,#06b6d4,#8b5cf6,#3b82f6,#6366f1,#a855f7,#ec4899,#f43f5e,#f97316,#eab308,#84cc16,#10b981)] bg-size-[200%] [background-clip:padding-box,border-box,border-box] bg-origin-border [border:calc(0.125rem)_solid_transparent] before:absolute before:bottom-[-20%] before:left-1/2 before:z-0 before:h-1/5 before:w-3/5 before:-translate-x-1/2 before:animate-rainbow before:bg-[linear-gradient(90deg,#10b981,#06b6d4,#8b5cf6,#3b82f6,#6366f1,#a855f7,#ec4899,#f43f5e,#f97316,#eab308,#84cc16,#10b981)] before:filter-[blur(0.75rem)] px-8 py-4 rounded-lg w-full">
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 216 251" 
+        role="img" 
+        aria-label="Logo" 
+        className="w-5 h-5 sm:w-6 sm:h-6 fill-current"
+      >
+        <path d="M0 105v93c0 3.18.29 6.35 2.53 8.6l42.25 42.24C48.56 252.62 55 250.34 55 245v-93c0-3.19-1.05-6.36-3.31-8.62l-42.6-42.6C5.28 96.97-.02 99.64 0 105Zm74-49v132c0 3.18.79 6.14 3.03 8.38l42.25 42.24c3.77 3.78 10.72.73 10.72-4.62V103c0-3.18-1.55-6.5-3.8-8.76L83.56 51.62C79.8 47.84 74 50.66 74 56Zm74-50v155c0 3.18.84 6.6 3.08 8.85l54.99 54.98c3.78 3.78 9.93 1.02 9.93-4.33v-155c0-3.18-.76-6.1-3.01-8.36L157.62 1.77C153.84-2 148 .66 148 6Z"/>
+      </svg>
+      Start Managing Today
+    </button>
+  </Link>
+</div>
 
             {/* Discount badge */}
             <div className="flex gap-x-2 gap-y-1 flex-row items-center place-content-start flex-wrap font-medium text-sm text-secondary-foreground text-center">

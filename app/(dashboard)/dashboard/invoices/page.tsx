@@ -68,31 +68,7 @@ export default async function InvoicesPage({
           <InvoiceStatsWrapper />
         </Suspense>
 
-        {/* Filters */}
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search invoices..."
-              className="pl-10"
-              defaultValue={search}
-            />
-          </div>
-          <Select defaultValue={status}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="DRAFT">Draft</SelectItem>
-              <SelectItem value="PENDING">Pending</SelectItem>
-              <SelectItem value="APPROVED">Approved</SelectItem>
-              <SelectItem value="PAID">Paid</SelectItem>
-              <SelectItem value="REJECTED">Rejected</SelectItem>
-              <SelectItem value="CANCELLED">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+
 
         {/* Invoice List */}
         <Suspense fallback={<InvoicesLoading />}>

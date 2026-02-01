@@ -305,10 +305,6 @@ const NavItemComponent = memo(({
 }) => {
   const showBadge = statValue !== undefined && statValue > 0;
 
-
-
-
-
   return (
     <Link href={item.href} onClick={onMobileClose}>
       <Button
@@ -365,6 +361,7 @@ export function DashboardSidebar({
   const [stats, setStats] = useState<SidebarStats>(initialStats || {});
   const [isHovering, setIsHovering] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const navigation = useMemo(() => getNavigation(role), [role]);
   const filteredNav = useMemo(
@@ -372,6 +369,11 @@ export function DashboardSidebar({
     [navigation, role]
   );
   const dashboardPath = useMemo(() => getDashboardPath(role), [role]);
+
+  // Handle mounting to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fetch stats on mount and periodically
   useEffect(() => {
@@ -413,53 +415,54 @@ export function DashboardSidebar({
     const effectiveCollapsed = isMobile ? false : isCollapsed;
 
     const { theme } = useTheme();
-    const logoSrc = theme === 'dark' ? '/propely-dark.svg' : '/propely-light.svg';
+    // Fix logo flickering by defaulting to dark theme before mounting
+    const logoSrc = !mounted ? '/propely-dark.svg' : theme === 'dark' ? '/propely-dark.svg' : '/propely-light.svg';
     
     return (
       <div className="flex h-full flex-col">
         {/* Logo */}
         <div className="flex h-16 shrink-0 items-center px-6">
-  {!effectiveCollapsed ? (
-    <Link 
-      href="/" 
-      className="flex items-center gap-2.5"
-      onClick={() => isMobile && onMobileClose()}
-    >
-      <Image
-        src={logoSrc}
-        alt="Propely"
-        width={120}
-        height={36}
-        className="h-9 w-auto"
-        priority
-      />
-    </Link>
-  ) : (
-    <Link
-      href={dashboardPath}
-      className="flex items-center gap-2"
-      onClick={() => isMobile && onMobileClose()}
-    >
-      <Home className="h-6 w-6 text-blue-600 dark:text-blue-400 mx-auto" />
-    </Link>
-  )}
-</div>
+          {!effectiveCollapsed ? (
+            <Link 
+              href="/" 
+              className="flex items-center gap-2.5"
+              onClick={() => isMobile && onMobileClose()}
+            >
+              <Image
+                src={logoSrc}
+                alt="Propely"
+                width={120}
+                height={36}
+                className="h-7 w-auto"
+                priority
+              />
+            </Link>
+          ) : (
+            <Link
+              href={dashboardPath}
+              className="flex items-center gap-2"
+              onClick={() => isMobile && onMobileClose()}
+            >
+              <Home className="h-6 w-6 text-blue-600 dark:text-blue-400 mx-auto" />
+            </Link>
+          )}
+        </div>
 
         {/* Navigation - Scrollable */}
-<ScrollArea className="flex-1 px-3 overflow-y-auto">
-  <nav className="flex flex-col gap-1 py-2">
-    {filteredNav.map((item) => (
-      <NavItemComponent 
-        key={item.href} 
-        item={item} 
-        isActive={isNavItemActive(item.href)}
-        isCollapsed={effectiveCollapsed}
-        onMobileClose={isMobile ? onMobileClose : undefined}
-        statValue={item.statKey ? stats[item.statKey as keyof SidebarStats] : undefined}
-      />
-    ))}
-  </nav>
-</ScrollArea>
+        <ScrollArea className="flex-1 px-3 overflow-y-auto">
+          <nav className="flex flex-col gap-1 py-2">
+            {filteredNav.map((item) => (
+              <NavItemComponent 
+                key={item.href} 
+                item={item} 
+                isActive={isNavItemActive(item.href)}
+                isCollapsed={effectiveCollapsed}
+                onMobileClose={isMobile ? onMobileClose : undefined}
+                statValue={item.statKey ? stats[item.statKey as keyof SidebarStats] : undefined}
+              />
+            ))}
+          </nav>
+        </ScrollArea>
 
         {/* Settings - Fixed at bottom */}
         <div className="shrink-0 border-t border-slate-200 p-4 dark:border-slate-800">

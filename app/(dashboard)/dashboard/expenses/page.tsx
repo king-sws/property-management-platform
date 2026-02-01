@@ -7,15 +7,7 @@ import { getExpenses } from "@/actions/expenses";
 import { ExpensesList } from "@/components/expenses/expenses-list";
 import { ExpensesHeader } from "@/components/expenses/expenses-header";
 import { Container, Stack } from "@/components/ui/container";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Typography } from "@/components/ui/typography";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata = {
@@ -53,7 +45,6 @@ export default async function ExpensesPage({
         {/* Header */}
         <ExpensesHeader />
 
-
         {/* Expenses List */}
         <Suspense fallback={<ExpensesLoading />}>
           <ExpensesListWrapper
@@ -90,7 +81,9 @@ async function ExpensesListWrapper({
   if (!result.success) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-        <p className="text-sm text-red-800">{result.error}</p>
+        <Typography variant="muted" className="text-sm text-red-800">
+          {result.error}
+        </Typography>
       </div>
     );
   }

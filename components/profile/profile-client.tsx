@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/profile/profile-client.tsx
 "use client";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileOverview } from "./profile-overview";
 import { ProfileEditor } from "./profile-editor";
@@ -16,15 +15,40 @@ interface ProfileClientProps {
 export function ProfileClient({ profile }: ProfileClientProps) {
   return (
     <Tabs defaultValue="overview" className="space-y-6">
-      <TabsList>
-        <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="edit">Edit Profile</TabsTrigger>
-        <TabsTrigger value="activity">Activity</TabsTrigger>
+      <TabsList className="w-full h-auto p-1 bg-transparent gap-2 flex-wrap justify-start">
+        <TabsTrigger 
+          value="overview" 
+          className="flex-1 min-w-[80px] sm:min-w-[100px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2.5 text-sm font-medium transition-all"
+        >
+          Overview
+        </TabsTrigger>
+        <TabsTrigger 
+          value="edit" 
+          className="flex-1 min-w-[80px] sm:min-w-[100px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2.5 text-sm font-medium transition-all"
+        >
+          Edit
+        </TabsTrigger>
+        <TabsTrigger 
+          value="activity" 
+          className="flex-1 min-w-[80px] sm:min-w-[100px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2.5 text-sm font-medium transition-all"
+        >
+          Activity
+        </TabsTrigger>
         {profile.roleStats && (
-          <TabsTrigger value="stats">Statistics</TabsTrigger>
+          <TabsTrigger 
+            value="stats" 
+            className="flex-1 min-w-[80px] sm:min-w-[100px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2.5 text-sm font-medium transition-all"
+          >
+            Stats
+          </TabsTrigger>
         )}
         {profile.user.role === "LANDLORD" && (
-          <TabsTrigger value="subscription">Subscription</TabsTrigger>
+          <TabsTrigger 
+            value="subscription" 
+            className="flex-1 min-w-[80px] sm:min-w-[120px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2.5 text-sm font-medium transition-all"
+          >
+            Subscription
+          </TabsTrigger>
         )}
       </TabsList>
 

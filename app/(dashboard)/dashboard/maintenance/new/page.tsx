@@ -4,8 +4,9 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { MaintenanceForm } from "@/components/maintenance/maintenance-form";
-import { Wrench } from "lucide-react";
 import prisma from "@/lib/prisma";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 
 export const metadata = {
   title: "New Maintenance Request | Property Management",
@@ -90,30 +91,27 @@ export default async function NewMaintenancePage() {
   }
   
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-          <Wrench className="h-6 w-6 text-primary" />
-        </div>
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <Typography variant="h2" className="mb-1">
             New Maintenance Request
-          </h1>
-          <p className="text-muted-foreground">
+          </Typography>
+          <Typography variant="muted">
             Submit a maintenance request for your property
-          </p>
+          </Typography>
         </div>
-      </div>
-      
-      {properties.length === 0 ? (
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-          <p className="text-sm text-yellow-800">
-            You don't have access to any properties at this time.
-          </p>
-        </div>
-      ) : (
-        <MaintenanceForm properties={properties} />
-      )}
-    </div>
+        
+        {properties.length === 0 ? (
+          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+            <Typography variant="muted" className="text-sm text-yellow-800">
+              You don't have access to any properties at this time.
+            </Typography>
+          </div>
+        ) : (
+          <MaintenanceForm properties={properties} />
+        )}
+      </Stack>
+    </Container>
   );
 }

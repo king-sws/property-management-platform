@@ -2,8 +2,9 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { LeaseForm } from "@/components/leases/lease-form";
-import { FileText } from "lucide-react";
 import prisma from "@/lib/prisma";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 
 export const metadata = {
   title: "Create Lease | Property Management",
@@ -20,39 +21,79 @@ export default async function NewLeasePage() {
     redirect("/dashboard");
   }
   
+  // Get landlord profile
+  const landlord = await prisma.landlord.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!landlord) {
+    redirect("/sign-in");
+  }
+  
   // Get landlord's properties with units
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+  const properties = await prisma.property.findMany({
+    where: {
+      landlordId: landlord.id,
+      isActive: true,
+      deletedAt: null,
+    },
     include: {
-      landlordProfile: {
-        include: {
-          properties: {
-            where: {
-              isActive: true,
-              deletedAt: null,
-            },
-            include: {
-              units: {
-                where: {
-                  isActive: true,
-                  deletedAt: null,
-                  status: "VACANT", // Only show vacant units
-                },
-              },
-            },
-          },
+      units: {
+        where: {
+          isActive: true,
+          deletedAt: null,
+          status: "VACANT", // Only show vacant units
+        },
+        orderBy: {
+          unitNumber: "asc",
         },
       },
     },
+    orderBy: {
+      name: "asc",
+    },
   });
   
-  // Get all active tenants
-  const tenants = await prisma.tenant.findMany({
+  // ✅ FIX: Get ONLY tenants who have a relationship with THIS landlord
+  // Using the correct relation name from schema: leaseMembers (not leases)
+  const tenantsWithHistory = await prisma.tenant.findMany({
     where: {
       deletedAt: null,
       user: {
         status: "ACTIVE",
       },
+      OR: [
+        // Tenants who have or had leases in landlord's properties
+        // ✅ Use leaseMembers instead of leases
+        {
+          leaseMembers: {
+            some: {
+              lease: {
+                unit: {
+                  property: {
+                    landlordId: landlord.id,
+                  },
+                },
+              },
+            },
+          },
+        },
+        // Tenants who have applications for landlord's properties
+        {
+          applications: {
+            some: {
+              unit: {
+                property: {
+                  landlordId: landlord.id,
+                },
+              },
+              status: {
+                in: ["APPROVED", "UNDER_REVIEW"],
+              },
+            },
+          },
+        },
+      ],
     },
     include: {
       user: {
@@ -61,13 +102,32 @@ export default async function NewLeasePage() {
           name: true,
           email: true,
           phone: true,
+          avatar: true,
+          image: true,
         },
       },
+      // ✅ Check if tenant currently has an active lease using leaseMembers
+      leaseMembers: {
+        where: {
+          lease: {
+            status: "ACTIVE",
+          },
+        },
+        take: 1,
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
     },
   });
+
+  // ✅ Filter out tenants who already have active leases
+  const availableTenants = tenantsWithHistory.filter(
+    (tenant) => tenant.leaseMembers.length === 0
+  );
   
   // Serialize properties to convert Decimal to number
-  const properties = (user?.landlordProfile?.properties || []).map((property) => ({
+  const serializedProperties = properties.map((property) => ({
     ...property,
     purchasePrice: property.purchasePrice ? Number(property.purchasePrice) : null,
     currentValue: property.currentValue ? Number(property.currentValue) : null,
@@ -83,6 +143,7 @@ export default async function NewLeasePage() {
     deletedAt: property.deletedAt?.toISOString() || null,
     units: property.units.map((unit) => ({
       ...unit,
+      bathrooms: unit.bathrooms ? Number(unit.bathrooms) : null,
       rentAmount: unit.rentAmount ? Number(unit.rentAmount) : null,
       deposit: unit.deposit ? Number(unit.deposit) : null,
       squareFeet: unit.squareFeet ? Number(unit.squareFeet) : null,
@@ -92,44 +153,54 @@ export default async function NewLeasePage() {
     })),
   }));
   
-  const serializedTenants = tenants.map((tenant) => ({
-  ...tenant,
-  annualIncome: tenant.annualIncome ? Number(tenant.annualIncome) : null,
-  dateOfBirth: tenant.dateOfBirth?.toISOString() || null,
-  createdAt: tenant.createdAt.toISOString(),
-  updatedAt: tenant.updatedAt.toISOString(),
-  deletedAt: tenant.deletedAt?.toISOString() || null,
-}));
+  const serializedTenants = availableTenants.map((tenant) => ({
+    ...tenant,
+    annualIncome: tenant.annualIncome ? Number(tenant.annualIncome) : null,
+    dateOfBirth: tenant.dateOfBirth?.toISOString() || null,
+    createdAt: tenant.createdAt.toISOString(),
+    updatedAt: tenant.updatedAt.toISOString(),
+    deletedAt: tenant.deletedAt?.toISOString() || null,
+    // Remove leaseMembers from serialized data (don't need to send to client)
+    leaseMembers: undefined,
+    user: tenant.user,
+  }));
   
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-          <FileText className="h-6 w-6 text-primary" />
-        </div>
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Create New Lease</h1>
-          <p className="text-muted-foreground">
+          <Typography variant="h2" className="mb-1">
+            Create New Lease
+          </Typography>
+          <Typography variant="muted">
             Set up a new rental agreement for your property
-          </p>
+          </Typography>
         </div>
-      </div>
-      
-      {properties.length === 0 ? (
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-          <p className="text-sm text-yellow-800">
-            You need to create a property and add units before creating a lease.
-          </p>
-        </div>
-      ) : tenants.length === 0 ? (
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-          <p className="text-sm text-yellow-800">
-            You need to create at least one tenant profile before creating a lease.
-          </p>
-        </div>
-      ) : (
-        <LeaseForm properties={properties} tenants={serializedTenants} />
-      )}
-    </div>
+        
+        {serializedProperties.length === 0 ? (
+          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+            <Typography variant="muted" className="text-sm text-yellow-800">
+              You need to create a property and add units before creating a lease.
+            </Typography>
+          </div>
+        ) : serializedTenants.length === 0 ? (
+          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+            <Typography className="text-sm font-semibold text-yellow-800 mb-2">
+              No Available Tenants
+            </Typography>
+            <Typography variant="muted" className="text-sm text-yellow-700 mb-3">
+              You don&#39;t have any tenants available for a new lease. Tenants become available when they:
+            </Typography>
+            <ul className="text-sm text-yellow-700 space-y-1 ml-4">
+              <li>• Apply for one of your properties</li>
+              <li>• Complete a previous lease with you</li>
+              <li>• Are manually added to your system</li>
+            </ul>
+          </div>
+        ) : (
+          <LeaseForm properties={serializedProperties} tenants={serializedTenants} />
+        )}
+      </Stack>
+    </Container>
   );
 }

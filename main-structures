@@ -1,5 +1,6 @@
 // Recommended Next.js App Router Structure
-
+so this  is a suggested file and folder structure for a comprehensive property management SaaS application using Next.js App Router. This structure includes authentication, marketing pages, and a multi-role dashboard for landlords, tenants, vendors, and admins.
+g
 src/
 ├── app/
 │   ├── (auth)/

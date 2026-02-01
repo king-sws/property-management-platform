@@ -3,7 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getApplicationById } from "@/actions/applications";
 import { ApplicationForm } from "@/components/applications/application-form";
-import { FileText } from "lucide-react";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 
 export const metadata = {
   title: "Edit Application | Property Management",
@@ -42,20 +43,19 @@ export default async function EditApplicationPage({ params }: PageProps) {
   }
   
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-          <FileText className="h-6 w-6 text-primary" />
-        </div>
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Edit Application</h1>
-          <p className="text-muted-foreground">
+          <Typography variant="h2" className="mb-1">
+            Edit Application
+          </Typography>
+          <Typography variant="muted">
             Update your rental application
-          </p>
+          </Typography>
         </div>
-      </div>
-      
-      <ApplicationForm application={application} isEdit />
-    </div>
+        
+        <ApplicationForm application={application} isEdit />
+      </Stack>
+    </Container>
   );
 }

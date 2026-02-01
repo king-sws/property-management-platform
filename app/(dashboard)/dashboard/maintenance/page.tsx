@@ -6,6 +6,8 @@ import { getMaintenanceTickets } from "@/actions/maintenance";
 import { MaintenanceList } from "@/components/maintenance/maintenance-list";
 import { MaintenanceHeader } from "@/components/maintenance/maintenance-header";
 import { MaintenanceSkeleton } from "@/components/maintenance/maintenance-skeleton";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 
 export const metadata = {
   title: "Maintenance | Property Management",
@@ -40,20 +42,22 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
   const propertyId = params.propertyId;
   
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <MaintenanceHeader />
-      
-      <Suspense fallback={<MaintenanceSkeleton />}>
-        <MaintenanceListWrapper
-          search={search}
-          status={status}
-          priority={priority}
-          category={category}
-          propertyId={propertyId}
-          page={page}
-        />
-      </Suspense>
-    </div>
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
+        <MaintenanceHeader />
+        
+        <Suspense fallback={<MaintenanceSkeleton />}>
+          <MaintenanceListWrapper
+            search={search}
+            status={status}
+            priority={priority}
+            category={category}
+            propertyId={propertyId}
+            page={page}
+          />
+        </Suspense>
+      </Stack>
+    </Container>
   );
 }
 
@@ -85,7 +89,9 @@ async function MaintenanceListWrapper({
   if (!result.success) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-        <p className="text-sm text-red-800">{result.error}</p>
+        <Typography variant="muted" className="text-sm text-red-800">
+          {result.error}
+        </Typography>
       </div>
     );
   }

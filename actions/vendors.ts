@@ -133,6 +133,35 @@ function serializeVendor(vendor: any) {
       createdAt: vendor.user.createdAt?.toISOString() || null,
       updatedAt: vendor.user.updatedAt?.toISOString() || null,
     } : null,
+    // Add this section to serialize tickets
+    tickets: vendor.tickets ? vendor.tickets.map((ticket: any) => ({
+      ...ticket,
+      estimatedCost: ticket.estimatedCost ? Number(ticket.estimatedCost) : null,
+      actualCost: ticket.actualCost ? Number(ticket.actualCost) : null,
+      scheduledDate: ticket.scheduledDate?.toISOString() || null,
+      completedDate: ticket.completedDate?.toISOString() || null,
+      createdAt: ticket.createdAt?.toISOString() || null,
+      updatedAt: ticket.updatedAt?.toISOString() || null,
+      deletedAt: ticket.deletedAt?.toISOString() || null,
+      property: ticket.property ? {
+        ...ticket.property,
+      } : null,
+    })) : [],
+    // Serialize appointments if they exist
+    appointments: vendor.appointments ? vendor.appointments.map((apt: any) => ({
+      ...apt,
+      scheduledStart: apt.scheduledStart?.toISOString() || null,
+      scheduledEnd: apt.scheduledEnd?.toISOString() || null,
+      completedAt: apt.completedAt?.toISOString() || null,
+      createdAt: apt.createdAt?.toISOString() || null,
+      updatedAt: apt.updatedAt?.toISOString() || null,
+    })) : [],
+    // Serialize reviews if they exist
+    reviews: vendor.reviews ? vendor.reviews.map((review: any) => ({
+      ...review,
+      createdAt: review.createdAt?.toISOString() || null,
+      updatedAt: review.updatedAt?.toISOString() || null,
+    })) : [],
   };
 }
 

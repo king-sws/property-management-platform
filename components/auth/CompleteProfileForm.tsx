@@ -32,7 +32,7 @@ const profileSchema = z.object({
   category: z.string().optional(),
   services: z.array(z.string()).optional(),
   licenseNumber: z.string().optional(),
-  isInsured: z.boolean(), // Remove .default(false)
+  isInsured: z.boolean(),
 }).superRefine((data, ctx) => {
   // Only validate vendor fields if role is VENDOR
   if (data.role === 'VENDOR') {
@@ -109,18 +109,18 @@ export function CompleteProfileForm({ user }: { user: any }) {
   const [loading, setLoading] = useState(false)
   const [currentService, setCurrentService] = useState('')
 
-const { register, handleSubmit, watch, setValue, control, formState: { errors } } = useForm<ProfileFormData>({
-  resolver: zodResolver(profileSchema),
-  defaultValues: {
-    role: 'TENANT',
-    services: [],
-    isInsured: false, // This is already correct
-    phone: '',
-    businessName: '',
-    category: '',
-    licenseNumber: '',
-  },
-});
+  const { register, handleSubmit, watch, setValue, control, formState: { errors } } = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      role: 'TENANT',
+      services: [],
+      isInsured: false,
+      phone: '',
+      businessName: '',
+      category: '',
+      licenseNumber: '',
+    },
+  });
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const selectedRole = watch('role')
@@ -129,7 +129,7 @@ const { register, handleSubmit, watch, setValue, control, formState: { errors } 
   const addService = () => {
     if (currentService.trim() && !services.includes(currentService.trim())) {
       setValue('services', [...services, currentService.trim()], {
-        shouldValidate: true, // ✅ Trigger validation
+        shouldValidate: true,
       })
       setCurrentService('')
     }
@@ -137,47 +137,42 @@ const { register, handleSubmit, watch, setValue, control, formState: { errors } 
 
   const removeService = (service: string) => {
     setValue('services', services.filter(s => s !== service), {
-      shouldValidate: true, // ✅ Trigger validation
+      shouldValidate: true,
     })
   }
 
-const onSubmit = async (data: ProfileFormData) => {
-  console.log('Form data:', data)
-  
-  setLoading(true)
-  try {
-    const result = await completeProfile(data)
+  const onSubmit = async (data: ProfileFormData) => {
+    console.log('Form data:', data)
     
-    if (result.success) {
-      toast.success(result.message || 'Profile completed successfully!')
+    setLoading(true)
+    try {
+      const result = await completeProfile(data)
       
-      // ✅ SOLUTION: Use hard redirect to force session refresh
-      // This causes the browser to completely reload the page,
-      // which fetches a fresh session from the server
-      window.location.href = '/dashboard'
-    } else {
-      toast.error(result.error || 'Failed to complete profile')
+      if (result.success) {
+        toast.success(result.message || 'Profile completed successfully!')
+        window.location.href = '/dashboard'
+      } else {
+        toast.error(result.error || 'Failed to complete profile')
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error('Submit error:', error)
+      toast.error('An unexpected error occurred')
       setLoading(false)
     }
-  } catch (error) {
-    console.error('Submit error:', error)
-    toast.error('An unexpected error occurred')
-    setLoading(false)
   }
-  // Don't set loading to false on success - page will redirect
-}
 
   return (
     <form 
       onSubmit={handleSubmit(onSubmit)} 
-      className="bg-white dark:bg-card rounded-lg shadow-lg dark:shadow-gray-800 p-8 space-y-6 border dark:border-gray-800"
+      className="bg-white dark:bg-[#181a1b] rounded-lg shadow-lg dark:shadow-gray-900 p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 border dark:border-slate-700 w-full max-w-2xl mx-auto"
     >
       {/* Role Selection */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+      <div className="space-y-2 sm:space-y-3">
+        <Label className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200">
           I am a *
         </Label>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-3">
           {roleOptions.map((option) => {
             const Icon = option.icon
             const isSelected = selectedRole === option.value
@@ -189,27 +184,27 @@ const onSubmit = async (data: ProfileFormData) => {
                 onClick={() => setValue('role', option.value)}
                 disabled={loading}
                 className={`
-                  flex flex-col items-center p-4 rounded-lg border-2 transition-all
+                  flex flex-col items-center p-2 sm:p-3 md:p-4 rounded-lg border-2 transition-all
                   ${isSelected 
-                    ? 'border-blue-600 dark:border-blue-500 bg-blue-50 dark:bg-blue-950' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-800'
+                    ? 'border-blue-600 dark:border-blue-500 bg-blue-50 dark:bg-blue-950/50' 
+                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-[#181a1b]'
                   }
                   ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}
               >
-                <Icon className={`w-8 h-8 mb-2 ${
+                <Icon className={`w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 mb-1 sm:mb-2 ${
                   isSelected 
                     ? 'text-blue-600 dark:text-blue-400' 
-                    : 'text-gray-400 dark:text-gray-500'
+                    : 'text-slate-400 dark:text-slate-500'
                 }`} />
-                <span className={`text-sm font-medium ${
+                <span className={`text-xs sm:text-sm font-medium ${
                   isSelected 
                     ? 'text-blue-600 dark:text-blue-400' 
-                    : 'text-gray-700 dark:text-gray-300'
+                    : 'text-slate-700 dark:text-slate-300'
                 }`}>
                   {option.label}
                 </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
+                <span className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 text-center mt-0.5 sm:mt-1 hidden sm:block">
                   {option.description}
                 </span>
               </button>
@@ -224,9 +219,9 @@ const onSubmit = async (data: ProfileFormData) => {
       </div>
 
       {/* Common Fields */}
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="phone" className="dark:text-gray-200">
+      <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label htmlFor="phone" className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200">
             Phone Number
           </Label>
           <Input
@@ -234,10 +229,10 @@ const onSubmit = async (data: ProfileFormData) => {
             id="phone"
             type="tel"
             placeholder="(555) 123-4567"
-            className="mt-1"
+            className="h-10 sm:h-11 text-sm sm:text-base dark:bg-[#181a1b] dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500"
           />
           {errors.phone && (
-            <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+            <p className="text-xs text-red-600 dark:text-red-400">
               {errors.phone.message}
             </p>
           )}
@@ -246,30 +241,30 @@ const onSubmit = async (data: ProfileFormData) => {
 
       {/* Vendor-Specific Fields */}
       {selectedRole === 'VENDOR' && (
-        <div className="space-y-4 border-t dark:border-gray-700 pt-6">
-          <h3 className="font-medium text-gray-900 dark:text-gray-100">
+        <div className="space-y-3 sm:space-y-4 border-t dark:border-slate-700 pt-4 sm:pt-6">
+          <h3 className="text-sm sm:text-base font-medium text-slate-900 dark:text-slate-100">
             Business Information
           </h3>
           
-          <div>
-            <Label htmlFor="businessName" className="dark:text-gray-200">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="businessName" className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200">
               Business Name *
             </Label>
             <Input
               {...register('businessName')}
               id="businessName"
               placeholder="ABC Plumbing Services"
-              className="mt-1"
+              className="h-10 sm:h-11 text-sm sm:text-base dark:bg-[#181a1b] dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500"
             />
             {errors.businessName && (
-              <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+              <p className="text-xs text-red-600 dark:text-red-400">
                 {errors.businessName.message}
               </p>
             )}
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="category" className="dark:text-gray-200">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="category" className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200">
               Category *
             </Label>
 
@@ -281,13 +276,20 @@ const onSubmit = async (data: ProfileFormData) => {
                   value={field.value}
                   onValueChange={field.onChange}
                 >
-                  <SelectTrigger id="category">
+                  <SelectTrigger 
+                    id="category" 
+                    className="h-10 sm:h-11 text-sm sm:text-base dark:bg-[#181a1b] dark:border-slate-700 dark:text-slate-100"
+                  >
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
 
-                  <SelectContent>
+                  <SelectContent className="dark:bg-[#181a1b] dark:border-slate-700">
                     {VENDOR_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
+                      <SelectItem 
+                        key={cat.value} 
+                        value={cat.value}
+                        className="text-sm sm:text-base dark:text-slate-100 dark:focus:bg-slate-800"
+                      >
                         {cat.label}
                       </SelectItem>
                     ))}
@@ -303,9 +305,11 @@ const onSubmit = async (data: ProfileFormData) => {
             )}
           </div>
 
-          <div>
-            <Label className="dark:text-gray-200">Services Offered *</Label>
-            <div className="flex gap-2 mt-1">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200">
+              Services Offered *
+            </Label>
+            <div className="flex gap-2">
               <Input
                 placeholder="Add a service..."
                 value={currentService}
@@ -316,18 +320,24 @@ const onSubmit = async (data: ProfileFormData) => {
                     addService()
                   }
                 }}
+                className="h-10 sm:h-11 text-sm sm:text-base dark:bg-[#181a1b] dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500"
               />
-              <Button type="button" onClick={addService} variant="outline">
+              <Button 
+                type="button" 
+                onClick={addService} 
+                variant="outline"
+                className="h-10 sm:h-11 px-3 sm:px-4 dark:bg-[#181a1b] dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
+              >
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
             {services.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
                 {services.map((service) => (
                   <Badge 
                     key={service} 
                     variant="secondary" 
-                    className="gap-1 dark:bg-gray-700 dark:text-gray-200"
+                    className="gap-1 text-xs sm:text-sm dark:bg-slate-700 dark:text-slate-200"
                   >
                     {service}
                     <X
@@ -339,35 +349,35 @@ const onSubmit = async (data: ProfileFormData) => {
               </div>
             )}
             {errors.services && (
-              <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+              <p className="text-xs text-red-600 dark:text-red-400">
                 {errors.services.message}
               </p>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="licenseNumber" className="dark:text-gray-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="licenseNumber" className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200">
                 License Number
               </Label>
               <Input
                 {...register('licenseNumber')}
                 id="licenseNumber"
                 placeholder="LIC-123456"
-                className="mt-1"
+                className="h-10 sm:h-11 text-sm sm:text-base dark:bg-[#181a1b] dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500"
               />
             </div>
 
-            <div className="flex items-center pt-6">
+            <div className="flex items-center pt-0 sm:pt-6">
               <input
                 {...register('isInsured')}
                 id="isInsured"
                 type="checkbox"
-                className="h-4 w-4 text-blue-600 dark:text-blue-500 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-blue-500 dark:focus:ring-blue-600"
+                className="h-4 w-4 text-blue-600 dark:text-blue-500 rounded border-slate-300 dark:border-slate-600 dark:bg-[#181a1b] focus:ring-blue-500 dark:focus:ring-blue-600 flex-shrink-0"
               />
               <Label 
                 htmlFor="isInsured" 
-                className="ml-2 dark:text-gray-200 cursor-pointer"
+                className="ml-2 text-xs sm:text-sm text-slate-700 dark:text-slate-200 cursor-pointer"
               >
                 I am insured
               </Label>
@@ -378,7 +388,7 @@ const onSubmit = async (data: ProfileFormData) => {
 
       <Button
         type="submit"
-        className="w-full"
+        className="w-full h-10 sm:h-11 text-sm sm:text-base bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900"
         disabled={loading}
       >
         {loading ? 'Completing...' : 'Complete Profile'}

@@ -19,13 +19,13 @@ import {
   Car,
   Zap,
   ArrowLeft,
-  MessageCircle,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { getPropertyForTenant } from "@/actions/browse-properties";
 import { StaticImport } from "next/dist/shared/lib/get-img-props";
 import { Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react";
+import { ContactLandlordButton } from "@/components/properties/contact-landlord-button";
 
 
 export default async function PropertyDetailPage({
@@ -62,7 +62,7 @@ export default async function PropertyDetailPage({
     <div className="space-y-6">
       {/* Back Button */}
       <Link href="/dashboard/browse-properties">
-        <Button variant="ghost">
+        <Button variant="ghost" className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Browse
         </Button>
@@ -120,10 +120,13 @@ export default async function PropertyDetailPage({
               Apply Now
             </Button>
           </Link>
-          <Button size="lg" variant="outline">
-            <MessageCircle className="mr-2 h-4 w-4" />
-            Contact
-          </Button>
+          <ContactLandlordButton
+            landlordId={property.landlord?.id}
+            propertyName={property.name}
+            propertyId={property.id}
+            size="lg"
+            variant="outline"
+          />
         </div>
       </div>
 
@@ -366,10 +369,14 @@ export default async function PropertyDetailPage({
                   </a>
                 </div>
               )}
-              <Button className="w-full mt-4" variant="outline">
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Send Message
-              </Button>
+              <ContactLandlordButton
+                landlordId={property.landlord.id}
+                propertyName={property.name}
+                propertyId={property.id}
+                variant="outline"
+                size="default"
+                className="w-full mt-4"
+              />
             </CardContent>
           </Card>
         </div>

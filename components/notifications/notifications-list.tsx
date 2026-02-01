@@ -28,7 +28,6 @@ import {
   FileText,
   Wrench,
   CheckCircle,
-  CreditCard,
   XCircle,
   MessageSquare,
   Mail,
@@ -40,7 +39,14 @@ import {
   RefreshCw,
   Settings,
   TrendingUp,
+  MoreVertical,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
@@ -233,15 +239,221 @@ export function NotificationsList({
     return colors[type] || "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
   };
 
+  const NotificationCard = ({ notification }: { notification: any }) => {
+    const { icon: Icon, color } = getNotificationIcon(notification.type);
+    const bgColor = getNotificationBgColor(notification.type);
+
+    return (
+      <div
+        className={`relative group rounded-lg border transition-all ${
+          !notification.isRead
+            ? "bg-primary/5 border-primary/20"
+            : "bg-card"
+        } ${notification.actionUrl ? "cursor-pointer hover:bg-accent/50" : ""}`}
+        onClick={() =>
+          notification.actionUrl && handleNotificationClick(notification)
+        }
+      >
+        {/* Mobile Layout */}
+        <div className="block lg:hidden p-3">
+          <div className="flex gap-3">
+            {/* Icon - Smaller on mobile */}
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${bgColor}`}>
+              <Icon className={`h-5 w-5 ${color}`} />
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              {/* Title and Badge */}
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <h3 className="font-semibold text-sm leading-tight pr-2">
+                  {notification.title}
+                </h3>
+                {!notification.isRead && (
+                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1" />
+                )}
+              </div>
+
+              {/* Badge - Moved below title on mobile */}
+              <Badge
+                variant="secondary"
+                className={`text-[10px] px-1.5 py-0 h-5 mb-2 ${getNotificationColor(notification.type)}`}
+              >
+                {notification.type.replace(/_/g, " ")}
+              </Badge>
+
+              {/* Message */}
+              <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                {notification.message}
+              </p>
+
+              {/* Time */}
+              <p className="text-[10px] text-muted-foreground mb-2">
+                {formatDistanceToNow(new Date(notification.createdAt), {
+                  addSuffix: true,
+                })}
+              </p>
+
+              {/* Actions */}
+              <div className="flex items-center gap-1">
+                {!notification.isRead && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleMarkAsRead(notification.id);
+                    }}
+                  >
+                    <Check className="h-3 w-3 mr-1" />
+                    Read
+                  </Button>
+                )}
+                {notification.actionUrl && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs text-primary"
+                    asChild
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Link href={notification.actionUrl}>
+                      View
+                    </Link>
+                  </Button>
+                )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 ml-auto"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {!notification.isRead && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMarkAsRead(notification.id);
+                        }}
+                      >
+                        <Check className="h-4 w-4 mr-2" />
+                        Mark as read
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(notification.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden lg:block p-4">
+          <div className="flex gap-4">
+            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${bgColor}`}>
+              <Icon className={`h-6 w-6 ${color}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-semibold text-base">{notification.title}</h3>
+                  <Badge
+                    variant="secondary"
+                    className={`text-xs ${getNotificationColor(notification.type)}`}
+                  >
+                    {notification.type.replace(/_/g, " ")}
+                  </Badge>
+                </div>
+                {!notification.isRead && (
+                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2" />
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">
+                {notification.message}
+              </p>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span>
+                    {formatDistanceToNow(new Date(notification.createdAt), {
+                      addSuffix: true,
+                    })}
+                  </span>
+                  <span>
+                    {format(new Date(notification.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {!notification.isRead && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkAsRead(notification.id);
+                      }}
+                    >
+                      <Check className="h-4 w-4 mr-1" />
+                      Mark read
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive h-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(notification.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+              {notification.actionUrl && (
+                <div className="mt-2">
+                  <Link
+                    href={notification.actionUrl}
+                    className="text-sm text-primary hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    View details →
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <CardTitle>All Notifications</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl sm:text-2xl">Notifications</CardTitle>
+            <CardDescription className="text-sm">
               {unreadCount > 0
-                ? `You have ${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
+                ? `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
                 : "You're all caught up!"}
             </CardDescription>
           </div>
@@ -254,11 +466,11 @@ export function NotificationsList({
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <CheckCheck className="h-4 w-4 mr-2" />
+                  <CheckCheck className="h-4 w-4" />
                 )}
-                Mark all as read
+                <span className="ml-2 hidden sm:inline">Mark all read</span>
               </Button>
             )}
             <Button
@@ -268,11 +480,11 @@ export function NotificationsList({
               disabled={isLoading || notifications.filter((n) => n.isRead).length === 0}
             >
               {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4" />
               )}
-              Clear read
+              <span className="ml-2 hidden sm:inline">Clear read</span>
             </Button>
           </div>
         </div>
@@ -298,99 +510,9 @@ export function NotificationsList({
                 </p>
               </div>
             ) : (
-              filteredNotifications.map((notification) => {
-                const { icon: Icon, color } = getNotificationIcon(notification.type);
-                const bgColor = getNotificationBgColor(notification.type);
-
-                return (
-                  <div
-                    key={notification.id}
-                    className={`relative group rounded-lg border p-4 transition-colors ${
-                      !notification.isRead
-                        ? "bg-primary/5 border-primary/20"
-                        : "bg-card"
-                    } ${notification.actionUrl ? "cursor-pointer hover:bg-muted" : ""}`}
-                    onClick={() =>
-                      notification.actionUrl && handleNotificationClick(notification)
-                    }
-                  >
-                    <div className="flex gap-4">
-                      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${bgColor}`}>
-                        <Icon className={`h-6 w-6 ${color}`} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold">{notification.title}</h3>
-                            <Badge
-                              variant="secondary"
-                              className={`text-xs ${getNotificationColor(notification.type)}`}
-                            >
-                              {notification.type.replace(/_/g, " ")}
-                            </Badge>
-                          </div>
-                          {!notification.isRead && (
-                            <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2" />
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          {notification.message}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span>
-                              {formatDistanceToNow(new Date(notification.createdAt), {
-                                addSuffix: true,
-                              })}
-                            </span>
-                            <span>
-                              {format(new Date(notification.createdAt), "MMM d, yyyy 'at' h:mm a")}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {!notification.isRead && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMarkAsRead(notification.id);
-                                }}
-                              >
-                                <Check className="h-4 w-4 mr-1" />
-                                Mark read
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(notification.id);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                        {notification.actionUrl && (
-                          <div className="mt-2">
-                            <Link
-                              href={notification.actionUrl}
-                              className="text-sm text-primary hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              View details →
-                            </Link>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
+              filteredNotifications.map((notification) => (
+                <NotificationCard key={notification.id} notification={notification} />
+              ))
             )}
           </TabsContent>
 
@@ -404,93 +526,9 @@ export function NotificationsList({
                 </p>
               </div>
             ) : (
-              filteredNotifications.map((notification) => {
-                const { icon: Icon, color } = getNotificationIcon(notification.type);
-                const bgColor = getNotificationBgColor(notification.type);
-
-                return (
-                  <div
-                    key={notification.id}
-                    className={`relative group rounded-lg border p-4 transition-colors bg-primary/5 border-primary/20 ${
-                      notification.actionUrl ? "cursor-pointer hover:bg-muted" : ""
-                    }`}
-                    onClick={() =>
-                      notification.actionUrl && handleNotificationClick(notification)
-                    }
-                  >
-                    <div className="flex gap-4">
-                      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${bgColor}`}>
-                        <Icon className={`h-6 w-6 ${color}`} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold">{notification.title}</h3>
-                            <Badge
-                              variant="secondary"
-                              className={`text-xs ${getNotificationColor(notification.type)}`}
-                            >
-                              {notification.type.replace(/_/g, " ")}
-                            </Badge>
-                          </div>
-                          <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2" />
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          {notification.message}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span>
-                              {formatDistanceToNow(new Date(notification.createdAt), {
-                                addSuffix: true,
-                              })}
-                            </span>
-                            <span>
-                              {format(new Date(notification.createdAt), "MMM d, yyyy 'at' h:mm a")}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleMarkAsRead(notification.id);
-                              }}
-                            >
-                              <Check className="h-4 w-4 mr-1" />
-                              Mark read
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(notification.id);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                        {notification.actionUrl && (
-                          <div className="mt-2">
-                            <Link
-                              href={notification.actionUrl}
-                              className="text-sm text-primary hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              View details →
-                            </Link>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
+              filteredNotifications.map((notification) => (
+                <NotificationCard key={notification.id} notification={notification} />
+              ))
             )}
           </TabsContent>
         </Tabs>

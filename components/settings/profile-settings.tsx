@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X, Camera } from "lucide-react";
 import { updateProfile } from "@/actions/settings";
 import { toast } from "sonner";
 
@@ -156,33 +156,62 @@ export function ProfileSettings({ profile }: ProfileSettingsProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Profile Information</CardTitle>
-        <CardDescription>
+    <Card className="w-full">
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="text-lg sm:text-xl">Profile Information</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">
           Update your personal information and profile picture
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 sm:p-6 pt-0">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Avatar Upload */}
-            <div className="flex items-center gap-6">
-              <Avatar className="h-24 w-24">
-                <AvatarImage 
-                  src={previewUrl || profile.avatar}
-                  key={previewUrl || profile.avatar} // Force re-render on URL change
-                />
-                <AvatarFallback className="text-2xl">
-                  {profile.name?.charAt(0).toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 space-y-2">
-                <div>
-                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+            {/* Avatar Upload - Responsive Layout */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+              {/* Avatar with Camera Button */}
+              <div className="relative flex-shrink-0">
+                <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
+                  <AvatarImage 
+                    src={previewUrl || profile.avatar}
+                    key={previewUrl || profile.avatar}
+                  />
+                  <AvatarFallback className="text-xl sm:text-2xl">
+                    {profile.name?.charAt(0).toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                
+                {/* Camera Button Overlay */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading || isLoading}
+                  className="
+                    absolute 
+                    bottom-0 
+                    right-0 
+                    p-1.5 
+                    sm:p-2 
+                    bg-primary 
+                    text-primary-foreground 
+                    rounded-full 
+                    hover:bg-primary/90 
+                    transition-colors 
+                    disabled:opacity-50
+                    shadow-md
+                  "
+                >
+                  <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
+                </button>
+              </div>
+
+              {/* Upload Controls */}
+              <div className="flex-1 w-full space-y-2">
+                <div className="text-center sm:text-left">
+                  <label className="text-xs sm:text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Profile Picture
                   </label>
-                  <div className="flex items-center gap-2 mt-2">
+                  
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-2">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -191,12 +220,14 @@ export function ProfileSettings({ profile }: ProfileSettingsProps) {
                       className="hidden"
                       disabled={isUploading || isLoading}
                     />
+                    
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading || isLoading}
                       className="w-full sm:w-auto"
+                      size="sm"
                     >
                       {isUploading ? (
                         <>
@@ -210,30 +241,38 @@ export function ProfileSettings({ profile }: ProfileSettingsProps) {
                         </>
                       )}
                     </Button>
+                    
                     {previewUrl && (
                       <Button
                         type="button"
                         variant="ghost"
-                        size="icon"
                         onClick={handleRemoveImage}
                         disabled={isUploading || isLoading}
+                        className="w-full sm:w-auto"
+                        size="sm"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="mr-2 h-4 w-4" />
+                        Remove
                       </Button>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Upload a profile picture (max 2MB, JPG, PNG, or GIF)
+                  
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Max 2MB • JPG, PNG, or GIF
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Email (read-only) */}
-            <div>
-              <FormLabel>Email</FormLabel>
-              <Input value={profile.email} disabled />
-              <p className="text-sm text-muted-foreground mt-2">
+            <div className="space-y-2">
+              <FormLabel className="text-xs sm:text-sm">Email</FormLabel>
+              <Input 
+                value={profile.email} 
+                disabled 
+                className="text-xs sm:text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
                 Email cannot be changed
               </p>
             </div>
@@ -244,11 +283,15 @@ export function ProfileSettings({ profile }: ProfileSettingsProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel className="text-xs sm:text-sm">Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input 
+                      placeholder="John Doe" 
+                      {...field} 
+                      className="text-xs sm:text-sm"
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
@@ -259,29 +302,47 @@ export function ProfileSettings({ profile }: ProfileSettingsProps) {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel className="text-xs sm:text-sm">Phone Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="+1 (555) 000-0000" {...field} />
+                    <Input 
+                      placeholder="+1 (555) 000-0000" 
+                      {...field} 
+                      className="text-xs sm:text-sm"
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
 
-            {/* Role & Status (read-only) */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <FormLabel>Role</FormLabel>
-                <Input value={profile.role} disabled />
+            {/* Role & Status (read-only) - Responsive Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-2">
+                <FormLabel className="text-xs sm:text-sm">Role</FormLabel>
+                <Input 
+                  value={profile.role} 
+                  disabled 
+                  className="text-xs sm:text-sm"
+                />
               </div>
-              <div>
-                <FormLabel>Account Status</FormLabel>
-                <Input value={profile.status} disabled />
+              <div className="space-y-2">
+                <FormLabel className="text-xs sm:text-sm">Account Status</FormLabel>
+                <Input 
+                  value={profile.status} 
+                  disabled 
+                  className="text-xs sm:text-sm"
+                />
               </div>
             </div>
 
-            <div className="flex justify-end">
-              <Button type="submit" disabled={isLoading || isUploading}>
+            {/* Submit Button - Full width on mobile */}
+            <div className="flex justify-end pt-2">
+              <Button 
+                type="submit" 
+                disabled={isLoading || isUploading}
+                className="w-full sm:w-auto"
+                size="sm"
+              >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Changes
               </Button>

@@ -5,7 +5,8 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText } from "lucide-react";
+import { Typography } from "@/components/ui/typography";
+import { ArrowLeft } from "lucide-react";
 import { MessageAboutApplicationButton } from "../messages/quick-message-buttons";
 
 interface ApplicationDetailHeaderProps {
@@ -63,29 +64,25 @@ export function ApplicationDetailHeader({
       </Button>
 
       <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-            <FileText className="h-6 w-6 text-primary" />
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <Typography variant="h2">
+              Application Details
+            </Typography>
+            <Badge className={statusColors[application.status]}>
+              {statusLabels[application.status]}
+            </Badge>
           </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight">
-                Application Details
-              </h1>
-              <Badge className={statusColors[application.status]}>
-                {statusLabels[application.status]}
-              </Badge>
-            </div>
-            <p className="text-muted-foreground">
-              {isLandlord && `Application from ${application.tenant.user.name}`}
-              {isTenant && `Application for ${application.unit.property.name}`}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Application ID: {application.id.slice(0, 8)}...
-            </p>
-          </div>
+          <Typography variant="muted">
+            {isLandlord && `Application from ${application.tenant.user.name}`}
+            {isTenant && `Application for ${application.unit.property.name}`}
+          </Typography>
+          <Typography variant="muted" className="text-sm">
+            Application ID: {application.id.slice(0, 8)}...
+          </Typography>
         </div>
       </div>
+
       {/* MESSAGE BUTTON - Available to both landlord and tenant */}
       {(isLandlord || isTenant) && (
         <MessageAboutApplicationButton

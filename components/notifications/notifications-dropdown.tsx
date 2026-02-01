@@ -219,9 +219,13 @@ export function NotificationDropdown({ initialCount = 0 }: NotificationDropdownP
           <span className="sr-only">Notifications</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-100 p-0">
-        <div className="flex items-center justify-between border-b px-4 py-3">
-          <DropdownMenuLabel className="p-0 text-base font-semibold">
+      <DropdownMenuContent 
+        align="end"
+        className="w-[calc(100vw-2rem)] sm:w-96 max-w-md p-0 data-[side=bottom]:sm:translate-x-0 data-[side=bottom]:translate-x-[calc(50vw-50%-1.25rem)]"
+        sideOffset={8}
+      >
+        <div className="flex items-center justify-between border-b px-3 sm:px-4 py-2 sm:py-3">
+          <DropdownMenuLabel className="p-0 text-sm sm:text-base font-semibold">
             Notifications
           </DropdownMenuLabel>
           {unreadCount > 0 && (
@@ -229,21 +233,22 @@ export function NotificationDropdown({ initialCount = 0 }: NotificationDropdownP
               variant="ghost"
               size="sm"
               onClick={handleMarkAllAsRead}
-              className="h-8 text-xs"
+              className="h-7 sm:h-8 text-xs px-2 sm:px-3"
             >
               <CheckCheck className="mr-1 h-3 w-3" />
-              Mark all read
+              <span className="hidden xs:inline">Mark all read</span>
+              <span className="xs:hidden">Read all</span>
             </Button>
           )}
         </div>
 
-        <ScrollArea className="h-100">
+        <ScrollArea className="h-[60vh] sm:h-96 max-h-[500px]">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="flex flex-col items-center justify-center py-8 text-center px-4">
               <Bell className="mb-2 h-8 w-8 text-muted-foreground/50" />
               <p className="text-sm font-medium text-muted-foreground">
                 No notifications
@@ -261,39 +266,39 @@ export function NotificationDropdown({ initialCount = 0 }: NotificationDropdownP
                 return (
                   <div
                     key={notification.id}
-                    className={`group relative cursor-pointer px-4 py-3 transition-colors hover:bg-muted/50 ${
+                    className={`group relative cursor-pointer px-3 sm:px-4 py-2.5 sm:py-3 transition-colors hover:bg-muted/50 ${
                       !notification.isRead ? "bg-primary/5" : ""
                     }`}
                     onClick={() => handleNotificationClick(notification)}
                   >
-                    <div className="flex gap-3">
-                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${bgColor}`}>
-                        <Icon className={`h-5 w-5 ${color}`} />
+                    <div className="flex gap-2 sm:gap-3">
+                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full ${bgColor}`}>
+                        <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${color}`} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1">
-                          <h4 className="text-sm font-semibold leading-tight">
+                          <h4 className="text-xs sm:text-sm font-semibold leading-tight">
                             {notification.title}
                           </h4>
                           {!notification.isRead && (
-                            <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1" />
+                            <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-0.5 sm:mt-1" />
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground line-clamp-2 mb-1">
                           {notification.message}
                         </p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground truncate">
                             {formatDistanceToNow(new Date(notification.createdAt), {
                               addSuffix: true,
                             })}
                           </span>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center gap-0.5 sm:gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                             {!notification.isRead && (
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 px-2 text-xs"
+                                className="h-6 sm:h-7 px-1.5 sm:px-2 text-xs"
                                 onClick={(e) => handleMarkAsRead(notification.id, e)}
                               >
                                 <Check className="h-3 w-3" />
@@ -302,7 +307,7 @@ export function NotificationDropdown({ initialCount = 0 }: NotificationDropdownP
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-6 px-2 text-xs text-destructive hover:text-destructive"
+                              className="h-6 sm:h-7 px-1.5 sm:px-2 text-xs text-destructive hover:text-destructive"
                               onClick={(e) => handleDelete(notification.id, e)}
                             >
                               <Trash2 className="h-3 w-3" />
@@ -321,7 +326,7 @@ export function NotificationDropdown({ initialCount = 0 }: NotificationDropdownP
         <DropdownMenuSeparator />
         <div className="p-2">
           <Link href="/dashboard/notifications" onClick={() => setOpen(false)}>
-            <Button variant="ghost" className="w-full justify-center text-sm" size="sm">
+            <Button variant="ghost" className="w-full justify-center text-xs sm:text-sm" size="sm">
               View all notifications
               <ExternalLink className="ml-2 h-3 w-3" />
             </Button>

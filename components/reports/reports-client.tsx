@@ -15,7 +15,8 @@ import {
   TrendingUp, 
   Calendar as CalendarIcon,
   Download,
-  Loader2
+  Loader2,
+  Save
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -37,32 +38,32 @@ import { PaymentHistoryView } from "./payment-history-view";
 const reportTypes = [
   {
     id: "financial",
-    title: "Financial Report",
-    description: "Income, expenses, and profitability",
+    title: "Financial",
+    description: "Income & expenses",
     icon: DollarSign,
   },
   {
     id: "occupancy",
-    title: "Occupancy Report",
-    description: "Unit vacancy and occupancy rates",
+    title: "Occupancy",
+    description: "Vacancy rates",
     icon: Home,
   },
   {
     id: "maintenance",
-    title: "Maintenance Report",
-    description: "Repair tickets and costs",
+    title: "Maintenance",
+    description: "Repair tickets",
     icon: BarChart3,
   },
   {
     id: "rent-roll",
     title: "Rent Roll",
-    description: "Current tenant and rent summary",
+    description: "Tenant summary",
     icon: FileText,
   },
   {
     id: "payment-history",
-    title: "Payment History",
-    description: "Payment transactions and trends",
+    title: "Payments",
+    description: "Transaction history",
     icon: TrendingUp,
   },
 ];
@@ -145,7 +146,6 @@ export function ReportsClient() {
   const handleExportCSV = () => {
     if (!reportData) return;
 
-    // Simple CSV export logic
     const csvContent = generateCSV(activeReport, reportData);
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
@@ -158,54 +158,93 @@ export function ReportsClient() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Report Type Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="space-y-4">
+      {/* Report Type Selection - Compact Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
         {reportTypes.map((report) => (
           <Card
             key={report.id}
             className={cn(
-              "cursor-pointer transition-all hover:shadow-md",
-              activeReport === report.id && "ring-2 ring-primary"
+              "cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]",
+              activeReport === report.id && "ring-2 ring-primary shadow-md"
             )}
             onClick={() => setActiveReport(report.id)}
           >
-            <CardHeader className="pb-3">
-              <report.icon className="h-8 w-8 text-primary mb-2" />
-              <CardTitle className="text-base">{report.title}</CardTitle>
-              <CardDescription className="text-xs">{report.description}</CardDescription>
+            <CardHeader className="p-4 pb-2">
+              <div className="flex items-center gap-2 mb-1">
+                <report.icon className="h-5 w-5 text-primary flex-shrink-0" />
+                <CardTitle className="text-sm font-semibold leading-tight">
+                  {report.title}
+                </CardTitle>
+              </div>
+              <CardDescription className="text-xs line-clamp-1">
+                {report.description}
+              </CardDescription>
             </CardHeader>
           </Card>
         ))}
       </div>
 
-      {/* Date Range Selector & Generate Button */}
+      {/* Date Range Selector & Generate Button - Compact */}
       <Card>
-        <CardHeader>
-          <CardTitle>Generate Report</CardTitle>
-          <CardDescription>
-            Select a date range and generate your report
-          </CardDescription>
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <CardTitle className="text-lg">Generate Report</CardTitle>
+              <CardDescription className="text-xs">
+                Select date range and generate
+              </CardDescription>
+            </div>
+            {reportData && (
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleExportCSV}
+                  className="h-8"
+                >
+                  <Download className="mr-1.5 h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Export</span>
+                  <span className="sm:hidden">CSV</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleSaveReport}
+                  className="h-8"
+                >
+                  <Save className="mr-1.5 h-3.5 w-3.5" />
+                  Save
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 items-end">
-            <div className="flex-1 space-y-2">
-              <label className="text-sm font-medium">Date Range</label>
-              <div className="flex gap-2">
+        <CardContent className="pb-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
+            {/* Date Range */}
+            <div className="flex-1 space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">
+                Date Range
+              </label>
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
+                      size="sm"
                       className={cn(
-                        "justify-start text-left font-normal",
+                        "justify-start text-left font-normal h-9 flex-1",
                         !dateRange.from && "text-muted-foreground"
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange.from ? format(dateRange.from, "PPP") : "Start date"}
+                      <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                      <span className="text-xs">
+                        {dateRange.from ? format(dateRange.from, "MMM dd, yyyy") : "Start date"}
+                      </span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={dateRange.from}
@@ -219,16 +258,19 @@ export function ReportsClient() {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
+                      size="sm"
                       className={cn(
-                        "justify-start text-left font-normal",
+                        "justify-start text-left font-normal h-9 flex-1",
                         !dateRange.to && "text-muted-foreground"
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange.to ? format(dateRange.to, "PPP") : "End date"}
+                      <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                      <span className="text-xs">
+                        {dateRange.to ? format(dateRange.to, "MMM dd, yyyy") : "End date"}
+                      </span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={dateRange.to}
@@ -240,31 +282,23 @@ export function ReportsClient() {
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button onClick={handleGenerateReport} disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Generate Report
-              </Button>
-
-              {reportData && (
-                <>
-                  <Button variant="outline" onClick={handleExportCSV}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export CSV
-                  </Button>
-                  <Button variant="outline" onClick={handleSaveReport}>
-                    Save Report
-                  </Button>
-                </>
-              )}
-            </div>
+            {/* Generate Button */}
+            <Button 
+              onClick={handleGenerateReport} 
+              disabled={isLoading}
+              className="h-9 sm:w-auto w-full"
+              size="sm"
+            >
+              {isLoading && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              <span className="text-xs font-medium">Generate Report</span>
+            </Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Report Display */}
       {reportData && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {activeReport === "financial" && <FinancialReportView data={reportData} />}
           {activeReport === "occupancy" && <OccupancyReportView data={reportData} />}
           {activeReport === "maintenance" && <MaintenanceReportView data={reportData} />}

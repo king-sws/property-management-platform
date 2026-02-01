@@ -48,9 +48,9 @@ interface Props {
 export default function ConversationList({ conversations, activeConversationId }: Props) {
   return (
     <div className="space-y-2">
-      <h2 className="font-semibold text-lg mb-4">Conversations</h2>
-      <ScrollArea className="h-[calc(100vh-16rem)]">
-        <div className="space-y-2">
+      <h2 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Conversations</h2>
+      <ScrollArea className="h-[calc(100vh-12rem)] sm:h-[calc(100vh-14rem)] lg:h-[calc(100vh-16rem)]">
+        <div className="space-y-2 pr-2 sm:pr-4">
           {conversations.map((conversation) => {
             const lastMessage = conversation.messages[0];
             const otherParticipant = conversation.participants.find(
@@ -62,25 +62,25 @@ export default function ConversationList({ conversations, activeConversationId }
                 key={conversation.id}
                 href={`/dashboard/messages/${conversation.id}`}
                 className={cn(
-                  "block p-4 border rounded-lg hover:bg-accent transition-colors",
+                  "block p-3 sm:p-4 border rounded-lg hover:bg-accent transition-colors",
                   activeConversationId === conversation.id && "bg-accent border-primary"
                 )}
               >
                 <div className="flex items-start space-x-3">
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0">
                     <AvatarImage src={otherParticipant?.image || otherParticipant?.avatar || undefined} />
-                    <AvatarFallback>
+                    <AvatarFallback className="text-sm">
                       {otherParticipant?.name?.[0]?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="font-semibold truncate">
+                    <div className="flex items-center justify-between mb-1 gap-2">
+                      <p className="font-semibold truncate text-sm sm:text-base">
                         {conversation.subject || otherParticipant?.name || "Unknown"}
                       </p>
                       {conversation.unreadCount && conversation.unreadCount > 0 ? (
-                        <Badge variant="default" className="ml-2">
+                        <Badge variant="default" className="ml-auto flex-shrink-0 text-xs px-2 py-0">
                           {conversation.unreadCount}
                         </Badge>
                       ) : null}
@@ -88,8 +88,9 @@ export default function ConversationList({ conversations, activeConversationId }
 
                     {lastMessage && (
                       <>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {lastMessage.sender.name}: {lastMessage.content}
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                          <span className="font-medium">{lastMessage.sender.name}:</span>{" "}
+                          {lastMessage.content}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
                           {formatDistanceToNow(new Date(lastMessage.createdAt), {
@@ -108,4 +109,3 @@ export default function ConversationList({ conversations, activeConversationId }
     </div>
   );
 }
-

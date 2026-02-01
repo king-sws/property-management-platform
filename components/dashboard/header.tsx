@@ -92,7 +92,12 @@ export function DashboardHeader({
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const { theme, setTheme } = useTheme();
-  
+  const [mounted, setMounted] = useState(false);
+
+  // Handle mounting to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const initials = user.name
     ?.split(" ")
@@ -167,7 +172,8 @@ export function DashboardHeader({
     }
   };
 
-    const logoSrc = theme === 'dark' ? '/propely-dark.svg' : '/propely-light.svg';
+  // Determine logo source with proper handling of theme state
+  const logoSrc = !mounted ? '/propely-dark.svg' : theme === 'dark' ? '/propely-dark.svg' : '/propely-light.svg';
 
   const handleResultClick = (url: string) => {
     router.push(url);
@@ -191,16 +197,15 @@ export function DashboardHeader({
           </Button>
 
           <Link href="/" className="flex items-center gap-2.5">
-                          <Image
-                            src={logoSrc}
-                            alt="Propely"
-                            width={120}
-                            height={36}
-                            className="h-9 w-auto"
-                            priority
-                          />
-                        
-                      </Link>
+            <Image
+              src={logoSrc}
+              alt="Propely"
+              width={70}
+              height={30}
+              className="h-7 w-auto"
+              priority
+            />
+          </Link>
         </div>
 
         {/* Desktop Search with Dropdown */}
