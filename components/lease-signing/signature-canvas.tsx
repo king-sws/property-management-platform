@@ -125,10 +125,10 @@ export function SignatureCanvas({ onSignatureChange }: SignatureCanvasProps) {
         </Button>
       </div>
       
-      <Card className="p-4 bg-white">
+      <Card className="p-4 bg-whitev dark:bg-[#1f1f1f] ">
         <canvas
           ref={canvasRef}
-          className="w-full h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-crosshair touch-none"
+          className="w-full h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-crosshair text-black dark:text-white touch-none"
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}

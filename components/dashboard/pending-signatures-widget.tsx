@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/dashboard/pending-signatures-widget.tsx
 "use client";
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,14 +50,14 @@ export function PendingSignaturesWidget() {
   }
 
   return (
-    <Card className="border-orange-200 bg-orange-50/50">
+    <Card className="border-orange-200 dark:border-orange-900 bg-orange-50/50 dark:bg-orange-950/20">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <FileSignature className="h-5 w-5 text-orange-600" />
+            <FileSignature className="h-5 w-5 text-orange-600 dark:text-orange-400" />
             Pending Signatures
           </CardTitle>
-          <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+          <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200">
             {pendingLeases.length} Pending
           </Badge>
         </div>
@@ -67,12 +66,12 @@ export function PendingSignaturesWidget() {
         {pendingLeases.slice(0, 3).map((lease) => (
           <div
             key={lease.id}
-            className="flex items-center justify-between p-4 bg-white border rounded-lg hover:shadow-md transition-shadow"
+            className="flex items-center justify-between p-4 bg-white dark:bg-[#171717] border dark:border-gray-700 rounded-lg hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow"
           >
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">
+                <span className="font-medium dark:text-gray-100">
                   {lease.unit.property.name} - Unit {lease.unit.unitNumber}
                 </span>
               </div>
@@ -90,7 +89,7 @@ export function PendingSignaturesWidget() {
                 </p>
               )}
             </div>
-            <Button asChild size="sm">
+            <Button asChild size="sm" variant="outline">
               <Link href={`/dashboard/lease-signing/${lease.id}`}>
                 Sign Now
                 <ArrowRight className="h-4 w-4 ml-2" />
@@ -98,7 +97,6 @@ export function PendingSignaturesWidget() {
             </Button>
           </div>
         ))}
-
         {pendingLeases.length > 3 && (
           <Button variant="outline" className="w-full" asChild>
             <Link href="/dashboard/leases?status=PENDING_SIGNATURE">
