@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getLeaseById, getLeaseStatistics } from "@/actions/leases";
 import { LeaseDetails } from "@/components/leases/lease-details";
+import { Container } from "@/components/ui/container";
 
 export const metadata = {
   title: "Lease Details | Property Management",
@@ -166,12 +167,12 @@ export default async function LeaseDetailsPage({ params }: PageProps) {
   const isLandlord = session.user.role === "LANDLORD" || session.user.role === "ADMIN";
   
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <Container padding="none" size="full">
       <LeaseDetails
         lease={serializedLease}
         statistics={statsResult.success ? statsResult.data : null}
         isLandlord={isLandlord}
       />
-    </div>
+    </Container>
   );
 }

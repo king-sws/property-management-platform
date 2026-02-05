@@ -107,7 +107,7 @@ export default async function UnitsPage({
     <div className="space-y-6">
       {/* Back Button */}
       <Link href={`/dashboard/properties/${id}`}>
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" className='mb-4'>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Property
         </Button>
@@ -125,8 +125,7 @@ export default async function UnitsPage({
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
+
           <div className="flex flex-col gap-4 sm:flex-row">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -150,8 +149,7 @@ export default async function UnitsPage({
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
+
 
       {/* Units List */}
       <Suspense fallback={<UnitsLoading />}>

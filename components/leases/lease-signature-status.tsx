@@ -55,14 +55,14 @@ export function LeaseSignatureStatus({ lease, isLandlord }: LeaseSignatureStatus
   };
 
   return (
-    <Card className="border-orange-200 bg-orange-50/50">
+    <Card className="border-orange-200 bg-orange-50/50 dark:border-orange-900/50 dark:bg-orange-950/20">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <FileSignature className="h-5 w-5 text-orange-600" />
+            <FileSignature className="h-5 w-5 text-orange-600 dark:text-orange-500" />
             Signature Status
           </CardTitle>
-          <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+          <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300">
             {totalSigned} of {totalSignaturesNeeded} Signed
           </Badge>
         </div>
@@ -80,7 +80,7 @@ export function LeaseSignatureStatus({ lease, isLandlord }: LeaseSignatureStatus
         {/* Landlord Signature */}
         <div className="space-y-3">
           <h4 className="font-medium text-sm">Landlord</h4>
-          <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-white border rounded-lg dark:bg-card dark:border-gray-800">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={lease.unit.property.landlord.user.avatar} />
@@ -127,7 +127,7 @@ export function LeaseSignatureStatus({ lease, isLandlord }: LeaseSignatureStatus
             {lease.tenants.map((leaseTenant: any) => (
               <div
                 key={leaseTenant.id}
-                className="flex items-center justify-between p-3 bg-white border rounded-lg"
+                className="flex items-center justify-between p-3 bg-white border rounded-lg dark:bg-card dark:border-gray-800"
               >
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
@@ -176,7 +176,7 @@ export function LeaseSignatureStatus({ lease, isLandlord }: LeaseSignatureStatus
         </div>
 
         {/* Actions */}
-        <div className="flex flex-wrap gap-3 pt-4 border-t">
+        <div className="flex flex-wrap gap-3 pt-4 border-t dark:border-gray-800">
           {isLandlord ? (
             <>
               {!landlordSigned && (
@@ -220,8 +220,8 @@ export function LeaseSignatureStatus({ lease, isLandlord }: LeaseSignatureStatus
 
         {/* Completion Message */}
         {signingProgress === 100 && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-800 flex items-center gap-2">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950/20 dark:border-green-900/50">
+            <p className="text-sm text-green-800 flex items-center gap-2 dark:text-green-300">
               <CheckCircle className="h-4 w-4" />
               All signatures collected! Lease is now active.
             </p>

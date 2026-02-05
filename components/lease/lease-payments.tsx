@@ -38,10 +38,15 @@ export function LeasePayments({
     .filter((p) => p.status === "COMPLETED")
     .reduce((sum, p) => sum + p.amount, 0);
 
+  // Find the next pending payment (usually rent)
+  const nextPendingPayment = payments.find(
+    (p) => p.status === "PENDING" && p.type === "RENT"
+  );
+
   return (
     <div className="space-y-6">
       {/* Next Payment Due */}
-      <Card className="border-primary">
+      <Card className="border-2 border-primary dark:border-primary/50">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -57,12 +62,20 @@ export function LeasePayments({
                 {format(nextRentDue, "MMMM d, yyyy")}
               </div>
             </div>
-            <Link href="/dashboard/payments/pay">
-              <Button size="lg">
+            {/* Updated: Only show Pay Rent if there's a pending payment */}
+            {nextPendingPayment ? (
+              <Link href={`/dashboard/payments/pay/${nextPendingPayment.id}`}>
+                <Button size="lg">
+                  <CreditCard className="h-5 w-5 mr-2" />
+                  Pay Rent
+                </Button>
+              </Link>
+            ) : (
+              <Button size="lg" disabled>
                 <CreditCard className="h-5 w-5 mr-2" />
-                Pay Rent
+                No Payment Due
               </Button>
-            </Link>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -124,10 +137,10 @@ export function LeasePayments({
               payments.map((payment) => (
                 <div
                   key={payment.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors dark:border-gray-800"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center dark:bg-primary/20">
                       <DollarSign className="h-5 w-5 text-primary" />
                     </div>
                     <div>
@@ -157,6 +170,13 @@ export function LeasePayments({
                     <Badge variant={getStatusColor(payment.status)}>
                       {payment.status}
                     </Badge>
+                    {payment.status === "PENDING" && (
+                      <Link href={`/dashboard/payments/pay/${payment.id}`}>
+                        <Button size="sm" variant="outline">
+                          Pay Now
+                        </Button>
+                      </Link>
+                    )}
                     {payment.receiptUrl && (
                       <Button variant="ghost" size="icon" asChild>
                         <a
@@ -178,4 +198,3 @@ export function LeasePayments({
     </div>
   );
 }
-
