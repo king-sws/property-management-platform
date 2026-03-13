@@ -324,30 +324,38 @@ export function DashboardHeader({
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/properties/new" className="cursor-pointer">
-                  <Home className="mr-2 h-4 w-4" />
-                  New Property
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/tenants/new" className="cursor-pointer">
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Add Tenant
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/leases/new" className="cursor-pointer">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Create Lease
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/maintenance/new" className="cursor-pointer">
-                  <Wrench className="mr-2 h-4 w-4" />
-                  Add Maintenance
-                </Link>
-              </DropdownMenuItem>
+              {/* Landlord-only options */}
+              {(user.role === 'LANDLORD' || user.role === 'ADMIN') && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/properties/new" className="cursor-pointer">
+                      <Home className="mr-2 h-4 w-4" />
+                      New Property
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/tenants/new" className="cursor-pointer">
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Add Tenant
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/leases/new" className="cursor-pointer">
+                      <FileText className="mr-2 h-4 w-4" />
+                      Create Lease
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+              {/* Tenant/Vendor/Admin options for maintenance */}
+              {(user.role === 'TENANT' || user.role === 'VENDOR' || user.role === 'ADMIN') && (
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/maintenance/new" className="cursor-pointer">
+                    <Wrench className="mr-2 h-4 w-4" />
+                    Add Maintenance
+                  </Link>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
 

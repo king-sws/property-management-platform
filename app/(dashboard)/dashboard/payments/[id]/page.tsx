@@ -6,6 +6,8 @@ import { auth } from "@/auth";
 import { getPaymentDetails } from "@/actions/payments";
 import { PaymentDetailsClient } from "@/components/payments/payment-details-client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 
 export const metadata = {
   title: "Payment Details | Property Management",
@@ -116,11 +118,11 @@ export default async function PaymentDetailsPage({ params }: PageProps) {
   const { id } = await params;
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <Container padding="none" size="full">
       <Suspense fallback={<PaymentDetailsSkeleton />}>
         <PaymentDetailsContent paymentId={id} />
       </Suspense>
-    </div>
+    </Container>
   );
 }
 
@@ -134,9 +136,9 @@ async function PaymentDetailsContent({ paymentId }: { paymentId: string }) {
     
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-        <p className="text-sm text-red-800">
+        <Typography variant="muted" className="text-sm text-red-800">
           {result.error || "Failed to load payment details"}
-        </p>
+        </Typography>
       </div>
     );
   }
@@ -149,7 +151,7 @@ async function PaymentDetailsContent({ paymentId }: { paymentId: string }) {
 
 function PaymentDetailsSkeleton() {
   return (
-    <div className="space-y-6">
+    <Stack spacing="lg">
       {/* Header Skeleton */}
       <div className="space-y-2">
         <Skeleton className="h-8 w-64" />
@@ -170,6 +172,6 @@ function PaymentDetailsSkeleton() {
           <Skeleton className="h-32" />
         </div>
       </div>
-    </div>
+    </Stack>
   );
 }

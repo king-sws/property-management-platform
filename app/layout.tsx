@@ -21,8 +21,74 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "propely - Real Estate Management",
-  description: "Manage your properties, tenants, and finances with ease using propely.",
+  // ── Basic ──────────────────────────────────────────────
+  title: {
+    default: "Propely - Property Management Made Simple",
+    template: "%s | Propely", // page titles become "Leases | Propely"
+  },
+  description:
+    "Propely helps landlords manage properties, tenants, leases, and payments — all in one place. Built for modern property management.",
+  keywords: [
+    "property management",
+    "landlord software",
+    "rental management",
+    "tenant portal",
+    "lease management",
+    "rent collection",
+    "real estate management",
+  ],
+  authors: [{ name: "Propely", url: "https://propely.site" }],
+  creator: "Propely",
+  metadataBase: new URL("https://propely.site"), 
+
+  // ── Canonical & robots ────────────────────────────────
+  alternates: {
+    canonical: "https://propely.site",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+    },
+  },
+
+  // ── Open Graph (Facebook, LinkedIn, WhatsApp previews) ─
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://propely.site",
+    siteName: "Propely",
+    title: "Propely - Property Management Made Simple",
+    description:
+      "Manage properties, tenants, leases, and payments all in one place.",
+    images: [
+      {
+        url: "/og-image.png", // create a 1200x630px image and put it in /public
+        width: 1200,
+        height: 630,
+        alt: "Propely - Property Management",
+      },
+    ],
+  },
+
+  // ── Twitter/X card ────────────────────────────────────
+  twitter: {
+    card: "summary_large_image",
+    title: "Propely - Property Management Made Simple",
+    description:
+      "Manage properties, tenants, leases, and payments all in one place.",
+    images: ["/og-image.png"], // same image as og
+    // creator: "@yourtwitter", // add if you have a Twitter account
+  },
+
+  // ── PWA / browser tab ─────────────────────────────────
+  icons: {
+    icon: "/favicon.ico",
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({

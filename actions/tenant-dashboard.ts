@@ -574,10 +574,11 @@ export async function getTenantPaymentSummary(): Promise<DashboardResult> {
 // -------------------------
 // Get Upcoming Lease Actions (renewals, inspections, etc.)
 // -------------------------
+
 export async function getUpcomingLeaseActions(): Promise<DashboardResult> {
   try {
     const currentUser = await getCurrentUser();
-    
+
     if (currentUser.role !== UserRole.TENANT) {
       return { success: false, error: "Unauthorized" };
     }
@@ -668,6 +669,46 @@ export async function getUpcomingLeaseActions(): Promise<DashboardResult> {
           priority: "HIGH",
           actionUrl: `/dashboard/leases/${lease.id}/sign`,
         });
+      }
+
+      // ✅ Check for upcoming or overdue payments
+      const pendingPayments = await prisma.payment.findMany({
+        where: {
+          tenantId: tenant.id,
+          status: "PENDING",
+        },
+        orderBy: { dueDate: "asc" },
+        take: 3,
+      });
+
+      for (const payment of pendingPayments) {
+        if (!payment.dueDate) continue;
+
+        const daysUntilDue = Math.ceil(
+          (payment.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (daysUntilDue < 0) {
+          // Overdue
+          actions.push({
+            type: "PAYMENT_OVERDUE",
+            title: `${payment.type.replace(/_/g, " ")} Overdue`,
+            description: `$${Number(payment.amount).toLocaleString()} was due ${Math.abs(daysUntilDue)} days ago`,
+            dueDate: payment.dueDate.toISOString(),
+            priority: "HIGH",
+            actionUrl: "/dashboard/payments",
+          });
+        } else if (daysUntilDue <= 5) {
+          // Due very soon
+          actions.push({
+            type: "PAYMENT_DUE_SOON",
+            title: `${payment.type.replace(/_/g, " ")} Due Soon`,
+            description: `$${Number(payment.amount).toLocaleString()} due in ${daysUntilDue} day${daysUntilDue !== 1 ? "s" : ""}`,
+            dueDate: payment.dueDate.toISOString(),
+            priority: daysUntilDue === 0 ? "HIGH" : "MEDIUM",
+            actionUrl: "/dashboard/payments",
+          });
+        }
       }
     }
 

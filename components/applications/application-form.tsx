@@ -75,12 +75,14 @@ interface ApplicationFormProps {
   application?: any;
   units?: any[];
   isEdit?: boolean;
+  preSelectedUnitId?: string; 
 }
 
 export function ApplicationForm({
   application,
   units = [],
   isEdit = false,
+  preSelectedUnitId,
 }: ApplicationFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -88,7 +90,7 @@ export function ApplicationForm({
 const form = useForm<ApplicationFormValues>({
   resolver: zodResolver(applicationFormSchema),
   defaultValues: {
-    unitId: application?.unitId || "",
+    unitId: application?.unitId || preSelectedUnitId || "",
     desiredMoveInDate: application?.desiredMoveInDate
       ? new Date(application.desiredMoveInDate).toISOString().split("T")[0]
       : "",

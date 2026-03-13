@@ -379,6 +379,29 @@ export async function createLease(data: z.infer<typeof createLeaseSchema>): Prom
   }
 }
 
+
+export async function getStaleLeaseCount(): Promise<LeaseResult> {
+  try {
+    const currentUser = await getCurrentUserWithRole();
+    if (!currentUser.landlordProfile) return { success: true, data: { count: 0 } };
+
+    const count = await prisma.lease.count({
+      where: {
+        unit: {
+          property: { landlordId: currentUser.landlordProfile.id },
+        },
+        status: { in: ["ACTIVE", "EXPIRING_SOON"] },
+        endDate: { lt: new Date() },
+        deletedAt: null,
+      },
+    });
+
+    return { success: true, data: { count } };
+  } catch {
+    return { success: false, error: "Failed to check lease statuses" };
+  }
+}
+
 // -------------------------
 // Get Leases
 // -------------------------

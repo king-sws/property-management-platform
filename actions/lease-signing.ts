@@ -223,7 +223,7 @@ export async function getLeaseForSigning(leaseId: string): Promise<SigningResult
 export async function signLease(
   leaseId: string,
   signatureData: {
-    signature: string; // Base64 signature image or text
+    signature: string;
     ipAddress?: string;
     userAgent?: string;
     agreedToTerms: boolean;
@@ -231,6 +231,7 @@ export async function signLease(
 ): Promise<SigningResult> {
   try {
     const user = await getCurrentUser();
+    // ✅ user.id = session.user.id (from getCurrentUser which calls prisma.user.findUnique)
 
     if (!signatureData.agreedToTerms) {
       return {
@@ -248,7 +249,7 @@ export async function signLease(
               include: {
                 landlord: {
                   include: {
-                    user: true,
+                    user: true, // ✅ needed for landlord.userId in notifications
                   },
                 },
               },
@@ -259,7 +260,7 @@ export async function signLease(
           include: {
             tenant: {
               include: {
-                user: true,
+                user: true, // ✅ needed for tenant.userId in payments + notifications
               },
             },
           },
@@ -268,18 +269,11 @@ export async function signLease(
     });
 
     if (!lease) {
-      return {
-        success: false,
-        error: "Lease not found",
-      };
+      return { success: false, error: "Lease not found" };
     }
 
-    // Verify lease is in correct status
     if (lease.status !== "PENDING_SIGNATURE" && lease.status !== "DRAFT") {
-      return {
-        success: false,
-        error: "This lease is not available for signing",
-      };
+      return { success: false, error: "This lease is not available for signing" };
     }
 
     const isLandlord =
@@ -290,32 +284,23 @@ export async function signLease(
     const isTenant = user.role === "TENANT" && !!tenantRecord;
 
     if (!isLandlord && !isTenant) {
-      return {
-        success: false,
-        error: "Unauthorized to sign this lease",
-      };
+      return { success: false, error: "Unauthorized to sign this lease" };
     }
 
-    // Check if already signed
     if (isLandlord && lease.landlordSignedAt) {
-      return {
-        success: false,
-        error: "You have already signed this lease",
-      };
+      return { success: false, error: "You have already signed this lease" };
     }
 
     if (isTenant && tenantRecord?.signedAt) {
-      return {
-        success: false,
-        error: "You have already signed this lease",
-      };
+      return { success: false, error: "You have already signed this lease" };
     }
 
-    // Process signature
     const result = await prisma.$transaction(async (tx) => {
       const now = new Date();
 
-      // Update signature based on role
+      // -------------------------------------------------------
+      // LANDLORD SIGNS
+      // -------------------------------------------------------
       if (isLandlord) {
         await tx.lease.update({
           where: { id: leaseId },
@@ -325,142 +310,168 @@ export async function signLease(
           },
         });
 
-        // Log activity
         await tx.activityLog.create({
           data: {
-            userId: user.id,
+            userId: user.id, // ✅ user.id from session
             type: "LEASE_CREATED" as ActivityType,
             action: `Signed lease agreement for Unit ${lease.unit.unitNumber}`,
-            metadata: {
-              leaseId,
-              role: "LANDLORD",
-              ipAddress: signatureData.ipAddress,
-            },
+            metadata: { leaseId, role: "LANDLORD", ipAddress: signatureData.ipAddress },
           },
         });
 
-        // Notify tenants
+        // Notify each tenant that landlord signed and their signature is needed
         for (const leaseTenant of lease.tenants) {
           await tx.notification.create({
             data: {
-              userId: leaseTenant.tenant.userId,
+              userId: leaseTenant.tenant.userId, // ✅ tenant.user.id from included relation
               type: "LEASE_CREATED",
               title: "Landlord Signed Lease",
-              message: `${user.name} has signed the lease agreement. Your signature is now required.`,
+              message: `${user.name} has signed the lease. Your signature is now required.`,
               actionUrl: `/dashboard/lease-signing/${leaseId}`,
               metadata: { leaseId },
             },
           });
         }
-      } else if (isTenant && tenantRecord) {
-        // Update tenant signature
+      }
+
+      // -------------------------------------------------------
+      // TENANT SIGNS
+      // -------------------------------------------------------
+      else if (isTenant && tenantRecord) {
         await tx.leaseTenant.update({
           where: { id: tenantRecord.id },
-          data: {
-            signedAt: now,
-          },
+          data: { signedAt: now },
         });
 
-        // Log activity
         await tx.activityLog.create({
           data: {
-            userId: user.id,
+            userId: user.id, // ✅ user.id from session
             type: "LEASE_CREATED" as ActivityType,
             action: `Signed lease agreement for Unit ${lease.unit.unitNumber}`,
-            metadata: {
-              leaseId,
-              role: "TENANT",
-              ipAddress: signatureData.ipAddress,
-            },
+            metadata: { leaseId, role: "TENANT", ipAddress: signatureData.ipAddress },
           },
         });
 
-        // Notify landlord
         await tx.notification.create({
           data: {
-            userId: lease.unit.property.landlord.userId,
+            userId: lease.unit.property.landlord.userId, // ✅ landlord.user.id from included relation
             type: "LEASE_CREATED",
             title: "Tenant Signed Lease",
-            message: `${user.name} has signed the lease agreement for Unit ${lease.unit.unitNumber}.`,
+            message: `${user.name} has signed the lease for Unit ${lease.unit.unitNumber}.`,
             actionUrl: `/dashboard/leases/${leaseId}`,
             metadata: { leaseId },
           },
         });
       }
 
-      // Check if all signatures are complete
+      // -------------------------------------------------------
+      // RE-FETCH to check if ALL parties have now signed
+      // Must include tenant.user here because we need tenant.userId for payments below
+      // -------------------------------------------------------
       const updatedLease = await tx.lease.findUnique({
         where: { id: leaseId },
         include: {
-          tenants: true,
+          tenants: {
+            include: {
+              tenant: {
+                include: {
+                  user: true, // ✅ needed for userId on payment create
+                },
+              },
+            },
+          },
         },
       });
 
-      if (updatedLease) {
-        const allTenantsSigned = updatedLease.tenants.every((lt: { signedAt: any; }) => lt.signedAt);
-        const landlordSigned = !!updatedLease.landlordSignedAt;
+      if (!updatedLease) return null;
 
-        // If all parties have signed, activate the lease
-        if (allTenantsSigned && landlordSigned) {
-          await tx.lease.update({
-            where: { id: leaseId },
+      const allTenantsSigned = updatedLease.tenants.every((lt: { signedAt: any; }) => lt.signedAt);
+      const landlordSigned = !!updatedLease.landlordSignedAt;
+
+      // -------------------------------------------------------
+      // ALL SIGNED → ACTIVATE LEASE
+      // -------------------------------------------------------
+      if (allTenantsSigned && landlordSigned) {
+        // 1. Activate lease
+        await tx.lease.update({
+          where: { id: leaseId },
+          data: {
+            status: "ACTIVE" as LeaseStatus,
+            allTenantsSignedAt: now,
+          },
+        });
+
+        // 2. Mark unit as OCCUPIED
+        await tx.unit.update({
+          where: { id: lease.unitId },
+          data: { status: "OCCUPIED" },
+        });
+
+        // 3. Calculate first rent due date
+        const rentDueDay = lease.rentDueDay;
+        const firstDueDate = new Date(now.getFullYear(), now.getMonth(), rentDueDay);
+        // If that day already passed this month, push to next month
+        if (firstDueDate <= now) {
+          firstDueDate.setMonth(firstDueDate.getMonth() + 1);
+        }
+
+        // 4. Create first pending rent payment for EVERY tenant on the lease
+        for (const leaseTenant of updatedLease.tenants) {
+          await tx.payment.create({
             data: {
-              status: "ACTIVE" as LeaseStatus,
-              allTenantsSignedAt: now,
-            },
-          });
-
-          // ✅ Mark unit as OCCUPIED
-          await tx.unit.update({
-            where: { id: lease.unitId },
-            data: {
-              status: "OCCUPIED",
-            },
-          });
-
-          // Notify all parties that lease is now active
-          const notificationPromises = [
-            // Notify landlord
-            tx.notification.create({
-              data: {
-                userId: lease.unit.property.landlord.userId,
-                type: "LEASE_CREATED",
-                title: "Lease Agreement Active",
-                message: `All parties have signed. The lease for Unit ${lease.unit.unitNumber} is now active.`,
-                actionUrl: `/dashboard/leases/${leaseId}`,
-                metadata: { leaseId },
-              },
-            }),
-            // Notify all tenants
-            ...lease.tenants.map((leaseTenant) =>
-              tx.notification.create({
-                data: {
-                  userId: leaseTenant.tenant.userId,
-                  type: "LEASE_CREATED",
-                  title: "Lease Agreement Active",
-                  message: `All parties have signed. Your lease is now active!`,
-                  actionUrl: `/dashboard/my-lease`,
-                  metadata: { leaseId },
-                },
-              })
-            ),
-          ];
-
-          await Promise.all(notificationPromises);
-
-          // Log activation
-          await tx.activityLog.create({
-            data: {
-              userId: user.id,
-              type: "LEASE_CREATED" as ActivityType,
-              action: `Lease activated for Unit ${lease.unit.unitNumber} - all signatures collected`,
-              metadata: {
-                leaseId,
-                activatedBy: user.id,
-              },
+              leaseId: lease.id,
+              tenantId: leaseTenant.tenantId,          // ✅ Tenant profile id
+              userId: leaseTenant.tenant.userId,        // ✅ User id (from included tenant.user)
+              type: "RENT",
+              status: "PENDING",
+              method: "STRIPE_CARD",
+              amount: lease.rentAmount,
+              fee: 0,
+              netAmount: lease.rentAmount,
+              description: `Rent for ${firstDueDate.toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
+              })}`,
+              dueDate: firstDueDate,
             },
           });
         }
+
+        // 5. Notify landlord that lease is active
+        await tx.notification.create({
+          data: {
+            userId: lease.unit.property.landlord.userId,
+            type: "LEASE_CREATED",
+            title: "Lease Agreement Active",
+            message: `All parties signed. Lease for Unit ${lease.unit.unitNumber} is now active.`,
+            actionUrl: `/dashboard/leases/${leaseId}`,
+            metadata: { leaseId },
+          },
+        });
+
+        // 6. Notify each tenant that lease is active + payment created
+        for (const leaseTenant of lease.tenants) {
+          await tx.notification.create({
+            data: {
+              userId: leaseTenant.tenant.userId,
+              type: "LEASE_CREATED",
+              title: "Lease is Now Active 🎉",
+              message: `All parties have signed. Your lease is active and your first rent payment has been created.`,
+              actionUrl: `/dashboard/my-lease`,
+              metadata: { leaseId },
+            },
+          });
+        }
+
+        // 7. Log activation
+        await tx.activityLog.create({
+          data: {
+            userId: user.id,
+            type: "LEASE_CREATED" as ActivityType,
+            action: `Lease activated for Unit ${lease.unit.unitNumber} - all signatures collected`,
+            metadata: { leaseId, activatedBy: user.id },
+          },
+        });
       }
 
       return updatedLease;
@@ -470,15 +481,16 @@ export async function signLease(
     revalidatePath(`/dashboard/leases/${leaseId}`);
     revalidatePath("/dashboard/leases");
     revalidatePath("/dashboard/my-lease");
+    revalidatePath("/dashboard/payments"); // ✅ so tenant sees new payment immediately
 
-    // Check if lease is now fully signed
-    const allSigned = result?.tenants.every((lt: { signedAt: any; }) => lt.signedAt) && result?.landlordSignedAt;
+    const allSigned =
+      result?.tenants.every((lt: { signedAt: any; }) => lt.signedAt) && result?.landlordSignedAt;
 
     return {
       success: true,
       data: serializeForClient(result),
       message: allSigned
-        ? "Lease signed successfully! The lease is now active."
+        ? "Lease signed! The lease is now active and your first rent payment has been created."
         : "Lease signed successfully. Waiting for other signatures.",
     };
   } catch (error) {

@@ -2,10 +2,11 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getMaintenanceTicketById } from "@/actions/maintenance";
-import { Wrench } from "lucide-react";
 import { MaintenanceDetailsImproved } from "@/components/maintenance/maintenance-details";
 import { TicketReviewSection } from "@/components/maintenance/ticket-review-section";
 import prisma from "@/lib/prisma";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 
 export const metadata = {
   title: "Maintenance Ticket Details | Property Management",
@@ -68,36 +69,35 @@ export default async function MaintenanceDetailsPage({ params }: PageProps) {
   }
   
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-          <Wrench className="h-6 w-6 text-primary" />
-        </div>
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Ticket Details</h1>
-          <p className="text-muted-foreground">
+          <Typography variant="h2" className="mb-1">
+            Ticket Details
+          </Typography>
+          <Typography variant="muted">
             View and manage maintenance request
-          </p>
+          </Typography>
         </div>
-      </div>
-      
-      <MaintenanceDetailsImproved ticket={ticket} userRole={session.user.role} />
-      
-      {/* Review Section - Only shows for completed tickets with vendors */}
-      <TicketReviewSection
-        ticket={{
-          id: ticket.id,
-          status: ticket.status,
-          vendor: ticket.vendor ? {
-            id: ticket.vendor.id,
-            businessName: ticket.vendor.businessName,
-            rating: ticket.vendor.rating ? Number(ticket.vendor.rating) : undefined,
-            reviewCount: ticket.vendor.reviewCount,
-          } : null,
-        }}
-        currentUserRole={session.user.role || ''}
-        existingReview={existingReview}
-      />
-    </div>
+        
+        <MaintenanceDetailsImproved ticket={ticket} userRole={session.user.role} />
+        
+        {/* Review Section - Only shows for completed tickets with vendors */}
+        <TicketReviewSection
+          ticket={{
+            id: ticket.id,
+            status: ticket.status,
+            vendor: ticket.vendor ? {
+              id: ticket.vendor.id,
+              businessName: ticket.vendor.businessName,
+              rating: ticket.vendor.rating ? Number(ticket.vendor.rating) : undefined,
+              reviewCount: ticket.vendor.reviewCount,
+            } : null,
+          }}
+          currentUserRole={session.user.role || ''}
+          existingReview={existingReview}
+        />
+      </Stack>
+    </Container>
   );
 }

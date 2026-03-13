@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getTenantById, getTenantStatistics } from "@/actions/tenants";
 import { auth } from "@/auth";
 import { TenantDetails } from "@/components/tenants/tenant-details";
+import { Container } from "@/components/ui/container";
 
 export const metadata = {
   title: "Tenant Details | Property Management",
@@ -34,11 +35,11 @@ export default async function TenantDetailsPage({ params }: PageProps) {
   }
   
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <Container padding="none" size="full">
       <TenantDetails 
         tenant={tenantResult.data} 
         statistics={statsResult.success ? statsResult.data : null}
       />
-    </div>
+    </Container>
   );
 }

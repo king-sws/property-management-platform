@@ -7,8 +7,8 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { Typography } from "@/components/ui/typography";
 import { Container, Stack } from "@/components/ui/container";
-import { FileText, DollarSign, Wrench, Calendar, AlertCircle } from "lucide-react";
-import { Suspense } from "react";
+import { FileText, DollarSign, Wrench, Calendar, AlertCircle, AlertTriangle } from "lucide-react";
+import { Key, Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QuickStats } from "@/components/dashboard/stats-cards";
@@ -24,6 +24,7 @@ import {
   getTenantMaintenanceRequests,
   getUpcomingLeaseActions,
 } from "@/actions/tenant-dashboard";
+import prisma from "@/lib/prisma";
 
 export const metadata = {
   title: "Tenant Dashboard | Propely",
@@ -59,10 +60,15 @@ export default async function TenantDashboardPage() {
           <TenantStats />
         </Suspense>
 
-        {/* Upcoming Actions Alert */}
+        {/* Overdue payment + lease expiry alerts */}
         <Suspense fallback={null}>
-          <UpcomingActions />
+          <TenantAlerts userId={session.user.id} />
         </Suspense>
+
+        {/* Upcoming Actions Alert */}
+        {/* <Suspense fallback={null}>
+          <UpcomingActions />
+        </Suspense> */}
 
         {/* Pending Signatures */}
         <Suspense fallback={<StatsLoading />}>
@@ -526,6 +532,119 @@ async function MaintenanceRequests() {
     </Card>
   );
 }
+
+async function TenantAlerts({ userId }: { userId: string }) {
+  // Use the existing action — already handles the tenant lookup correctly
+  const [paymentsResult, actionsResult] = await Promise.all([
+    getTenantRecentPayments(10),      // already imported
+    getUpcomingLeaseActions(),         // already imported
+  ]);
+
+  const today = new Date();
+  
+  // Find overdue payments from recent payments
+  const overduePayments = paymentsResult.success && paymentsResult.data
+    ? paymentsResult.data.filter(
+        (p: any) => p.status === "PENDING" && p.dueDate && new Date(p.dueDate) < today
+      )
+    : [];
+
+  // Find lease expiry actions
+  const leaseActions = actionsResult.success && actionsResult.data
+    ? actionsResult.data
+    : [];
+
+  const overdueTotal = overduePayments.reduce((s: number, p: any) => s + p.amount, 0);
+
+  if (overduePayments.length === 0 && leaseActions.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      {/* Overdue payments */}
+      {overduePayments.length > 0 && (
+        <Card className="border-red-300 bg-red-50 dark:bg-red-950/20">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+                <CardTitle className="text-red-800 dark:text-red-400 text-base">
+                  {overduePayments.length} overdue payment{overduePayments.length > 1 ? "s" : ""}
+                </CardTitle>
+              </div>
+              <Badge variant="destructive">${overdueTotal.toLocaleString()} due</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {overduePayments.map((p: any) => {
+              const daysOverdue = Math.floor(
+                (today.getTime() - new Date(p.dueDate).getTime()) / 86400000
+              );
+              return (
+                <div key={p.id} className="flex justify-between text-sm">
+                  <span className="text-red-700 dark:text-red-300">
+                    {p.type.replace(/_/g, " ")} — {daysOverdue} day{daysOverdue !== 1 ? "s" : ""} overdue
+                  </span>
+                  <span className="font-semibold text-red-700 dark:text-red-300">
+                    ${p.amount.toLocaleString()}
+                  </span>
+                </div>
+              );
+            })}
+            <Button asChild className="w-full mt-2" variant="destructive" size="sm">
+              <Link href="/dashboard/payments">Pay Now</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Lease actions (expiring soon, signature needed, renewal offers) */}
+      {leaseActions.map((action: any, i: number) => (
+        <Card
+          key={i}
+          className={
+            action.priority === "HIGH"
+              ? "border-red-300 bg-red-50 dark:bg-red-950/20"
+              : "border-yellow-300 bg-yellow-50 dark:bg-yellow-950/20"
+          }
+        >
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <AlertTriangle
+                className={`h-5 w-5 ${action.priority === "HIGH" ? "text-red-500" : "text-yellow-600"}`}
+              />
+              <CardTitle
+                className={`text-base ${
+                  action.priority === "HIGH"
+                    ? "text-red-800 dark:text-red-400"
+                    : "text-yellow-800 dark:text-yellow-400"
+                }`}
+              >
+                {action.title}
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p
+              className={`text-sm mb-3 ${
+                action.priority === "HIGH"
+                  ? "text-red-700 dark:text-red-300"
+                  : "text-yellow-700 dark:text-yellow-300"
+              }`}
+            >
+              {action.description}
+            </p>
+            {action.actionUrl && (
+              <Button asChild variant="outline" size="sm" className="w-full">
+                <Link href={action.actionUrl}>Take Action</Link>
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 
 // ============================================================================
 // Loading Components

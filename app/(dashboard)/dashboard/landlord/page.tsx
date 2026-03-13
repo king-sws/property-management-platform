@@ -8,7 +8,7 @@ import { Container, Stack } from "@/components/ui/container";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { MaintenanceOverview } from "@/components/dashboard/maintenance-overview";
 import { PaymentChart } from "@/components/dashboard/payment-chart";
-import { Building2, Users, DollarSign, Wrench, AlertTriangle, TrendingUp, Calendar, Home } from "lucide-react";
+import { Building2, Users, DollarSign, Wrench, AlertTriangle, TrendingUp, Calendar, Home, Clock } from "lucide-react";
 import { Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -61,6 +61,9 @@ export default async function LandlordDashboardPage() {
 
         <WelcomeTrialBanner />
 
+        
+        
+
         {/* Subscription Status Widget */}
         <Suspense fallback={<CardLoading title="Subscription" />}>
           <SubscriptionWidget />
@@ -69,6 +72,11 @@ export default async function LandlordDashboardPage() {
         {/* Pending Signatures */}
         <Suspense fallback={<CardLoading title="Pending Signatures" />}>
           <PendingSignaturesWidget />
+        </Suspense>
+
+        {/* Expired/Stale Lease Alert */}
+        <Suspense fallback={null}>
+          <ExpiredLeasesAlert userId={session.user.id} />
         </Suspense>
 
         {/* Outstanding Payments Alert */}
@@ -666,6 +674,130 @@ async function VacantUnits({ userId }: { userId: string }) {
         )}
         <Button asChild className="w-full mt-4" variant="outline">
           <Link href="/dashboard/properties">View Properties</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+async function ExpiredLeasesAlert({ userId }: { userId: string }) {
+  const landlord = await prisma.landlord.findUnique({ where: { userId } });
+  if (!landlord) return null;
+
+  const today = new Date();
+
+  // Leases past their end date but still showing as Active (nothing updated them)
+  const staleLeases = await prisma.lease.findMany({
+    where: {
+      unit: { property: { landlordId: landlord.id } },
+      status: { in: ["ACTIVE", "EXPIRING_SOON"] },
+      endDate: { lt: today },
+      deletedAt: null,
+    },
+    include: {
+      unit: { include: { property: { select: { name: true } } } },
+      tenants: {
+        where: { isPrimaryTenant: true },
+        include: { tenant: { include: { user: { select: { name: true } } } } },
+      },
+    },
+    take: 5,
+  });
+
+  // Leases that expired in the last 30 days (already status=EXPIRED)
+  const recentlyExpired = await prisma.lease.findMany({
+    where: {
+      unit: { property: { landlordId: landlord.id } },
+      status: "EXPIRED",
+      endDate: {
+        // eslint-disable-next-line react-hooks/purity
+        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        lt: today,
+      },
+      deletedAt: null,
+    },
+    include: {
+      unit: { include: { property: { select: { name: true } } } },
+      tenants: {
+        where: { isPrimaryTenant: true },
+        include: { tenant: { include: { user: { select: { name: true } } } } },
+      },
+    },
+    orderBy: { endDate: "desc" },
+    take: 5,
+  });
+
+  if (staleLeases.length === 0 && recentlyExpired.length === 0) return null;
+
+  return (
+    <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-orange-500" />
+            <CardTitle className="text-orange-800 dark:text-orange-400">
+              Lease Status Needs Attention
+            </CardTitle>
+          </div>
+          {staleLeases.length > 0 && (
+            <Badge variant="destructive">{staleLeases.length} stale</Badge>
+          )}
+        </div>
+        <CardDescription>
+          These leases have passed their end date or recently expired
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Stale leases - still marked Active but end date passed */}
+        {staleLeases.length > 0 && (
+          <div className="rounded-md border border-orange-200 bg-orange-100 dark:bg-orange-900/30 p-3">
+            <p className="text-sm font-medium text-orange-800 dark:text-orange-300">
+              ⚠️ {staleLeases.length} lease(s) passed their end date but are still marked Active
+            </p>
+            <div className="mt-2 space-y-2">
+              {staleLeases.map((lease) => (
+                <div key={lease.id} className="flex items-center justify-between text-sm">
+                  <span className="text-orange-700 dark:text-orange-400">
+                    {lease.tenants[0]?.tenant.user.name || "Unknown"} —{" "}
+                    {lease.unit.property.name} Unit {lease.unit.unitNumber}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-orange-600">
+                      Ended {lease.endDate?.toLocaleDateString()}
+                    </span>
+                    <Button asChild size="sm" variant="outline" className="h-6 text-xs">
+                      <Link href={`/dashboard/leases/${lease.id}/edit`}>Update</Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recently expired leases */}
+        {recentlyExpired.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">Recently expired (last 30 days)</p>
+            {recentlyExpired.map((lease) => (
+              <div key={lease.id} className="flex items-center justify-between border-b pb-2 last:border-0">
+                <div>
+                  <p className="text-sm font-medium">
+                    {lease.tenants[0]?.tenant.user.name || "Unknown"} —{" "}
+                    {lease.unit.property.name} Unit {lease.unit.unitNumber}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Expired {lease.endDate?.toLocaleDateString()}
+                  </p>
+                </div>
+                <Badge variant="secondary">Expired</Badge>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Button asChild className="w-full mt-2" variant="outline">
+          <Link href="/dashboard/leases?status=EXPIRED">View All Expired Leases</Link>
         </Button>
       </CardContent>
     </Card>
