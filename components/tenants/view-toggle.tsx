@@ -3,7 +3,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, Table } from "lucide-react";
+import { LayoutDashboard, LayoutGrid, Table } from "lucide-react";
 
 interface ViewToggleProps {
   currentView: string;
@@ -21,6 +21,15 @@ export function ViewToggle({ currentView }: ViewToggleProps) {
 
   return (
     <div className="flex items-center gap-1 rounded-lg border p-1">
+      <Button
+        variant={currentView === "overview" ? "secondary" : "ghost"}
+        size="sm"
+        onClick={() => handleViewChange("overview")}
+        className="gap-2"
+      >
+        <LayoutDashboard className="h-4 w-4" />
+        <span className="hidden sm:inline">Overview</span>
+      </Button>
       <Button
         variant={currentView === "table" ? "secondary" : "ghost"}
         size="sm"

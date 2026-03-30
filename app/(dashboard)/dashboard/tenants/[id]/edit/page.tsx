@@ -1,55 +1,46 @@
-
 // app/(dashboard)/dashboard/(landlord)/tenants/[id]/edit/page.tsx
 import { notFound, redirect } from "next/navigation";
 import { getTenantById } from "@/actions/tenants";
 import { auth } from "@/auth";
 import { TenantForm } from "@/components/tenants/tenant-form";
-import { Users } from "lucide-react";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 
 export const metadata = {
   title: "Edit Tenant | Property Management",
 };
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EditTenantPage({ params }: PageProps) {
   const session = await auth();
   
-  if (!session?.user) {
-    redirect("/sign-in");
-  }
+  if (!session?.user) redirect("/sign-in");
+  if (session.user.role !== "LANDLORD" && session.user.role !== "ADMIN") redirect("/dashboard");
   
-  if (session.user.role !== "LANDLORD" && session.user.role !== "ADMIN") {
-    redirect("/dashboard");
-  }
+  const { id } = await params;
   
-  const result = await getTenantById(params.id);
+  const result = await getTenantById(id);
   
-  if (!result.success) {
-    notFound();
-  }
+  if (!result.success) notFound();
   
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-          <Users className="h-6 w-6 text-primary" />
-        </div>
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <Typography variant="h2" className="mb-1">
             Edit Tenant: {result.data.user.name}
-          </h1>
-          <p className="text-muted-foreground">
+          </Typography>
+          <Typography variant="muted">
             Update tenant information and contact details
-          </p>
+          </Typography>
         </div>
-      </div>
-      
-      <TenantForm tenant={result.data} isEdit />
-    </div>
+        <TenantForm tenant={result.data} isEdit />
+      </Stack>
+    </Container>
   );
 }

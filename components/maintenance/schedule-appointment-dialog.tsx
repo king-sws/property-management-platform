@@ -130,7 +130,7 @@ export function ScheduleAppointmentDialog({
           </div>
 
           {/* Start Time */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="start">
               Start Date & Time <span className="text-red-500">*</span>
             </Label>
@@ -145,7 +145,7 @@ export function ScheduleAppointmentDialog({
           </div>
 
           {/* End Time */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="end">
               End Date & Time <span className="text-red-500">*</span>
             </Label>
@@ -171,7 +171,7 @@ export function ScheduleAppointmentDialog({
           )}
 
           {/* Notes */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="notes">Notes (Optional)</Label>
             <Textarea
               id="notes"

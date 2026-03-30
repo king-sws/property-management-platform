@@ -99,288 +99,375 @@ export default async function PropertyDetailPage({
         )}
       </div>
 
-      {/* Header Info */}
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold">{property.name}</h1>
-            <Badge>{propertyTypeLabels[property.type] || property.type}</Badge>
-          </div>
-          <div className="flex items-start gap-2 text-muted-foreground">
-            <MapPin className="h-5 w-5 mt-0.5 shrink-0" />
-            <span>
-              {property.address}, {property.city}, {property.state} {property.zipCode}
-            </span>
-          </div>
-        </div>
+{/* Header Info */}
+<div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+  <div className="space-y-1.5">
+    <div className="flex items-center gap-2.5 flex-wrap">
+      <h1 className="text-2xl font-semibold">{property.name}</h1>
+      <Badge>{propertyTypeLabels[property.type] || property.type}</Badge>
+    </div>
+    <div className="flex items-start gap-1.5 text-sm text-muted-foreground">
+      <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+      <span>
+        {property.address}, {property.city}, {property.state} {property.zipCode}
+      </span>
+    </div>
+  </div>
+  <div className="flex gap-2 shrink-0">
+    <Link href={`/dashboard/applications/new?property=${property.id}`}>
+      <Button>Apply Now</Button>
+    </Link>
+    <ContactLandlordButton
+      landlordId={property.landlord?.id}
+      propertyName={property.name}
+      propertyId={property.id}
+      variant="outline"
+    />
+  </div>
+</div>
 
-        <div className="flex gap-2">
-          <Link href={`/dashboard/applications/new?property=${property.id}`}>
-            <Button size="lg">
-              Apply Now
-            </Button>
-          </Link>
-          <ContactLandlordButton
-            landlordId={property.landlord?.id}
-            propertyName={property.name}
-            propertyId={property.id}
-            size="lg"
-            variant="outline"
-          />
-        </div>
-      </div>
+{/* Main Content */}
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Main Info */}
-        <div className="lg:col-span-2 space-y-6">
-          <Tabs defaultValue="units" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="units">Available Units</TabsTrigger>
-              <TabsTrigger value="amenities">Amenities</TabsTrigger>
-              <TabsTrigger value="policies">Policies</TabsTrigger>
-            </TabsList>
+  {/* Left Column */}
+  <div className="lg:col-span-2">
+    <Tabs defaultValue="units" className="space-y-4">
+      <TabsList>
+        <TabsTrigger value="units">Available Units</TabsTrigger>
+        <TabsTrigger value="amenities">Amenities</TabsTrigger>
+        <TabsTrigger value="policies">Policies</TabsTrigger>
+      </TabsList>
 
-            {/* Units Tab */}
-            <TabsContent value="units" className="space-y-4">
-              {property.units.length === 0 ? (
-                <Card>
-                  <CardContent className="p-12 text-center">
-                    <p className="text-muted-foreground">No units currently available</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                property.units.map((unit: { id: Key | null | undefined; unitNumber: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; floor: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; rentAmount: { toLocaleString: () => string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }; bedrooms: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; bathrooms: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; squareFeet: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; description: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; amenities: any[]; deposit: { toLocaleString: () => string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }; }) => (
-                  <Card key={unit.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle>Unit {unit.unitNumber}</CardTitle>
-                          {unit.floor && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              Floor {unit.floor}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-green-600">
-                            ${unit.rentAmount.toLocaleString()}
-                          </p>
-                          <p className="text-sm text-muted-foreground">/month</p>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {/* Unit Stats */}
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="flex items-center gap-2">
-                          <Bed className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-semibold">{unit.bedrooms}</p>
-                            <p className="text-xs text-muted-foreground">Bedrooms</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Bath className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-semibold">{unit.bathrooms}</p>
-                            <p className="text-xs text-muted-foreground">Bathrooms</p>
-                          </div>
-                        </div>
-                        {unit.squareFeet && (
-                          <div className="flex items-center gap-2">
-                            <Square className="h-5 w-5 text-muted-foreground" />
-                            <div>
-                              <p className="font-semibold">{unit.squareFeet}</p>
-                              <p className="text-xs text-muted-foreground">sq ft</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Description */}
-                      {unit.description && (
-                        <p className="text-sm text-muted-foreground">{unit.description}</p>
-                      )}
-
-                      {/* Amenities */}
-                      {unit.amenities.length > 0 && (
-                        <div>
-                          <p className="text-sm font-semibold mb-2">Unit Amenities:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {unit.amenities.map((amenity: { id: Key | null | undefined; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }) => (
-                              <Badge key={amenity.id} variant="secondary">
-                                {amenity.name}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Deposit Info */}
-                      <div className="pt-4 border-t flex items-center justify-between">
-                        <div className="text-sm">
-                          <p className="text-muted-foreground">Security Deposit</p>
-                          <p className="font-semibold">${unit.deposit.toLocaleString()}</p>
-                        </div>
-                        <Link href={`/dashboard/applications/new?unit=${unit.id}`}>
-                          <Button>Apply for This Unit</Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </TabsContent>
-
-            {/* Amenities Tab */}
-            <TabsContent value="amenities" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Property Amenities</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {/* You can add property-level amenities here */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {property.parkingSpaces.length > 0 && (
-                      <div className="flex items-start gap-3">
-                        <Car className="h-5 w-5 text-blue-600 mt-0.5" />
-                        <div>
-                          <p className="font-semibold">Parking Available</p>
-                          <p className="text-sm text-muted-foreground">
-                            {property.parkingSpaces.length} spaces
-                          </p>
-                        </div>
-                      </div>
+      {/* ── Units Tab ── */}
+      <TabsContent value="units" className="space-y-4">
+        {property.units.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center text-sm text-muted-foreground">
+              No units currently available
+            </CardContent>
+          </Card>
+        ) : (
+          property.units.map((unit: any) => (
+            <Card key={unit.id}>
+              <CardHeader className="border-b">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <CardTitle>Unit {unit.unitNumber}</CardTitle>
+                    {unit.floor && (
+                      <p className="text-sm text-muted-foreground mt-0.5">Floor {unit.floor}</p>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Policies Tab */}
-            <TabsContent value="policies" className="space-y-4">
-              {property.policies.length === 0 ? (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <p className="text-muted-foreground">No policies listed</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                property.policies.map((policy: { name: boolean | Key | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; description: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }, index: number) => (
-                  <Card key={index}>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Shield className="h-5 w-5" />
-                        {policy.name}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">{policy.description}</p>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {/* Right Column - Sidebar */}
-        <div className="space-y-6">
-          {/* Property Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Property Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {property.yearBuilt && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span className="text-sm">Built</span>
+                  <div className="text-right shrink-0">
+                    <p className="text-xl font-bold text-green-600">
+                      ${unit.rentAmount.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-muted-foreground">/month</p>
                   </div>
-                  <span className="font-semibold">{property.yearBuilt}</span>
                 </div>
-              )}
-              {property.squareFeet && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Square className="h-4 w-4" />
-                    <span className="text-sm">Property Size</span>
-                  </div>
-                  <span className="font-semibold">{property.squareFeet.toLocaleString()} sq ft</span>
-                </div>
-              )}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Home className="h-4 w-4" />
-                  <span className="text-sm">Available Units</span>
-                </div>
-                <span className="font-semibold">{property.units.length}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Utilities */}
-          {property.utilities.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5" />
-                  Utilities
-                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {property.utilities.map((utility: { type: string; isPaidByLandlord: any; }, idx: Key | null | undefined) => (
-                  <div key={idx} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{utility.type.replace("_", " ")}</span>
-                    <Badge variant={utility.isPaidByLandlord ? "secondary" : "outline"}>
-                      {utility.isPaidByLandlord ? "Included" : "Tenant Pays"}
-                    </Badge>
+
+              <CardContent className="p-0">
+                {/* Stats row */}
+                <div className="grid grid-cols-3 divide-x border-b">
+                  <div className="flex items-center gap-2 px-5 py-3">
+                    <Bed className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold">{unit.bedrooms}</p>
+                      <p className="text-xs text-muted-foreground">Beds</p>
+                    </div>
                   </div>
-                ))}
+                  <div className="flex items-center gap-2 px-5 py-3">
+                    <Bath className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold">{unit.bathrooms}</p>
+                      <p className="text-xs text-muted-foreground">Baths</p>
+                    </div>
+                  </div>
+                  {unit.squareFeet && (
+                    <div className="flex items-center gap-2 px-5 py-3">
+                      <Square className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div>
+                        <p className="text-sm font-semibold">{unit.squareFeet}</p>
+                        <p className="text-xs text-muted-foreground">sq ft</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Description */}
+                {unit.description && (
+                  <div className="px-6 py-3 border-b">
+                    <p className="text-sm text-muted-foreground">{unit.description}</p>
+                  </div>
+                )}
+
+                {/* Amenities */}
+                {unit.amenities.length > 0 && (
+                  <div className="px-6 py-3 border-b">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                      Unit Amenities
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {unit.amenities.map((amenity: any) => (
+                        <Badge key={amenity.id} variant="secondary" className="text-xs">
+                          {amenity.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Deposit + CTA */}
+                <div className="px-6 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Security Deposit</p>
+                    <p className="text-sm font-semibold">${unit.deposit.toLocaleString()}</p>
+                  </div>
+                  <Link href={`/dashboard/applications/new?unit=${unit.id}`}>
+                    <Button size="sm">Apply for This Unit</Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
-          )}
+          ))
+        )}
+      </TabsContent>
 
-          {/* Contact Landlord */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Property Manager</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <a 
-                  href={`mailto:${property.landlord.email}`}
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  {property.landlord.email}
-                </a>
-              </div>
-              {property.landlord.phone && (
+      {/* ── Amenities Tab ── */}
+      <TabsContent value="amenities">
+        <Card>
+          <CardHeader className="border-b">
+            <CardTitle>Property Amenities</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {/* Parking */}
+            {property.parkingSpaces.length > 0 && (
+              <div className="flex items-center justify-between px-6 py-4 border-b">
                 <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <a 
-                    href={`tel:${property.landlord.phone}`}
-                    className="text-sm text-blue-600 hover:underline"
-                  >
-                    {property.landlord.phone}
-                  </a>
+                  <Car className="h-4 w-4 text-blue-600 shrink-0" />
+                  <p className="text-sm font-medium">Parking Available</p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {property.parkingSpaces.length} space{property.parkingSpaces.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+            )}
+
+            {/* Utilities included */}
+            {property.utilities.length > 0 && (
+              <div className="px-6 py-4 border-b">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2.5">
+                  Included Utilities
+                </p>
+                {property.utilities.filter((u: any) => u.isPaidByLandlord).length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {property.utilities
+                      .filter((u: any) => u.isPaidByLandlord)
+                      .map((u: any, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {u.type.replace(/_/g, " ")}
+                        </Badge>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No utilities included</p>
+                )}
+              </div>
+            )}
+
+            {/* Unit amenities grouped */}
+            {(() => {
+              const allAmenities = property.units.flatMap((unit: any) => unit.amenities);
+              const uniqueAmenities = Array.from(
+                new Map(allAmenities.map((a: any) => [a.id, a])).values()
+              ) as any[];
+              const grouped = uniqueAmenities.reduce((acc: any, amenity: any) => {
+                const cat = amenity.category || "Other";
+                if (!acc[cat]) acc[cat] = [];
+                acc[cat].push(amenity);
+                return acc;
+              }, {});
+
+              if (uniqueAmenities.length === 0) return null;
+
+              return (
+                <div className="px-6 py-4">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+                    Unit Amenities
+                  </p>
+                  <div className="space-y-3">
+                    {Object.entries(grouped).map(([category, amenities]) => (
+                      <div key={category}>
+                        <p className="text-xs text-muted-foreground mb-1.5">{category}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(amenities as any[]).map((a) => (
+                            <Badge key={a.id} variant="secondary" className="text-xs">{a.name}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {property.parkingSpaces.length === 0 &&
+              property.utilities.length === 0 &&
+              property.units.every((u: any) => u.amenities.length === 0) && (
+                <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+                  No amenities information available
                 </div>
               )}
-              <ContactLandlordButton
-                landlordId={property.landlord.id}
-                propertyName={property.name}
-                propertyId={property.id}
-                variant="outline"
-                size="default"
-                className="w-full mt-4"
-              />
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      {/* ── Policies Tab ── */}
+      <TabsContent value="policies" className="space-y-4">
+        {property.policies.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Shield className="h-10 w-10 text-muted-foreground/50 mx-auto mb-3" />
+              <p className="text-sm font-medium">No Policies Listed</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Contact the property manager for policy information.
+              </p>
             </CardContent>
           </Card>
+        ) : (
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle>Property Policies</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {property.policies.map((policy: any, index: number) => (
+                  <div key={policy.id || index} className="px-6 py-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Shield className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <p className="text-sm font-semibold">{policy.name}</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground pl-6">{policy.description}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </TabsContent>
+    </Tabs>
+  </div>
+
+  {/* ── Right Sidebar ── */}
+  <div className="space-y-4">
+
+    {/* Property Overview */}
+    <Card>
+      <CardHeader className="border-b">
+        <CardTitle>Property Overview</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="divide-y">
+          {property.yearBuilt && (
+            <div className="flex items-center justify-between px-6 py-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-3.5 w-3.5" />
+                <span>Year Built</span>
+              </div>
+              <span className="text-sm font-semibold">{property.yearBuilt}</span>
+            </div>
+          )}
+          {property.squareFeet && (
+            <div className="flex items-center justify-between px-6 py-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Square className="h-3.5 w-3.5" />
+                <span>Property Size</span>
+              </div>
+              <span className="text-sm font-semibold">
+                {property.squareFeet.toLocaleString()} sq ft
+              </span>
+            </div>
+          )}
+          <div className="flex items-center justify-between px-6 py-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Home className="h-3.5 w-3.5" />
+              <span>Available Units</span>
+            </div>
+            <span className="text-sm font-semibold">{property.units.length}</span>
+          </div>
         </div>
-      </div>
+      </CardContent>
+    </Card>
+
+    {/* Utilities */}
+    {property.utilities.length > 0 && (
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Utilities
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y">
+            {property.utilities.map((utility: any, idx: number) => (
+              <div key={idx} className="flex items-center justify-between px-6 py-3">
+                <span className="text-sm text-muted-foreground">
+                  {utility.type.replace(/_/g, " ")}
+                </span>
+                <Badge
+                  variant={utility.isPaidByLandlord ? "secondary" : "outline"}
+                  className="text-xs"
+                >
+                  {utility.isPaidByLandlord ? "Included" : "Tenant Pays"}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    )}
+
+    {/* Contact */}
+    <Card>
+      <CardHeader className="border-b">
+        <CardTitle>Contact Property Manager</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="divide-y">
+          <div className="px-6 py-3">
+            <div className="flex items-center gap-2 text-sm">
+              <Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <a href={`mailto:${property.landlord.email}`} className="text-primary hover:underline truncate">
+                {property.landlord.email}
+              </a>
+            </div>
+          </div>
+          {property.landlord.phone && (
+            <div className="px-6 py-3">
+              <div className="flex items-center gap-2 text-sm">
+                <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <a href={`tel:${property.landlord.phone}`} className="text-primary hover:underline">
+                  {property.landlord.phone}
+                </a>
+              </div>
+            </div>
+          )}
+          <div className="px-6 py-3">
+            <ContactLandlordButton
+              landlordId={property.landlord.id}
+              propertyName={property.name}
+              propertyId={property.id}
+              variant="outline"
+              size="sm"
+              className="w-full"
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+</div>
     </div>
   );
 }

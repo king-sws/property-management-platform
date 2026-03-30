@@ -78,7 +78,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
   return (
     <>
-      <Card className="group overflow-hidden transition-all hover:shadow-lg">
+      <Card className="group overflow-hidden -py-4 transition-all hover:shadow-lg">
         {/* Image */}
         <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-800">
           {property.imageUrl ? (

@@ -1,10 +1,13 @@
-
 // app/(dashboard)/dashboard/expenses/new/page.tsx
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { ExpenseForm } from "@/components/expenses/expense-form";
-import { Receipt } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 import prisma from "@/lib/prisma";
+import Link from "next/link";
 
 export const metadata = {
   title: "Add Expense | Property Management",
@@ -46,20 +49,26 @@ export default async function NewExpensePage() {
   const properties = user?.landlordProfile?.properties || [];
   
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-          <Receipt className="h-6 w-6 text-primary" />
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/dashboard/expenses">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <div>
+            <Typography variant="h2" className="mb-1">
+              Add Expense
+            </Typography>
+            <Typography variant="muted">
+              Record a new property expense
+            </Typography>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Add Expense</h1>
-          <p className="text-muted-foreground">
-            Record a new property expense
-          </p>
-        </div>
-      </div>
-      
-      <ExpenseForm properties={properties} />
-    </div>
+        
+        <ExpenseForm properties={properties} />
+      </Stack>
+    </Container>
   );
 }

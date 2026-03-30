@@ -118,7 +118,7 @@ export function ApplicationsList({ initialData }: ApplicationsListProps) {
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <Card className="p-4">
+      <div className="">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -148,7 +148,7 @@ export function ApplicationsList({ initialData }: ApplicationsListProps) {
             </SelectContent>
           </Select>
         </div>
-      </Card>
+      </div>
 
       {/* Applications Table */}
       <Card>

@@ -1,15 +1,14 @@
 // app/(dashboard)/dashboard/vendors/page.tsx
-// NOTE: This is PLURAL "vendors" - for landlords to manage vendors
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getVendors } from "@/actions/vendors";
 import { VendorList } from "@/components/vendors/vendor-list";
-import { VendorHeader } from "@/components/vendors/vendor-header";
-import { VendorSkeleton } from "@/components/vendors/vendor-skeleton";
 import { Container, Stack } from "@/components/ui/container";
 import { Typography } from "@/components/ui/typography";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 import { Plus } from "lucide-react";
 
 export const metadata = {
@@ -28,26 +27,25 @@ interface PageProps {
 
 export default async function VendorsPage({ searchParams }: PageProps) {
   const session = await auth();
-  
-  if (!session?.user) {
-    redirect("/sign-in");
-  }
-  
-  // Only landlords and admins can access vendor management
+
+  if (!session?.user) redirect("/sign-in");
   if (session.user.role !== "LANDLORD" && session.user.role !== "ADMIN") {
     redirect("/dashboard");
   }
-  
+
   const params = await searchParams;
-  
   const page = params.page ? parseInt(params.page) : 1;
   const search = params.search || "";
   const category = params.category;
-  const isActive = params.isActive === "true" ? true : params.isActive === "false" ? false : undefined;
-  
+  const isActive =
+    params.isActive === "true" ? true
+    : params.isActive === "false" ? false
+    : undefined;
+
   return (
     <Container padding="none" size="full">
       <Stack spacing="lg">
+
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -58,15 +56,24 @@ export default async function VendorsPage({ searchParams }: PageProps) {
               Manage your service providers and vendors
             </Typography>
           </div>
-          <VendorHeader>
-            <Button className="w-full sm:w-auto">
+          <Button asChild className="w-full sm:w-auto">
+            <Link href="/dashboard/vendors/new">
               <Plus className="mr-2 h-4 w-4" />
               Add Vendor
-            </Button>
-          </VendorHeader>
+            </Link>
+          </Button>
         </div>
-        
-        <Suspense fallback={<VendorSkeleton />}>
+
+        <Suspense fallback={
+          <div className="space-y-4">
+            <Skeleton className="h-20 w-full rounded-lg" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[1,2,3,4,5,6].map((i) => (
+                <Skeleton key={i} className="h-64 w-full rounded-lg" />
+              ))}
+            </div>
+          </div>
+        }>
           <VendorListWrapper
             search={search}
             category={category}
@@ -74,6 +81,7 @@ export default async function VendorsPage({ searchParams }: PageProps) {
             page={page}
           />
         </Suspense>
+
       </Stack>
     </Container>
   );
@@ -97,7 +105,7 @@ async function VendorListWrapper({
     page,
     limit: 12,
   });
-  
+
   if (!result.success) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4">
@@ -105,6 +113,6 @@ async function VendorListWrapper({
       </div>
     );
   }
-  
+
   return <VendorList initialData={result.data} />;
 }

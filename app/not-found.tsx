@@ -2,38 +2,24 @@
 'use client'
 import Link from 'next/link'
 
-export default function ComingSoon() {
+export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-black px-6">
       <div className="mx-auto w-full max-w-3xl text-center space-y-8">
 
-        {/* Icon */}
+        {/* 404 Text */}
         <div className="flex items-center justify-center">
-          <div className="w-16 h-16 rounded-full border border-gray-700 flex items-center justify-center shadow-sm">
-            <svg
-              className="w-8 h-8 text-white animate-pulse"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth="1.8"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </div>
+          <h1 className="text-8xl md:text-9xl font-bold text-white">404</h1>
         </div>
 
         {/* Title */}
         <div className="space-y-4">
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-white">
-            Something New Is Coming
-          </h1>
+          <h2 className="text-2xl md:text-3xl font-semibold text-white">
+            Page Not Found
+          </h2>
 
           <p className="text-lg md:text-xl text-gray-400 leading-relaxed mx-auto max-w-xl">
-            We're building this page to bring you an improved experience. Check back soon for updates.
+            The page you're looking for doesn't exist or has been moved.
           </p>
         </div>
 
@@ -58,11 +44,6 @@ export default function ComingSoon() {
             Go Back Home
           </Link>
         </div>
-
-        {/* Footer Note */}
-        <p className="pt-6 text-sm text-gray-600">
-          Thanks for your patience — we're working hard behind the scenes.
-        </p>
       </div>
     </div>
   )

@@ -6,7 +6,10 @@ import { getDocumentById } from "@/actions/documents";
 import { DocumentEdit } from "@/components/document/document-edit";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Container, Stack } from "@/components/ui/container";
-import { Edit } from "lucide-react";
+import { Typography } from "@/components/ui/typography";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -39,15 +42,19 @@ export default async function EditDocumentPage({ params }: EditDocumentPageProps
   return (
     <Container padding="none" size="full">
       <Stack spacing="lg">
-        <div className="flex items-center gap-4 p-6">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-            <Edit className="h-6 w-6 text-primary" />
-          </div>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/dashboard/documents">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Edit Document</h1>
-            <p className="text-muted-foreground">
+            <Typography variant="h2" className="mb-1">
+              Edit Document
+            </Typography>
+            <Typography variant="muted">
               Update document information and settings
-            </p>
+            </Typography>
           </div>
         </div>
 
@@ -68,8 +75,10 @@ async function EditDocumentWrapper({ documentId }: { documentId: string }) {
     }
     
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 m-6">
-        <p className="text-sm text-red-800">{result.error}</p>
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+        <Typography variant="muted" className="text-sm text-red-800">
+          {result.error}
+        </Typography>
       </div>
     );
   }
@@ -79,7 +88,7 @@ async function EditDocumentWrapper({ documentId }: { documentId: string }) {
 
 function EditDocumentLoading() {
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <Skeleton className="h-64 w-full rounded-lg" />
       <Skeleton className="h-48 w-full rounded-lg" />
     </div>

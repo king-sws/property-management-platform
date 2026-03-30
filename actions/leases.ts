@@ -757,7 +757,19 @@ export async function updateLease(
             where: { id: lease.unitId },
             data: { status: "VACANT" },
           });
-          
+          await tx.payment.updateMany({
+            where: {
+              leaseId: leaseId,
+              status: "PENDING",
+              dueDate: { gt: new Date() },
+            },
+            data: { status: "CANCELLED" },
+          });
+
+          await tx.recurringPayment.updateMany({
+            where: { leaseId: leaseId, isActive: true },
+            data: { isActive: false },
+          });
           console.log(`✅ Unit ${lease.unit.unitNumber} marked as VACANT (lease ${newStatus.toLowerCase()})`);
         }
       }
@@ -807,22 +819,25 @@ export async function updateLease(
 // -------------------------
 // Terminate Lease
 // -------------------------
+// -------------------------
+// Terminate Lease
+// -------------------------
 export async function terminateLease(
   leaseId: string,
   data: z.infer<typeof terminateLeaseSchema>
 ): Promise<LeaseResult> {
   try {
     const currentUser = await getCurrentUserWithRole();
-    
+
     if (currentUser.role !== "LANDLORD" && currentUser.role !== "ADMIN") {
       return {
         success: false,
         error: "Only landlords can terminate leases",
       };
     }
-    
+
     const validated = terminateLeaseSchema.parse(data);
-    
+
     const lease = await prisma.lease.findUnique({
       where: { id: leaseId },
       include: {
@@ -833,14 +848,14 @@ export async function terminateLease(
         },
       },
     });
-    
+
     if (!lease) {
       return {
         success: false,
         error: "Lease not found",
       };
     }
-    
+
     if (
       currentUser.role === "LANDLORD" &&
       lease.unit.property.landlordId !== currentUser.landlordProfile?.id
@@ -850,8 +865,9 @@ export async function terminateLease(
         error: "Unauthorized",
       };
     }
-    
+
     const terminatedLease = await prisma.$transaction(async (tx) => {
+      // 1. Update lease status and end date
       const updated = await tx.lease.update({
         where: { id: leaseId },
         data: {
@@ -860,50 +876,81 @@ export async function terminateLease(
           notes: validated.reason,
         },
       });
-      
-      // ✅ Update unit status to VACANT
+
+      // 2. Mark unit as VACANT
       await tx.unit.update({
         where: { id: lease.unitId },
+        data: { status: "VACANT" },
+      });
+
+      // 3. ✅ Cancel all future PENDING payments after the termination date
+      const cancelledPayments = await tx.payment.updateMany({
+        where: {
+          leaseId: leaseId,
+          status: "PENDING",
+          dueDate: {
+            gt: new Date(validated.terminationDate),
+          },
+        },
         data: {
-          status: "VACANT",
+          status: "CANCELLED",
         },
       });
-      
+
+      // 4. ✅ Deactivate the RecurringPayment record for this lease
+      await tx.recurringPayment.updateMany({
+        where: {
+          leaseId: leaseId,
+          isActive: true,
+        },
+        data: {
+          isActive: false,
+          endDate: new Date(validated.terminationDate),
+        },
+      });
+
+      // 5. Log activity
       await tx.activityLog.create({
         data: {
           userId: currentUser.id,
           type: "LEASE_TERMINATED" as ActivityType,
           action: `Terminated lease for unit ${lease.unit.unitNumber}`,
           metadata: {
-            leaseId: leaseId,
+            leaseId,
             terminationDate: validated.terminationDate,
             reason: validated.reason,
+            cancelledPaymentsCount: cancelledPayments.count,
           },
         },
       });
-      
+
       return updated;
     });
-    
+
     revalidatePath("/dashboard/leases");
     revalidatePath(`/dashboard/leases/${leaseId}`);
     revalidatePath(`/dashboard/properties/${lease.unit.property.id}`);
-    
+    revalidatePath("/dashboard/payments");
+
     return {
       success: true,
       data: terminatedLease,
-      message: "Lease terminated successfully. Unit marked as vacant.",
+      message: `Lease terminated successfully. Unit marked as vacant. ${
+        // ✅ This won't work here since cancelledPayments is inside the tx scope
+        // so we just give a general message
+        "Future pending payments have been cancelled."
+      }`,
     };
   } catch (error) {
     console.error("Terminate lease error:", error);
-    
+
     if (error instanceof z.ZodError) {
       return {
         success: false,
         error: error.issues[0]?.message || "Invalid input",
       };
     }
-    
+
     return {
       success: false,
       error: "Failed to terminate lease. Please try again.",

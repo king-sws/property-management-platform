@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 // ============================================================================
 // FILE: src/components/properties/edit-unit-dialog.tsx
 // Edit Unit Dialog Component
@@ -81,7 +80,7 @@ export default function EditUnitDialog({ unit, propertyId }: EditUnitDialogProps
       if (result.success) {
         toast("Unit updated successfully");
         setOpen(false);
-        window.location.reload(); // Refresh to show updated data
+        window.location.reload();
       } else {
         toast("Failed to update unit");
       }
@@ -108,10 +107,10 @@ export default function EditUnitDialog({ unit, propertyId }: EditUnitDialogProps
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-5 mt-2">
+          <div className="grid grid-cols-2 gap-5">
             {/* Unit Number */}
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="unitNumber">
                 Unit Number <span className="text-red-500">*</span>
               </Label>
@@ -126,7 +125,7 @@ export default function EditUnitDialog({ unit, propertyId }: EditUnitDialogProps
             </div>
 
             {/* Floor */}
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="floor">Floor (Optional)</Label>
               <Input
                 id="floor"
@@ -139,9 +138,9 @@ export default function EditUnitDialog({ unit, propertyId }: EditUnitDialogProps
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-5">
             {/* Bedrooms */}
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="bedrooms">
                 Bedrooms <span className="text-red-500">*</span>
               </Label>
@@ -158,7 +157,7 @@ export default function EditUnitDialog({ unit, propertyId }: EditUnitDialogProps
             </div>
 
             {/* Bathrooms */}
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="bathrooms">
                 Bathrooms <span className="text-red-500">*</span>
               </Label>
@@ -180,7 +179,7 @@ export default function EditUnitDialog({ unit, propertyId }: EditUnitDialogProps
           </div>
 
           {/* Square Feet */}
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="squareFeet">Square Feet (Optional)</Label>
             <Input
               id="squareFeet"
@@ -193,9 +192,9 @@ export default function EditUnitDialog({ unit, propertyId }: EditUnitDialogProps
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-5">
             {/* Rent Amount */}
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="rentAmount">
                 Monthly Rent ($) <span className="text-red-500">*</span>
               </Label>
@@ -216,7 +215,7 @@ export default function EditUnitDialog({ unit, propertyId }: EditUnitDialogProps
             </div>
 
             {/* Deposit */}
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="deposit">
                 Security Deposit ($) <span className="text-red-500">*</span>
               </Label>
@@ -235,7 +234,7 @@ export default function EditUnitDialog({ unit, propertyId }: EditUnitDialogProps
           </div>
 
           {/* Description */}
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="description">Description (Optional)</Label>
             <Textarea
               id="description"
@@ -248,7 +247,7 @@ export default function EditUnitDialog({ unit, propertyId }: EditUnitDialogProps
             />
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="pt-2">
             <Button
               type="button"
               variant="outline"

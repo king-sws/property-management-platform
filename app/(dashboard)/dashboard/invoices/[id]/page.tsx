@@ -4,290 +4,343 @@
 import { redirect, notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { getInvoiceById } from "@/actions/invoices";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Wrench, Home, Mail, Phone, Calendar, CheckCircle, Clock } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { InvoiceActions } from "@/components/invoices/invoice-actions";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+const statusVariant: Record<string, { label: string; className: string }> = {
+  DRAFT:     { label: "Draft",     className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300" },
+  PENDING:   { label: "Pending",   className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300" },
+  APPROVED:  { label: "Approved",  className: "bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300" },
+  PAID:      { label: "Paid",      className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300" },
+  REJECTED:  { label: "Rejected",  className: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300" },
+  CANCELLED: { label: "Cancelled", className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300" },
+};
+
 export default async function LandlordInvoiceDetailPage({ params }: PageProps) {
   const session = await auth();
   const { id } = await params;
-  
-  if (!session?.user?.id) {
-    redirect("/sign-in");
-  }
-  
-  if (session.user.role !== "LANDLORD" && session.user.role !== "ADMIN") {
-    redirect("/dashboard");
-  }
-  
+
+  if (!session?.user?.id) redirect("/sign-in");
+  if (session.user.role !== "LANDLORD" && session.user.role !== "ADMIN") redirect("/dashboard");
+
   const result = await getInvoiceById(id);
-  
-  if (!result.success || !result.data) {
-    notFound();
-  }
-  
+  if (!result.success || !result.data) notFound();
+
   const invoice = result.data;
-  
-  const statusColors: Record<string, string> = {
-    DRAFT: "bg-gray-100 text-gray-800",
-    PENDING: "bg-yellow-100 text-yellow-800",
-    APPROVED: "bg-green-100 text-green-800",
-    PAID: "bg-emerald-100 text-emerald-800",
-    REJECTED: "bg-red-100 text-red-800",
-    CANCELLED: "bg-gray-100 text-gray-800",
+  const sv = statusVariant[invoice.status];
+
+  // Add this function above the page component
+function serializeInvoice(invoice: any): any {
+  return {
+    ...invoice,
+    subtotal: invoice.subtotal ? Number(invoice.subtotal) : null,
+    tax: invoice.tax ? Number(invoice.tax) : null,
+    discount: invoice.discount ? Number(invoice.discount) : null,
+    total: invoice.total ? Number(invoice.total) : null,
+    createdAt: invoice.createdAt ? new Date(invoice.createdAt).toISOString() : null,
+    updatedAt: invoice.updatedAt ? new Date(invoice.updatedAt).toISOString() : null,
+    dueDate: invoice.dueDate ? new Date(invoice.dueDate).toISOString() : null,
+    paidAt: invoice.paidAt ? new Date(invoice.paidAt).toISOString() : null,
+    approvedAt: invoice.approvedAt ? new Date(invoice.approvedAt).toISOString() : null,
+    items: invoice.items?.map((item: any) => ({
+      ...item,
+      unitPrice: item.unitPrice ? Number(item.unitPrice) : null,
+      amount: item.amount ? Number(item.amount) : null,
+    })) ?? [],
+    vendor: invoice.vendor ? {
+      ...invoice.vendor,
+      rating: invoice.vendor.rating ? Number(invoice.vendor.rating) : null,
+      user: invoice.vendor.user ? {
+        ...invoice.vendor.user,
+        createdAt: invoice.vendor.user.createdAt ? new Date(invoice.vendor.user.createdAt).toISOString() : null,
+        updatedAt: invoice.vendor.user.updatedAt ? new Date(invoice.vendor.user.updatedAt).toISOString() : null,
+      } : null,
+    } : null,
+    ticket: invoice.ticket ? {
+      ...invoice.ticket,
+      createdAt: invoice.ticket.createdAt ? new Date(invoice.ticket.createdAt).toISOString() : null,
+      updatedAt: invoice.ticket.updatedAt ? new Date(invoice.ticket.updatedAt).toISOString() : null,
+      property: invoice.ticket.property ? {
+        ...invoice.ticket.property,
+        purchasePrice: invoice.ticket.property.purchasePrice ? Number(invoice.ticket.property.purchasePrice) : null,
+        currentValue: invoice.ticket.property.currentValue ? Number(invoice.ticket.property.currentValue) : null,
+        propertyTax: invoice.ticket.property.propertyTax ? Number(invoice.ticket.property.propertyTax) : null,
+        insurance: invoice.ticket.property.insurance ? Number(invoice.ticket.property.insurance) : null,
+        hoaFees: invoice.ticket.property.hoaFees ? Number(invoice.ticket.property.hoaFees) : null,
+        latitude: invoice.ticket.property.latitude ? Number(invoice.ticket.property.latitude) : null,
+        longitude: invoice.ticket.property.longitude ? Number(invoice.ticket.property.longitude) : null,
+        createdAt: invoice.ticket.property.createdAt ? new Date(invoice.ticket.property.createdAt).toISOString() : null,
+        updatedAt: invoice.ticket.property.updatedAt ? new Date(invoice.ticket.property.updatedAt).toISOString() : null,
+        deletedAt: invoice.ticket.property.deletedAt ? new Date(invoice.ticket.property.deletedAt).toISOString() : null,
+      } : null,
+    } : null,
   };
+}
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/invoices">
-            <Button variant="ghost" size="icon">
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
+
+        {/* ── Top bar ── */}
+        <div className="flex items-center justify-between gap-4">
+          <Button variant="ghost" asChild className="gap-2">
+            <Link href="/dashboard/invoices">
               <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              {invoice.invoiceNumber}
-              <Badge className={statusColors[invoice.status]}>
-                {invoice.status}
-              </Badge>
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Created on {format(new Date(invoice.createdAt), "MMMM dd, yyyy")}
-            </p>
+              Back to Invoices
+            </Link>
+          </Button>
+          <div className="flex items-center gap-2">
+            <Badge className={sv?.className ?? ""}>{sv?.label ?? invoice.status}</Badge>
+            <InvoiceActions invoice={invoice} role="landlord" />
           </div>
         </div>
-        
-        <InvoiceActions invoice={invoice} role="landlord" />
-      </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main Invoice Details */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Invoice Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Invoice Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Vendor Info */}
-              <div>
-                <p className="text-sm text-muted-foreground">Vendor</p>
-                <p className="font-medium">{invoice.vendor.businessName}</p>
-                <p className="text-sm text-muted-foreground">
-                  {invoice.vendor.user.email}
-                </p>
-                {invoice.vendor.user.phone && (
-                  <p className="text-sm text-muted-foreground">
-                    {invoice.vendor.user.phone}
-                  </p>
-                )}
-              </div>
+        {/* ── Action banners ── */}
+        {invoice.status === "PENDING" && (
+          <div className="flex items-center gap-3 rounded-lg border border-yellow-400/40 bg-yellow-50/50 dark:bg-yellow-950/10 px-4 py-3">
+            <Clock className="h-4 w-4 text-yellow-600 shrink-0" />
+            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+              This invoice is awaiting your review — please approve or reject it.
+            </p>
+          </div>
+        )}
+        {invoice.status === "APPROVED" && (
+          <div className="flex items-center gap-3 rounded-lg border border-green-400/40 bg-green-50/50 dark:bg-green-950/10 px-4 py-3">
+            <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+            <p className="text-sm font-medium text-green-800 dark:text-green-300">
+              Approved — mark as paid after completing the payment.
+            </p>
+          </div>
+        )}
+        {invoice.status === "REJECTED" && invoice.rejectionReason && (
+          <div className="rounded-lg border border-red-300 bg-red-50 dark:bg-red-950/20 px-4 py-3">
+            <p className="text-xs font-medium text-red-800 dark:text-red-300 uppercase tracking-wide mb-1">Rejection Reason</p>
+            <p className="text-sm text-red-800 dark:text-red-300">{invoice.rejectionReason}</p>
+          </div>
+        )}
 
-              {/* Ticket Info */}
-              {invoice.ticket && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Related Ticket</p>
-                  <Link
-                    href={`/dashboard/maintenance/${invoice.ticket.id}`}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {invoice.ticket.title}
-                  </Link>
-                  <p className="text-sm text-muted-foreground">
-                    {invoice.ticket.property.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {invoice.ticket.property.address}
-                  </p>
+        {/* ── Main layout ── */}
+        <div className="grid gap-6 lg:grid-cols-3">
+
+          {/* Left: main content */}
+          <div className="lg:col-span-2 space-y-6">
+
+            {/* Invoice details card */}
+            <Card>
+              <CardHeader className="border-b">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-xl">{invoice.invoiceNumber}</CardTitle>
+                    <CardDescription>
+                      Created {format(new Date(invoice.createdAt), "MMMM dd, yyyy")}
+                    </CardDescription>
+                  </div>
+                  <p className="text-3xl font-bold">${invoice.total.toFixed(2)}</p>
                 </div>
-              )}
+              </CardHeader>
 
-              {/* Dates */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                {invoice.dueDate && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Due Date</p>
-                    <p className="font-medium">
-                      {format(new Date(invoice.dueDate), "MMM dd, yyyy")}
-                    </p>
+              <CardContent className="p-0">
+                {/* Vendor + ticket info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x border-b">
+                  {/* Vendor */}
+                  <div className="px-6 py-4 space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Vendor</p>
+                    <p className="text-sm font-medium">{invoice.vendor.businessName}</p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Mail className="h-3 w-3 shrink-0" />
+                        {invoice.vendor.user.email}
+                      </div>
+                      {invoice.vendor.user.phone && (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Phone className="h-3 w-3 shrink-0" />
+                          {invoice.vendor.user.phone}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-                {invoice.approvedAt && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Approved On</p>
-                    <p className="font-medium">
-                      {format(new Date(invoice.approvedAt), "MMM dd, yyyy")}
-                    </p>
-                  </div>
-                )}
-                {invoice.paidAt && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Paid On</p>
-                    <p className="font-medium">
-                      {format(new Date(invoice.paidAt), "MMM dd, yyyy")}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Line Items */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {invoice.items.map((item: any, index: number) => (
-                  <div
-                    key={index}
-                    className="flex items-start justify-between pb-4 border-b last:border-0 last:pb-0"
-                  >
-                    <div className="flex-1">
-                      <p className="font-medium">{item.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Qty: {item.quantity} × ${item.unitPrice.toFixed(2)}
+                  {/* Ticket / property */}
+                  {invoice.ticket ? (
+                    <div className="px-6 py-4 space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Related Ticket</p>
+                      <Link
+  href={`/dashboard/maintenance/${invoice.ticket.id}`}
+  className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+>
+                        <Wrench className="h-3.5 w-3.5 shrink-0" />
+                        {invoice.ticket.title}
+                      </Link>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Home className="h-3 w-3 shrink-0" />
+                        {invoice.ticket.property.name}
+                      </div>
+                      <p className="text-xs text-muted-foreground pl-4">
+                        {invoice.ticket.property.address}
                       </p>
                     </div>
-                    <p className="font-semibold">${item.amount.toFixed(2)}</p>
+                  ) : (
+                    <div className="px-6 py-4">
+                      <p className="text-xs text-muted-foreground">No related ticket</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Dates row */}
+                <div className="grid grid-cols-2 md:grid-cols-3 divide-x border-b">
+                  <div className="px-6 py-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Created</p>
+                    <p className="text-sm">{format(new Date(invoice.createdAt), "MMM dd, yyyy")}</p>
                   </div>
-                ))}
+                  {invoice.dueDate && (
+                    <div className="px-6 py-4">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Due Date</p>
+                      <p className="text-sm">{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</p>
+                    </div>
+                  )}
+                  {invoice.approvedAt && (
+                    <div className="px-6 py-4">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Approved</p>
+                      <p className="text-sm">{format(new Date(invoice.approvedAt), "MMM dd, yyyy")}</p>
+                    </div>
+                  )}
+                  {invoice.paidAt && (
+                    <div className="px-6 py-4">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Paid</p>
+                      <p className="text-sm text-green-600">{format(new Date(invoice.paidAt), "MMM dd, yyyy")}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Notes */}
+                {invoice.notes && (
+                  <div className="px-6 py-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Notes</p>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{invoice.notes}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Line items card */}
+            <Card>
+              <CardHeader className="border-b">
+                <CardTitle>Items</CardTitle>
+                <CardDescription>{invoice.items.length} line item{invoice.items.length !== 1 ? "s" : ""}</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {/* Item rows */}
+                <div className="hidden md:block">
+                  <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 px-6 py-2 border-b text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    <span>Description</span>
+                    <span>Qty</span>
+                    <span>Unit Price</span>
+                    <span className="text-right">Amount</span>
+                  </div>
+                  {invoice.items.map((item: any, index: number) => (
+                    <div
+                      key={index}
+                      className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 px-6 py-3 border-b last:border-0 items-center"
+                    >
+                      <p className="text-sm font-medium">{item.description}</p>
+                      <p className="text-sm text-muted-foreground">{item.quantity}</p>
+                      <p className="text-sm text-muted-foreground">${item.unitPrice.toFixed(2)}</p>
+                      <p className="text-sm font-semibold text-right">${item.amount.toFixed(2)}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Mobile items */}
+                <div className="md:hidden divide-y">
+                  {invoice.items.map((item: any, index: number) => (
+                    <div key={index} className="px-6 py-3 space-y-1">
+                      <p className="text-sm font-medium">{item.description}</p>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{item.quantity} × ${item.unitPrice.toFixed(2)}</span>
+                        <span className="font-semibold text-foreground">${item.amount.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
                 {/* Totals */}
-                <div className="space-y-2 pt-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
+                <div className="px-6 py-4 border-t space-y-2">
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Subtotal</span>
                     <span>${invoice.subtotal.toFixed(2)}</span>
                   </div>
-                  
                   {invoice.tax > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Tax</span>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Tax</span>
                       <span>${invoice.tax.toFixed(2)}</span>
                     </div>
                   )}
-                  
                   {invoice.discount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Discount</span>
-                      <span className="text-red-600">-${invoice.discount.toFixed(2)}</span>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Discount</span>
+                      <span className="text-destructive">-${invoice.discount.toFixed(2)}</span>
                     </div>
                   )}
-                  
-                  <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                  <div className="flex justify-between text-base font-bold pt-2 border-t">
                     <span>Total</span>
                     <span>${invoice.total.toFixed(2)}</span>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
 
-          {/* Notes */}
-          {invoice.notes && (
+          {/* Right sidebar */}
+          <div className="space-y-6">
+
+            {/* Payment summary card */}
             <Card>
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
+              <CardHeader className="border-b">
+                <CardTitle>Payment Summary</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm whitespace-pre-wrap">{invoice.notes}</p>
+              <CardContent className="p-0">
+                <div className="divide-y">
+                  <div className="px-6 py-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Status</p>
+                    <Badge className={sv?.className ?? ""}>{sv?.label ?? invoice.status}</Badge>
+                  </div>
+                  <div className="px-6 py-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Invoice Total</p>
+                    <p className="text-2xl font-bold">${invoice.total.toFixed(2)}</p>
+                  </div>
+                  {invoice.dueDate && (
+                    <div className="px-6 py-4">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Due</p>
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                        {format(new Date(invoice.dueDate), "MMM dd, yyyy")}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
-          )}
 
-          {/* Rejection Reason */}
-          {invoice.rejectionReason && invoice.status === "REJECTED" && (
-            <Card className="border-red-200 bg-red-50">
-              <CardHeader>
-                <CardTitle className="text-red-900">Rejection Reason</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-red-800">{invoice.rejectionReason}</p>
-              </CardContent>
-            </Card>
-          )}
+          </div>
         </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Payment Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground">Status</p>
-                <Badge className={statusColors[invoice.status]}>
-                  {invoice.status}
-                </Badge>
-              </div>
-              
-              <div>
-                <p className="text-sm text-muted-foreground">Invoice Total</p>
-                <p className="text-2xl font-bold">${invoice.total.toFixed(2)}</p>
-              </div>
-              
-              {invoice.status === "PENDING" && (
-                <div className="pt-2">
-                  <p className="text-xs text-yellow-600 font-medium">
-                    ⏳ Awaiting your approval
-                  </p>
-                </div>
-              )}
-              
-              {invoice.status === "APPROVED" && (
-                <div className="pt-2">
-                  <p className="text-xs text-green-600 font-medium">
-                    ✓ Approved - Ready for payment
-                  </p>
-                </div>
-              )}
-              
-              {invoice.status === "PAID" && (
-                <div className="pt-2 text-sm text-green-600 font-medium">
-                  ✓ Payment completed
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions based on status */}
-          {invoice.status === "PENDING" && (
-            <Card className="border-yellow-200 bg-yellow-50">
-              <CardHeader>
-                <CardTitle className="text-yellow-900">Action Required</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-yellow-800">
-                This invoice is awaiting your review. Please approve or reject it.
-              </CardContent>
-            </Card>
-          )}
-
-          {invoice.status === "APPROVED" && (
-            <Card className="border-green-200 bg-green-50">
-              <CardHeader>
-                <CardTitle className="text-green-900">Payment Pending</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-green-800">
-                Mark this invoice as paid after you've completed the payment.
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
-    </div>
+      </Stack>
+    </Container>
   );
 }

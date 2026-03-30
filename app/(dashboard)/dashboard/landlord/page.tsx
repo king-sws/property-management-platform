@@ -100,15 +100,16 @@ export default async function LandlordDashboardPage() {
         </div>
 
         {/* Leases & Vacant Units */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Suspense fallback={<CardLoading title="Expiring Leases" />}>
-            <ExpiringLeases userId={session.user.id} />
-          </Suspense>
+        {/* Leases & Vacant Units — side by side, same height */}
+<div className="grid gap-4 lg:grid-cols-2 items-start">
+  <Suspense fallback={<CardLoading title="Lease Health" />}>
+    <LeaseSummary userId={session.user.id} />
+  </Suspense>
 
-          <Suspense fallback={<CardLoading title="Vacant Units" />}>
-            <VacantUnits userId={session.user.id} />
-          </Suspense>
-        </div>
+  <Suspense fallback={<CardLoading title="Vacant Units" />}>
+    <VacantUnits userId={session.user.id} />
+  </Suspense>
+</div>
 
         {/* Maintenance */}
         <Suspense fallback={<CardLoading title="Maintenance Requests" />}>
@@ -351,108 +352,166 @@ async function FinancialMetrics({ userId }: { userId: string }) {
 // Outstanding Payments Component
 // -------------------------
 async function OutstandingPayments({ userId }: { userId: string }) {
-  const landlord = await prisma.landlord.findUnique({
-    where: { userId },
-  });
-
+  const landlord = await prisma.landlord.findUnique({ where: { userId } });
   if (!landlord) return null;
 
   const today = new Date();
 
-  const overduePayments = await prisma.payment.findMany({
-    where: {
-      lease: {
-        unit: {
-          property: {
-            landlordId: landlord.id,
-          },
-        },
+  const [overduePayments, upcomingPayments] = await Promise.all([
+    // Overdue: pending + past due date
+    prisma.payment.findMany({
+      where: {
+        lease: { unit: { property: { landlordId: landlord.id } } },
+        status: "PENDING",
+        dueDate: { lt: today },
       },
-      status: "PENDING",
-      dueDate: {
-        lt: today,
-      },
-    },
-    include: {
-      tenant: {
-        include: {
-          user: {
-            select: {
-              name: true,
+      include: {
+        tenant: { include: { user: { select: { name: true } } } },
+        lease: {
+          include: {
+            unit: {
+              include: { property: { select: { name: true } } },
             },
           },
         },
       },
-      lease: {
-        include: {
-          unit: {
-            include: {
-              property: {
-                select: {
-                  name: true,
-                },
-              },
+      orderBy: { dueDate: "asc" },
+      take: 5,
+    }),
+
+    // ✅ Next upcoming payment per active lease
+    prisma.payment.findMany({
+      where: {
+        lease: {
+          unit: { property: { landlordId: landlord.id } },
+          status: { in: ["ACTIVE", "EXPIRING_SOON"] },
+        },
+        status: "PENDING",
+        dueDate: { gte: today },
+      },
+      include: {
+        tenant: { include: { user: { select: { name: true } } } },
+        lease: {
+          include: {
+            unit: {
+              include: { property: { select: { name: true } } },
             },
           },
         },
       },
-    },
-    orderBy: { dueDate: "asc" },
-    take: 5,
+      orderBy: { dueDate: "asc" },
+      // One per lease — we'll deduplicate below
+      take: 20,
+    }),
+  ]);
+
+  // ✅ Keep only the earliest upcoming payment per lease
+  const seenLeases = new Set<string>();
+  const nextPayments = upcomingPayments.filter((p) => {
+    if (!p.leaseId || seenLeases.has(p.leaseId)) return false;
+    seenLeases.add(p.leaseId);
+    return true;
   });
 
   const overdueTotal = overduePayments.reduce((sum, p) => sum + Number(p.amount), 0);
 
-  if (overduePayments.length === 0) return null;
+  if (overduePayments.length === 0 && nextPayments.length === 0) return null;
 
   return (
-    <Card className="border-destructive">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            <CardTitle>Outstanding Payments</CardTitle>
-          </div>
-          <Badge variant="destructive">{overduePayments.length} Overdue</Badge>
-        </div>
-        <CardDescription>
-          Total overdue: ${overdueTotal.toLocaleString()}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {overduePayments.map((payment) => {
-            const daysOverdue = payment.dueDate 
-              ? Math.floor((today.getTime() - payment.dueDate.getTime()) / (1000 * 60 * 60 * 24))
-              : 0;
-
-            return (
-              <div key={payment.id} className="flex items-center justify-between border-b pb-3 last:border-0">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">
-                    {payment.tenant.user.name} - {payment?.lease?.unit?.property?.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Unit {payment?.lease?.unit.unitNumber} • {daysOverdue} days overdue
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-destructive">
-                    ${Number(payment.amount).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Due: {payment.dueDate?.toLocaleDateString()}
-                  </p>
-                </div>
+    <div className="space-y-4">
+      {/* Upcoming payments section */}
+      {nextPayments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-muted-foreground" />
+                <CardTitle>Next Payments Due</CardTitle>
               </div>
-            );
-          })}
-        </div>
-        <Button asChild className="w-full mt-4" variant="outline">
-          <Link href="/dashboard/payments">View All Payments</Link>
-        </Button>
-      </CardContent>
-    </Card>
+              <Badge variant="secondary">{nextPayments.length} lease{nextPayments.length !== 1 ? "s" : ""}</Badge>
+            </div>
+            <CardDescription>Upcoming rent across active leases</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {nextPayments.map((payment) => {
+                const daysUntil = payment.dueDate
+                  ? Math.ceil((payment.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                  : 0;
+                return (
+                  <div key={payment.id} className="flex items-center justify-between border-b pb-3 last:border-0">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">
+                        {payment.tenant.user.name} — {payment.lease?.unit?.property?.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Unit {payment.lease?.unit.unitNumber} • Due in {daysUntil} day{daysUntil !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold">${Number(payment.amount).toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {payment.dueDate?.toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Overdue payments section — unchanged */}
+      {overduePayments.length > 0 && (
+        <Card className="border-destructive">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                <CardTitle>Outstanding Payments</CardTitle>
+              </div>
+              <Badge variant="destructive">{overduePayments.length} Overdue</Badge>
+            </div>
+            <CardDescription>
+              Total overdue: ${overdueTotal.toLocaleString()}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {overduePayments.map((payment) => {
+                const daysOverdue = payment.dueDate
+                  ? Math.floor((today.getTime() - payment.dueDate.getTime()) / (1000 * 60 * 60 * 24))
+                  : 0;
+                return (
+                  <div key={payment.id} className="flex items-center justify-between border-b pb-3 last:border-0">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">
+                        {payment.tenant.user.name} - {payment?.lease?.unit?.property?.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Unit {payment?.lease?.unit.unitNumber} • {daysOverdue} days overdue
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-destructive">
+                        ${Number(payment.amount).toLocaleString()}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Due: {payment.dueDate?.toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <Button asChild className="w-full mt-4" variant="outline">
+              <Link href="/dashboard/payments">View All Payments</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
 
@@ -572,6 +631,122 @@ async function ExpiringLeases({ userId }: { userId: string }) {
         )}
         <Button asChild className="w-full mt-4" variant="outline">
           <Link href="/dashboard/leases">Manage Leases</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Replace LeaseHealth with this LeaseSummary function
+// and update the JSX call to <LeaseSummary userId={session.user.id} />
+
+async function LeaseSummary({ userId }: { userId: string }) {
+  const landlord = await prisma.landlord.findUnique({ where: { userId } });
+  if (!landlord) return null;
+
+  const today = new Date();
+  const in30 = new Date(today); in30.setDate(today.getDate() + 30);
+  const in60 = new Date(today); in60.setDate(today.getDate() + 60);
+  const in90 = new Date(today); in90.setDate(today.getDate() + 90);
+
+  const [total, expiring30, expiring60, expiring90, monthToMonth] = await Promise.all([
+    prisma.lease.count({
+      where: {
+        unit: { property: { landlordId: landlord.id } },
+        status: { in: ["ACTIVE", "EXPIRING_SOON"] },
+        deletedAt: null,
+      },
+    }),
+    prisma.lease.count({
+      where: {
+        unit: { property: { landlordId: landlord.id } },
+        status: { in: ["ACTIVE", "EXPIRING_SOON"] },
+        endDate: { gte: today, lte: in30 },
+        deletedAt: null,
+      },
+    }),
+    prisma.lease.count({
+      where: {
+        unit: { property: { landlordId: landlord.id } },
+        status: { in: ["ACTIVE", "EXPIRING_SOON"] },
+        endDate: { gt: in30, lte: in60 },
+        deletedAt: null,
+      },
+    }),
+    prisma.lease.count({
+      where: {
+        unit: { property: { landlordId: landlord.id } },
+        status: { in: ["ACTIVE", "EXPIRING_SOON"] },
+        endDate: { gt: in60, lte: in90 },
+        deletedAt: null,
+      },
+    }),
+    prisma.lease.count({
+      where: {
+        unit: { property: { landlordId: landlord.id } },
+        status: { in: ["ACTIVE", "EXPIRING_SOON"] },
+        endDate: null,
+        deletedAt: null,
+      },
+    }),
+  ]);
+
+  const rows = [
+    {
+      label: "Expiring in 30 days",
+      count: expiring30,
+      urgent: expiring30 > 0,
+      color: expiring30 > 0
+        ? "text-red-600 dark:text-red-400"
+        : "text-muted-foreground",
+      href: "/dashboard/leases?status=EXPIRING_SOON",
+    },
+    {
+      label: "Expiring in 31–60 days",
+      count: expiring60,
+      urgent: false,
+      color: expiring60 > 0
+        ? "text-amber-600 dark:text-amber-400"
+        : "text-muted-foreground",
+      href: "/dashboard/leases",
+    },
+    
+    {
+      label: "Month-to-month",
+      count: monthToMonth,
+      urgent: false,
+      color: "text-muted-foreground",
+      href: "/dashboard/leases",
+    },
+  ];
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-muted-foreground" />
+            <CardTitle>Leases</CardTitle>
+          </div>
+          <Badge variant="secondary">{total} active</Badge>
+        </div>
+        <CardDescription>Expiration breakdown</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {rows.map((row) => (
+          <div
+            key={row.label}
+            className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0"
+          >
+            <span className="text-sm text-muted-foreground">{row.label}</span>
+            <span className={`text-sm font-medium tabular-nums ${row.color}`}>
+              {row.count}
+            </span>
+          </div>
+        ))}
+
+        <Button asChild className="w-full mt-1" variant="outline" size="sm">
+          <Link href="/dashboard/leases">Manage all leases</Link>
         </Button>
       </CardContent>
     </Card>

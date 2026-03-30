@@ -5,10 +5,12 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getExpenses } from "@/actions/expenses";
 import { ExpensesList } from "@/components/expenses/expenses-list";
-import { ExpensesHeader } from "@/components/expenses/expenses-header";
 import { Container, Stack } from "@/components/ui/container";
 import { Typography } from "@/components/ui/typography";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 
 export const metadata = {
   title: "Expenses | Property Management",
@@ -19,34 +21,40 @@ interface ExpensesPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function ExpensesPage({
-  searchParams,
-}: ExpensesPageProps) {
+export default async function ExpensesPage({ searchParams }: ExpensesPageProps) {
   const session = await auth();
 
-  if (!session?.user) {
-    redirect("/sign-in");
-  }
-
+  if (!session?.user) redirect("/sign-in");
   if (session.user.role !== "LANDLORD") {
     redirect(`/dashboard/${session.user.role?.toLowerCase()}`);
   }
 
-  // FIXED: Await searchParams
   const params = await searchParams;
-  const search = typeof params.search === "string" ? params.search : "";
-  const category = typeof params.category === "string" ? params.category : "all";
+  const search     = typeof params.search     === "string" ? params.search     : "";
+  const category   = typeof params.category   === "string" ? params.category   : "all";
   const propertyId = typeof params.propertyId === "string" ? params.propertyId : undefined;
-  const page = typeof params.page === "string" ? parseInt(params.page) : 1;
+  const page       = typeof params.page       === "string" ? parseInt(params.page) : 1;
 
   return (
     <Container padding="none" size="full">
       <Stack spacing="lg">
-        {/* Header */}
-        <ExpensesHeader />
 
-        {/* Expenses List */}
-        <Suspense fallback={<ExpensesLoading />}>
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <Typography variant="h2" className="mb-1">Expenses</Typography>
+            <Typography variant="muted">Track and manage property expenses</Typography>
+          </div>
+          <Button asChild>
+            <Link href="/dashboard/expenses/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Expense
+            </Link>
+          </Button>
+        </div>
+
+        {/* List */}
+        <Suspense fallback={<Skeleton className="h-96 w-full rounded-lg" />}>
           <ExpensesListWrapper
             search={search}
             category={category}
@@ -54,21 +62,16 @@ export default async function ExpensesPage({
             page={page}
           />
         </Suspense>
+
       </Stack>
     </Container>
   );
 }
 
 async function ExpensesListWrapper({
-  search,
-  category,
-  propertyId,
-  page,
+  search, category, propertyId, page,
 }: {
-  search: string;
-  category: string;
-  propertyId?: string;
-  page: number;
+  search: string; category: string; propertyId?: string; page: number;
 }) {
   const result = await getExpenses({
     search,
@@ -81,23 +84,10 @@ async function ExpensesListWrapper({
   if (!result.success) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-        <Typography variant="muted" className="text-sm text-red-800">
-          {result.error}
-        </Typography>
+        <p className="text-sm text-red-800">{result.error}</p>
       </div>
     );
   }
 
   return <ExpensesList initialData={result.data} />;
-}
-
-function ExpensesLoading() {
-  return (
-    <div className="space-y-3">
-      <Skeleton className="h-64 w-full rounded-lg" />
-      <Skeleton className="h-16 w-full rounded-lg" />
-      <Skeleton className="h-16 w-full rounded-lg" />
-      <Skeleton className="h-16 w-full rounded-lg" />
-    </div>
-  );
 }

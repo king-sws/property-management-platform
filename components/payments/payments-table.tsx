@@ -4,14 +4,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -53,6 +45,7 @@ import {
   XCircle,
   AlertCircle,
   Loader2,
+  Banknote,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -63,6 +56,29 @@ interface PaymentsTableProps {
   role?: "LANDLORD" | "TENANT";
 }
 
+const statusVariant: Record<string, { label: string; className: string; icon: any }> = {
+  COMPLETED:  { label: "Completed",  icon: CheckCircle, className: "bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300" },
+  PENDING:    { label: "Pending",    icon: Clock,       className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300" },
+  PROCESSING: { label: "Processing", icon: Clock,       className: "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300" },
+  FAILED:     { label: "Failed",     icon: XCircle,     className: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300" },
+  REFUNDED:   { label: "Refunded",   icon: AlertCircle, className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300" },
+  CANCELLED:  { label: "Cancelled",  icon: XCircle,     className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300" },
+};
+
+const typeLabels: Record<string, string> = {
+  RENT: "Rent", DEPOSIT: "Deposit", LATE_FEE: "Late Fee",
+  UTILITY: "Utility", PET_FEE: "Pet Fee", PARKING: "Parking",
+  APPLICATION_FEE: "App Fee", OTHER: "Other",
+};
+
+const formatCurrency = (amount: number | null) => {
+  if (amount === null) return "$0.00";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount);
+};
+
+const getInitials = (name: string) =>
+  name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+
 export function PaymentsTable({ payments, role = "LANDLORD" }: PaymentsTableProps) {
   const router = useRouter();
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
@@ -71,147 +87,47 @@ export function PaymentsTable({ payments, role = "LANDLORD" }: PaymentsTableProp
   const [isProcessing, setIsProcessing] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
 
-  const formatCurrency = (amount: number | null) => {
-    if (amount === null) return "$0.00";
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
+  const isOverdue = (payment: any) =>
+    payment.status === "PENDING" && payment.dueDate && new Date(payment.dueDate) < new Date();
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "COMPLETED":
-        return (
-          <Badge className="bg-green-500">
-            <CheckCircle className="mr-1 h-3 w-3" />
-            Completed
-          </Badge>
-        );
-      case "PENDING":
-        return (
-          <Badge variant="secondary">
-            <Clock className="mr-1 h-3 w-3" />
-            Pending
-          </Badge>
-        );
-      case "PROCESSING":
-        return (
-          <Badge variant="secondary" className="bg-blue-500 text-white">
-            <Clock className="mr-1 h-3 w-3" />
-            Processing
-          </Badge>
-        );
-      case "FAILED":
-        return (
-          <Badge variant="destructive">
-            <XCircle className="mr-1 h-3 w-3" />
-            Failed
-          </Badge>
-        );
-      case "REFUNDED":
-        return (
-          <Badge variant="outline">
-            <AlertCircle className="mr-1 h-3 w-3" />
-            Refunded
-          </Badge>
-        );
-      case "CANCELLED":
-        return (
-          <Badge variant="outline">
-            <XCircle className="mr-1 h-3 w-3" />
-            Cancelled
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getPaymentTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      RENT: "Rent",
-      DEPOSIT: "Deposit",
-      LATE_FEE: "Late Fee",
-      UTILITY: "Utility",
-      PET_FEE: "Pet Fee",
-      PARKING: "Parking",
-      APPLICATION_FEE: "App Fee",
-      OTHER: "Other",
-    };
-    return labels[type] || type;
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const isOverdue = (payment: any) => {
-    return (
-      payment.status === "PENDING" &&
-      payment.dueDate &&
-      new Date(payment.dueDate) < new Date()
-    );
-  };
-
-  const handleRowClick = (paymentId: string) => {
-    router.push(`/dashboard/payments/${paymentId}`);
-  };
-
-  const handleConfirmCashPayment = async () => {
+  const handleConfirmCash = async () => {
     if (!selectedPayment) return;
-    
     setIsProcessing(true);
     try {
-      const result = await landlordConfirmCashPayment({
-        paymentId: selectedPayment.id,
-      });
-
+      const result = await landlordConfirmCashPayment({ paymentId: selectedPayment.id });
       if (result.success) {
-        toast.success(result.message || "Cash payment confirmed successfully");
+        toast.success(result.message || "Cash payment confirmed");
         setShowConfirmDialog(false);
         setSelectedPayment(null);
         router.refresh();
       } else {
-        toast.error(result.error || "Failed to confirm payment");
+        toast.error(result.error || "Failed to confirm");
       }
-    } catch (error) {
-      console.error("Error confirming payment:", error);
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleRejectCashPayment = async () => {
+  const handleRejectCash = async () => {
     if (!selectedPayment || !rejectReason.trim()) {
-      toast.error("Please provide a reason for rejection");
+      toast.error("Please provide a reason");
       return;
     }
-    
     setIsProcessing(true);
     try {
-      const result = await landlordRejectCashPayment(
-        selectedPayment.id,
-        rejectReason
-      );
-
+      const result = await landlordRejectCashPayment(selectedPayment.id, rejectReason);
       if (result.success) {
-        toast.success(result.message || "Cash payment rejected");
+        toast.success(result.message || "Payment rejected");
         setShowRejectDialog(false);
         setSelectedPayment(null);
         setRejectReason("");
         router.refresh();
       } else {
-        toast.error(result.error || "Failed to reject payment");
+        toast.error(result.error || "Failed to reject");
       }
-    } catch (error) {
-      console.error("Error rejecting payment:", error);
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsProcessing(false);
@@ -224,8 +140,8 @@ export function PaymentsTable({ payments, role = "LANDLORD" }: PaymentsTableProp
         <div className="rounded-full bg-muted p-3 mb-4">
           <AlertCircle className="h-6 w-6 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold mb-2">No payments found</h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-medium">No payments found</p>
+        <p className="text-xs text-muted-foreground mt-1">
           {role === "LANDLORD"
             ? "Create your first payment charge to get started"
             : "No payments to display at this time"}
@@ -236,295 +152,284 @@ export function PaymentsTable({ payments, role = "LANDLORD" }: PaymentsTableProp
 
   return (
     <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {role === "LANDLORD" && <TableHead>Tenant</TableHead>}
-              {role === "TENANT" && <TableHead>Property</TableHead>}
-              <TableHead>Type</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {payments.map((payment) => (
-              <TableRow
-                key={payment.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleRowClick(payment.id)}
-              >
-                {/* Tenant Column (Landlord View) */}
-                {role === "LANDLORD" && (
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={
-                            payment.tenant?.user?.avatar ||
-                            payment.tenant?.user?.image
-                          }
-                          alt={payment.tenant?.user?.name || "Tenant"}
-                        />
-                        <AvatarFallback>
-                          {payment.tenant?.user?.name
-                            ? getInitials(payment.tenant.user.name)
-                            : "TN"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="text-sm font-medium">
-                          {payment.tenant?.user?.name || "Unknown"}
-                        </div>
-                        {payment.lease?.unit && (
-                          <div className="text-xs text-muted-foreground">
-                            Unit {payment.lease.unit.unitNumber}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </TableCell>
-                )}
+      {/* Desktop — grid rows */}
+      <div className="hidden md:block">
+        <div className={`grid gap-4 px-6 py-2 border-b text-xs font-medium text-muted-foreground uppercase tracking-wide ${
+          role === "LANDLORD"
+            ? "grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto]"
+            : "grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]"
+        }`}>
+          {role === "LANDLORD" ? <span>Tenant</span> : <span>Property</span>}
+          <span>Type</span>
+          <span>Amount</span>
+          <span>Due Date</span>
+          <span>Status</span>
+          {role === "LANDLORD" && <span>Paid</span>}
+          <span />
+        </div>
 
-                {/* Property Column (Tenant View) */}
-                {role === "TENANT" && (
-                  <TableCell>
-                    <div className="text-sm">
-                      <div className="font-medium">
-                        {payment.lease?.unit?.property?.name || "Property"}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Unit {payment.lease?.unit?.unitNumber || "N/A"}
-                      </div>
-                    </div>
-                  </TableCell>
-                )}
+        {payments.map((payment: any) => {
+          const sv = statusVariant[payment.status];
+          const StatusIcon = sv?.icon;
+          const overdue = isOverdue(payment);
+          const isCashProcessing = payment.status === "PROCESSING" && payment.method === "CASH";
 
-                {/* Type */}
-                <TableCell>
-                  <Badge variant="outline" className="text-xs">
-                    {getPaymentTypeLabel(payment.type)}
-                  </Badge>
-                </TableCell>
-
-                {/* Amount */}
-                <TableCell>
-                  <div className="font-medium">
-                    {formatCurrency(payment.amount)}
+          return (
+            <div
+              key={payment.id}
+              onClick={() => router.push(`/dashboard/payments/${payment.id}`)}
+              className={`grid gap-4 px-6 py-4 border-b last:border-0 items-center cursor-pointer hover:bg-muted/30 transition-colors ${
+                overdue ? "bg-red-50/50 dark:bg-red-950/10" : ""
+              } ${isCashProcessing ? "bg-blue-50/50 dark:bg-blue-950/10" : ""} ${
+                role === "LANDLORD"
+                  ? "grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto]"
+                  : "grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]"
+              }`}
+            >
+              {/* Tenant / Property */}
+              {role === "LANDLORD" ? (
+                <div className="flex items-center gap-2.5">
+                  <Avatar className="h-8 w-8 shrink-0">
+                    <AvatarImage src={payment.tenant?.user?.avatar || payment.tenant?.user?.image} />
+                    <AvatarFallback className="text-xs">
+                      {payment.tenant?.user?.name ? getInitials(payment.tenant.user.name) : "TN"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {payment.tenant?.user?.name || "Unknown"}
+                    </p>
+                    {payment.lease?.unit && (
+                      <p className="text-xs text-muted-foreground">
+                        Unit {payment.lease.unit.unitNumber}
+                      </p>
+                    )}
                   </div>
-                  {payment.fee && payment.fee > 0 && (
-                    <div className="text-xs text-muted-foreground">
-                      Net: {formatCurrency(payment.netAmount)}
-                    </div>
-                  )}
-                </TableCell>
+                </div>
+              ) : (
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {payment.lease?.unit?.property?.name || "Property"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Unit {payment.lease?.unit?.unitNumber || "N/A"}
+                  </p>
+                </div>
+              )}
 
-                {/* Due Date */}
-                <TableCell>
-                  {payment.dueDate ? (
-                    <div
-                      className={`text-sm ${
-                        isOverdue(payment) ? "text-red-600 font-medium" : ""
-                      }`}
-                    >
+              {/* Type */}
+              <div>
+                <Badge variant="outline" className="text-xs">
+                  {typeLabels[payment.type] ?? payment.type}
+                </Badge>
+              </div>
+
+              {/* Amount */}
+              <div>
+                <p className="text-sm font-medium">{formatCurrency(payment.amount)}</p>
+                {payment.fee > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Net: {formatCurrency(payment.netAmount)}
+                  </p>
+                )}
+              </div>
+
+              {/* Due date */}
+              <div>
+                {payment.dueDate ? (
+                  <>
+                    <p className={`text-sm ${overdue ? "text-destructive font-medium" : ""}`}>
                       {format(new Date(payment.dueDate), "MMM d, yyyy")}
-                      {isOverdue(payment) && (
-                        <div className="text-xs">Overdue</div>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">N/A</span>
-                  )}
-                </TableCell>
+                    </p>
+                    {overdue && (
+                      <p className="text-xs text-destructive">Overdue</p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">—</p>
+                )}
+              </div>
 
-                {/* Status */}
-                <TableCell>{getStatusBadge(payment.status)}</TableCell>
-
-                {/* Date */}
-                <TableCell>
-                  <div className="text-sm">
-                    {payment.paidAt
-                      ? format(new Date(payment.paidAt), "MMM d, yyyy")
-                      : payment.createdAt
-                      ? format(new Date(payment.createdAt), "MMM d, yyyy")
-                      : "N/A"}
+              {/* Status */}
+              <div>
+                <Badge className={sv?.className ?? ""}>
+                  {StatusIcon && <StatusIcon className="mr-1 h-3 w-3" />}
+                  {sv?.label ?? payment.status}
+                </Badge>
+                {isCashProcessing && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <Banknote className="h-3 w-3 text-blue-600" />
+                    <p className="text-xs text-blue-600">Cash</p>
                   </div>
-                </TableCell>
+                )}
+              </div>
 
-                {/* Actions */}
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              {/* Paid date (landlord only) */}
+              {role === "LANDLORD" && (
+                <p className="text-sm text-muted-foreground">
+                  {payment.paidAt
+                    ? format(new Date(payment.paidAt), "MMM d, yyyy")
+                    : "—"}
+                </p>
+              )}
+
+              {/* Actions */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/payments/${payment.id}`); }}>
+                    <Eye className="mr-2 h-4 w-4" />View Details
+                  </DropdownMenuItem>
+                  {isCashProcessing && role === "LANDLORD" && (
+                    <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRowClick(payment.id);
-                        }}
+                        className="text-green-600 focus:text-green-600"
+                        onClick={(e) => { e.stopPropagation(); setSelectedPayment(payment); setShowConfirmDialog(true); }}
                       >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View Details
+                        <CheckCircle className="mr-2 h-4 w-4" />Confirm Receipt
                       </DropdownMenuItem>
-
-                      {/* Landlord: Confirm/Reject Cash Payment */}
-                      {payment.status === "PROCESSING" && 
-                       payment.method === "CASH" && 
-                       role === "LANDLORD" && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedPayment(payment);
-                              setShowConfirmDialog(true);
-                            }}
-                            className="text-green-600 focus:text-green-600"
-                          >
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Confirm Receipt
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedPayment(payment);
-                              setShowRejectDialog(true);
-                            }}
-                            className="text-red-600 focus:text-red-600"
-                          >
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Reject Payment
-                          </DropdownMenuItem>
-                        </>
-                      )}
-
-                      {payment.status === "PENDING" && role === "LANDLORD" && (
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Handle send reminder
-                          }}
-                        >
-                          <Send className="mr-2 h-4 w-4" />
-                          Send Reminder
-                        </DropdownMenuItem>
-                      )}
-
-                      {payment.receiptUrl && (
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.open(payment.receiptUrl, "_blank");
-                          }}
-                        >
-                          <Download className="mr-2 h-4 w-4" />
-                          Download Receipt
-                        </DropdownMenuItem>
-                      )}
-
-                      {payment.status === "COMPLETED" && !payment.receiptUrl && (
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Handle generate receipt
-                          }}
-                        >
-                          <Download className="mr-2 h-4 w-4" />
-                          Generate Receipt
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={(e) => { e.stopPropagation(); setSelectedPayment(payment); setShowRejectDialog(true); }}
+                      >
+                        <XCircle className="mr-2 h-4 w-4" />Reject Payment
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {payment.status === "PENDING" && role === "LANDLORD" && (
+                    <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                      <Send className="mr-2 h-4 w-4" />Send Reminder
+                    </DropdownMenuItem>
+                  )}
+                  {payment.receiptUrl && (
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open(payment.receiptUrl, "_blank"); }}>
+                      <Download className="mr-2 h-4 w-4" />Download Receipt
+                    </DropdownMenuItem>
+                  )}
+                  {payment.status === "COMPLETED" && !payment.receiptUrl && (
+                    <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                      <Download className="mr-2 h-4 w-4" />Generate Receipt
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Confirm Cash Payment Dialog */}
+      {/* Mobile */}
+      <div className="md:hidden divide-y">
+        {payments.map((payment: any) => {
+          const sv = statusVariant[payment.status];
+          const StatusIcon = sv?.icon;
+          const overdue = isOverdue(payment);
+
+          return (
+            <div
+              key={payment.id}
+              onClick={() => router.push(`/dashboard/payments/${payment.id}`)}
+              className={`p-4 space-y-3 cursor-pointer hover:bg-muted/30 transition-colors ${
+                overdue ? "bg-red-50/50 dark:bg-red-950/10" : ""
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                {role === "LANDLORD" ? (
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Avatar className="h-8 w-8 shrink-0">
+                      <AvatarImage src={payment.tenant?.user?.avatar || payment.tenant?.user?.image} />
+                      <AvatarFallback className="text-xs">
+                        {payment.tenant?.user?.name ? getInitials(payment.tenant.user.name) : "TN"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{payment.tenant?.user?.name || "Unknown"}</p>
+                      {payment.lease?.unit && (
+                        <p className="text-xs text-muted-foreground">Unit {payment.lease.unit.unitNumber}</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{payment.lease?.unit?.property?.name || "Property"}</p>
+                    <p className="text-xs text-muted-foreground">Unit {payment.lease?.unit?.unitNumber || "N/A"}</p>
+                  </div>
+                )}
+                <Badge className={`${sv?.className ?? ""} shrink-0`}>
+                  {StatusIcon && <StatusIcon className="mr-1 h-3 w-3" />}
+                  {sv?.label ?? payment.status}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{typeLabels[payment.type] ?? payment.type}</span>
+                <span className="font-medium">{formatCurrency(payment.amount)}</span>
+              </div>
+              {payment.dueDate && (
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Due</span>
+                  <span className={overdue ? "text-destructive font-medium" : ""}>
+                    {format(new Date(payment.dueDate), "MMM d, yyyy")}
+                    {overdue && " · Overdue"}
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Confirm dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Cash Payment</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to confirm receipt of {formatCurrency(selectedPayment?.amount || 0)} in cash from {selectedPayment?.tenant?.user?.name || "this tenant"}?
-              This will mark the payment as completed.
+              Confirm receipt of {formatCurrency(selectedPayment?.amount || 0)} in cash from{" "}
+              {selectedPayment?.tenant?.user?.name || "this tenant"}? This marks it as completed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmCashPayment}
-              disabled={isProcessing}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Confirming...
-                </>
-              ) : (
-                "Confirm Receipt"
-              )}
+            <AlertDialogAction onClick={handleConfirmCash} disabled={isProcessing} className="bg-green-600 hover:bg-green-700">
+              {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Confirming...</> : "Confirm Receipt"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Reject Cash Payment Dialog */}
+      {/* Reject dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reject Cash Payment</DialogTitle>
             <DialogDescription>
-              Please provide a reason for rejecting this cash payment claim from {selectedPayment?.tenant?.user?.name || "this tenant"}.
+              Provide a reason for rejecting this payment from{" "}
+              {selectedPayment?.tenant?.user?.name || "this tenant"}.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="reason">Reason for Rejection</Label>
-              <Input
-                id="reason"
-                placeholder="e.g., Payment not received, incorrect amount..."
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                disabled={isProcessing}
-              />
-            </div>
+          <div className="space-y-2 py-4">
+            <Label htmlFor="reason">Reason for Rejection</Label>
+            <Input
+              id="reason"
+              placeholder="e.g., Payment not received, incorrect amount..."
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              disabled={isProcessing}
+            />
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowRejectDialog(false);
-                setRejectReason("");
-              }}
-              disabled={isProcessing}
-            >
+            <Button variant="outline" onClick={() => { setShowRejectDialog(false); setRejectReason(""); }} disabled={isProcessing}>
               Cancel
             </Button>
-            <Button
-              onClick={handleRejectCashPayment}
-              disabled={isProcessing || !rejectReason.trim()}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Rejecting...
-                </>
-              ) : (
-                "Reject Payment"
-              )}
+            <Button onClick={handleRejectCash} disabled={isProcessing || !rejectReason.trim()} className="bg-red-600 hover:bg-red-700">
+              {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Rejecting...</> : "Reject Payment"}
             </Button>
           </DialogFooter>
         </DialogContent>

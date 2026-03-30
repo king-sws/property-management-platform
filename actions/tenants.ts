@@ -366,14 +366,13 @@ export async function getTenants(params?: {
             },
           },
           payments: {
-            where: {
-              status: "COMPLETED",
-            },
-            orderBy: {
-              paidAt: "desc",
-            },
-            take: 1,
-          },
+  orderBy: { createdAt: "desc" },
+  take: 2, // take both completed and pending
+  where: {
+    status: { in: ["COMPLETED", "PENDING"] },
+  },
+},
+          
         },
         skip,
         take: limit,
@@ -388,12 +387,22 @@ export async function getTenants(params?: {
     const serializedTenants = tenants.map(tenant => ({
       ...tenant,
       annualIncome: tenant.annualIncome ? Number(tenant.annualIncome) : null,
-      payments: tenant.payments.map(payment => ({
-        ...payment,
-        amount: Number(payment.amount),
-        fee: payment.fee ? Number(payment.fee) : null,
-        netAmount: Number(payment.netAmount),
-      })),
+      // ✅ REPLACE WITH
+lastPayment: tenant.payments.find(p => p.status === "COMPLETED") ? {
+  ...tenant.payments.find(p => p.status === "COMPLETED"),
+  amount: Number(tenant.payments.find(p => p.status === "COMPLETED")!.amount),
+} : null,
+nextPayment: tenant.payments.find(p => p.status === "PENDING") ? {
+  ...tenant.payments.find(p => p.status === "PENDING"),
+  amount: Number(tenant.payments.find(p => p.status === "PENDING")!.amount),
+  dueDate: tenant.payments.find(p => p.status === "PENDING")?.dueDate?.toISOString() || null,
+} : null,
+payments: tenant.payments.map(payment => ({
+  ...payment,
+  amount: Number(payment.amount),
+  fee: payment.fee ? Number(payment.fee) : null,
+  netAmount: Number(payment.netAmount),
+})),
       leaseMembers: tenant.leaseMembers.map(lm => ({
         ...lm,
         lease: {
@@ -437,6 +446,11 @@ export async function getTenants(params?: {
 // -------------------------
 export async function getTenantById(tenantId: string): Promise<TenantResult> {
   try {
+
+    if (!tenantId) {                                          
+      return { success: false, error: "Tenant ID is required" };  
+    }  
+
     const currentUser = await getCurrentUserWithRole();
     
     const tenant = await prisma.tenant.findUnique({

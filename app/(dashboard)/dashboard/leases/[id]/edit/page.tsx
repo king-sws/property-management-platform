@@ -5,6 +5,8 @@ import { getLeaseById } from "@/actions/leases";
 import { auth } from "@/auth";
 import { LeaseForm } from "@/components/leases/lease-form";
 import { FileText } from "lucide-react";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 
 export const metadata = {
   title: "Edit Lease | Property Management",
@@ -165,20 +167,19 @@ export default async function EditLeasePage({ params }: PageProps) {
   const serializedLease = serializeLeaseData(result.data);
   
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-          <FileText className="h-6 w-6 text-primary" />
-        </div>
+
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Edit Lease</h1>
-          <p className="text-muted-foreground">
+          <Typography variant="h2" className="mb-1">
+            Edit Lease
+          </Typography>
+          <Typography variant="muted">
             Update lease terms and conditions
-          </p>
+          </Typography>
         </div>
-      </div>
-      
-      <LeaseForm lease={serializedLease} isEdit />
-    </div>
+        <LeaseForm lease={serializedLease} isEdit />
+      </Stack>
+    </Container>
   );
 }

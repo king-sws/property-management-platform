@@ -7,18 +7,10 @@ import { getLeases } from "@/actions/leases";
 import { LeasesList } from "@/components/leases/leases-list";
 import { Container, Stack } from "@/components/ui/container";
 import { Typography } from "@/components/ui/typography";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Plus, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Plus } from "lucide-react";
 
 export const metadata = {
   title: "Leases | Property Management",
@@ -29,7 +21,6 @@ interface LeasesPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-// Utility function to serialize lease data
 function serializeLease(lease: any) {
   return {
     ...lease,
@@ -87,16 +78,13 @@ function serializeLease(lease: any) {
   };
 }
 
-export default async function LeasesPage({
-  searchParams,
-}: LeasesPageProps) {
+export default async function LeasesPage({ searchParams }: LeasesPageProps) {
   const session = await auth();
 
   if (!session?.user || session.user.role !== "LANDLORD") {
     redirect("/sign-in");
   }
 
-  // FIXED: Await searchParams
   const params = await searchParams;
   const search = typeof params.search === "string" ? params.search : "";
   const status = typeof params.status === "string" ? params.status : "all";
@@ -106,6 +94,7 @@ export default async function LeasesPage({
   return (
     <Container padding="none" size="full">
       <Stack spacing="lg">
+
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -116,18 +105,24 @@ export default async function LeasesPage({
               Manage your rental leases and agreements
             </Typography>
           </div>
+          <Button asChild>
+            <Link href="/dashboard/leases/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Lease
+            </Link>
+          </Button>
         </div>
-
 
         {/* Leases List */}
         <Suspense fallback={<LeasesLoading />}>
-          <LeasesListWrapper 
-            search={search} 
-            status={status} 
+          <LeasesListWrapper
+            search={search}
+            status={status}
             propertyId={propertyId}
-            page={page} 
+            page={page}
           />
         </Suspense>
+
       </Stack>
     </Container>
   );
@@ -160,7 +155,6 @@ async function LeasesListWrapper({
     );
   }
 
-  // Serialize the data before passing to client component
   const serializedData = {
     ...result.data,
     leases: result.data.leases.map(serializeLease),
@@ -170,12 +164,5 @@ async function LeasesListWrapper({
 }
 
 function LeasesLoading() {
-  return (
-    <div className="space-y-3">
-      <Skeleton className="h-64 w-full rounded-lg" />
-      <Skeleton className="h-16 w-full rounded-lg" />
-      <Skeleton className="h-16 w-full rounded-lg" />
-      <Skeleton className="h-16 w-full rounded-lg" />
-    </div>
-  );
+  return <Skeleton className="h-96 w-full rounded-lg" />;
 }

@@ -46,6 +46,10 @@ import {
   Star,
   AlertCircle,
   Clock,
+  MapPin,
+  Mail,
+  Phone,
+  Calendar,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -62,21 +66,21 @@ interface MaintenanceDetailsProps {
   userRole: string | undefined;
 }
 
-const statusColors: Record<string, string> = {
-  OPEN: "bg-blue-100 text-blue-800",
-  IN_PROGRESS: "bg-yellow-100 text-yellow-800",
-  WAITING_VENDOR: "bg-purple-100 text-purple-800",
-  WAITING_PARTS: "bg-orange-100 text-orange-800",
-  SCHEDULED: "bg-teal-100 text-teal-800",
-  COMPLETED: "bg-green-100 text-green-800",
-  CANCELLED: "bg-gray-100 text-gray-800",
+const statusVariant: Record<string, { label: string; className: string }> = {
+  OPEN:           { label: "Open",           className: "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300" },
+  IN_PROGRESS:    { label: "In Progress",    className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300" },
+  WAITING_VENDOR: { label: "Waiting Vendor", className: "bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300" },
+  WAITING_PARTS:  { label: "Waiting Parts",  className: "bg-orange-100 text-orange-800 dark:bg-orange-950/40 dark:text-orange-300" },
+  SCHEDULED:      { label: "Scheduled",      className: "bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300" },
+  COMPLETED:      { label: "Completed",      className: "bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300" },
+  CANCELLED:      { label: "Cancelled",      className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300" },
 };
 
-const priorityColors: Record<string, string> = {
-  LOW: "bg-gray-100 text-gray-800",
-  MEDIUM: "bg-blue-100 text-blue-800",
-  HIGH: "bg-orange-100 text-orange-800",
-  URGENT: "bg-red-100 text-red-800",
+const priorityVariant: Record<string, { label: string; className: string }> = {
+  LOW:    { label: "Low",    className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300" },
+  MEDIUM: { label: "Medium", className: "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300" },
+  HIGH:   { label: "High",   className: "bg-orange-100 text-orange-800 dark:bg-orange-950/40 dark:text-orange-300" },
+  URGENT: { label: "Urgent", className: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300" },
 };
 
 export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDetailsProps) {
@@ -91,29 +95,15 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
 
   const isLandlord = userRole === "LANDLORD" || userRole === "ADMIN";
   const isVendor = userRole === "VENDOR";
-  const isCreator = userRole === "TENANT";
-
-  // Check if vendor needs to respond
   const needsVendorResponse = ticket.status === "WAITING_VENDOR" && isVendor;
-  
-  // Check if ticket is ready for scheduling
   const canSchedule = ticket.status === "IN_PROGRESS" && isLandlord && ticket.vendorId;
 
   const handleUpdateStatus = async () => {
     setIsLoading(true);
     try {
-      const updateData: any = {
-        status: newStatus,
-      };
-      
-      if (estimatedCost) {
-        updateData.estimatedCost = parseFloat(estimatedCost);
-      }
-      
-      if (actualCost) {
-        updateData.actualCost = parseFloat(actualCost);
-      }
-
+      const updateData: any = { status: newStatus };
+      if (estimatedCost) updateData.estimatedCost = parseFloat(estimatedCost);
+      if (actualCost) updateData.actualCost = parseFloat(actualCost);
       const result = await updateMaintenanceTicket(ticket.id, updateData);
       if (result.success) {
         toast.success(result.message);
@@ -122,7 +112,7 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
       } else {
         toast.error(result.error);
       }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -130,17 +120,10 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
   };
 
   const handleAddUpdate = async () => {
-    if (!updateMessage.trim()) {
-      toast.error("Please enter a message");
-      return;
-    }
-
+    if (!updateMessage.trim()) { toast.error("Please enter a message"); return; }
     setIsLoading(true);
     try {
-      const result = await addTicketUpdate(ticket.id, {
-        message: updateMessage,
-        isInternal: false,
-      });
+      const result = await addTicketUpdate(ticket.id, { message: updateMessage, isInternal: false });
       if (result.success) {
         toast.success(result.message);
         setUpdateMessage("");
@@ -149,7 +132,7 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
       } else {
         toast.error(result.error);
       }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -158,39 +141,32 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+
+      {/* ── Top bar ── */}
+      <div className="flex items-center justify-between gap-4">
         <Button variant="ghost" onClick={() => router.back()} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
-        
-        <div className="flex items-center gap-2">
-          <Badge className={priorityColors[ticket.priority]}>
-            {ticket.priority}
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <Badge className={priorityVariant[ticket.priority]?.className ?? ""}>
+            {priorityVariant[ticket.priority]?.label ?? ticket.priority}
           </Badge>
-          <Badge className={statusColors[ticket.status]}>
-            {ticket.status.replace(/_/g, " ")}
+          <Badge className={statusVariant[ticket.status]?.className ?? ""}>
+            {statusVariant[ticket.status]?.label ?? ticket.status.replace(/_/g, " ")}
           </Badge>
-          
-          {isLandlord && (
-            <>
-              {!ticket.vendorId && (
-                <AssignVendorDialog
-                  ticketId={ticket.id}
-                  currentVendorId={ticket.vendorId}
-                  ticketCategory={ticket.category}
-                />
-              )}
-              
-              {ticket.status !== "COMPLETED" && ticket.status !== "CANCELLED" && (
-                <Button onClick={() => setIsUpdateStatusOpen(true)}>
-                  Update Status
-                </Button>
-              )}
-            </>
+          {isLandlord && !ticket.vendorId && (
+            <AssignVendorDialog
+              ticketId={ticket.id}
+              currentVendorId={ticket.vendorId}
+              ticketCategory={ticket.category}
+            />
           )}
-          
+          {isLandlord && ticket.status !== "COMPLETED" && ticket.status !== "CANCELLED" && (
+            <Button onClick={() => setIsUpdateStatusOpen(true)}>
+              Update Status
+            </Button>
+          )}
           {isVendor && ticket.status !== "COMPLETED" && ticket.status !== "CANCELLED" && ticket.status !== "WAITING_VENDOR" && (
             <Button onClick={() => setIsUpdateStatusOpen(true)}>
               Update Status
@@ -199,15 +175,13 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
         </div>
       </div>
 
-      {/* VENDOR RESPONSE NEEDED ALERT */}
+      {/* ── Alert banners ── */}
       {needsVendorResponse && (
         <Alert className="border-yellow-200 bg-yellow-50">
           <AlertCircle className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-800">
             <div className="space-y-3">
-              <p className="font-medium">
-                You've been assigned to this job. Please review and respond.
-              </p>
+              <p className="font-medium">You've been assigned to this job. Please review and respond.</p>
               <VendorResponseDialog
                 ticketId={ticket.id}
                 ticketTitle={ticket.title}
@@ -218,234 +192,249 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
         </Alert>
       )}
 
-      {/* WAITING FOR VENDOR RESPONSE ALERT (Landlord View) */}
       {ticket.status === "WAITING_VENDOR" && isLandlord && (
         <Alert className="border-blue-200 bg-blue-50">
           <Clock className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            <p className="font-medium">
-              Waiting for {ticket.vendor?.businessName || "vendor"} to accept or decline this job.
-            </p>
+          <AlertDescription className="text-blue-800 font-medium">
+            Waiting for {ticket.vendor?.businessName || "vendor"} to accept or decline this job.
           </AlertDescription>
         </Alert>
       )}
 
-      {/* SCHEDULE APPOINTMENT BUTTON */}
       {canSchedule && (
-        <Card className="border-teal-200 bg-teal-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="font-medium text-teal-900">Ready to Schedule?</p>
-                <p className="text-sm text-teal-700">
-                  Create an appointment for {ticket.vendor?.businessName} to complete this job.
-                </p>
-              </div>
-              <ScheduleAppointmentDialog
-                ticketId={ticket.id}
-                vendorId={ticket.vendorId}
-                vendorName={ticket.vendor?.businessName || "Vendor"}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <Card className="border border-teal-200 bg-teal-50 dark:border-teal-900/50 dark:bg-teal-950/30">
+  <CardContent>
+    <div className="flex items-center justify-between gap-4">
+      
+      <div className="space-y-1">
+        <p className="font-medium text-teal-900 dark:text-teal-300">
+          Ready to Schedule?
+        </p>
+
+        <p className="text-sm text-teal-700 dark:text-teal-400">
+          Create an appointment for{" "}
+          <span className="font-medium text-teal-900 dark:text-teal-200">
+            {ticket.vendor?.businessName}
+          </span>{" "}
+          to complete this job.
+        </p>
+      </div>
+
+      <ScheduleAppointmentDialog
+        ticketId={ticket.id}
+        vendorId={ticket.vendorId}
+        vendorName={ticket.vendor?.businessName || "Vendor"}
+      />
+      
+    </div>
+  </CardContent>
+</Card>
       )}
 
-      {/* Ticket Details */}
+      {/* ── Main detail card ── */}
       <Card>
-        <CardHeader>
-          <CardTitle>{ticket.title}</CardTitle>
-          <CardDescription>
-            Created on {format(new Date(ticket.createdAt), "MMMM dd, yyyy 'at' h:mm a")}
-          </CardDescription>
+        <CardHeader className="border-b">
+          <div className="flex flex-col gap-1">
+            <CardTitle className="text-xl">{ticket.title}</CardTitle>
+            <CardDescription>
+              Created {format(new Date(ticket.createdAt), "MMMM dd, yyyy 'at' h:mm a")}
+            </CardDescription>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <p className="text-sm text-muted-foreground mb-2">Description</p>
-            <p className="text-sm">{ticket.description}</p>
+
+        <CardContent className="p-0">
+          {/* Description */}
+          <div className="px-6 py-4 border-b">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+              Description
+            </p>
+            <p className="text-sm leading-relaxed">{ticket.description}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Category</p>
-              <p className="font-medium">{ticket.category}</p>
+          {/* Meta grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 border-b">
+            <div className="px-6 py-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                Category
+              </p>
+              <p className="text-sm font-medium">{ticket.category}</p>
             </div>
             {ticket.location && (
-              <div>
-                <p className="text-sm text-muted-foreground">Location</p>
-                <p className="font-medium">{ticket.location}</p>
+              <div className="px-6 py-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                  Location
+                </p>
+                <p className="text-sm font-medium">{ticket.location}</p>
               </div>
             )}
             {ticket.scheduledDate && (
-              <div>
-                <p className="text-sm text-muted-foreground">Scheduled Date</p>
-                <p className="font-medium">
+              <div className="px-6 py-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                  Scheduled
+                </p>
+                <p className="text-sm font-medium">
                   {format(new Date(ticket.scheduledDate), "MMM dd, yyyy")}
                 </p>
               </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Property Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Property
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <p className="font-medium">{ticket.property.name}</p>
-            <p className="text-sm text-muted-foreground">
-              {ticket.property.address}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {ticket.property.city}, {ticket.property.state}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Requester Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Requested By
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <p className="font-medium">{ticket.createdBy.name}</p>
-            <p className="text-sm text-muted-foreground">{ticket.createdBy.email}</p>
-            {ticket.createdBy.phone && (
-              <p className="text-sm text-muted-foreground">{ticket.createdBy.phone}</p>
+            {(ticket.estimatedCost || ticket.actualCost) && (
+              <div className="px-6 py-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                  Cost
+                </p>
+                {ticket.estimatedCost && (
+                  <p className="text-sm text-muted-foreground">
+                    Est. <span className="font-medium text-foreground">${Number(ticket.estimatedCost).toLocaleString()}</span>
+                  </p>
+                )}
+                {ticket.actualCost && (
+                  <p className="text-sm text-muted-foreground">
+                    Actual <span className="font-medium text-foreground">${Number(ticket.actualCost).toLocaleString()}</span>
+                  </p>
+                )}
+              </div>
             )}
           </div>
+
+          {/* Property + Requester + Vendor — horizontal row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x">
+
+            {/* Property */}
+            <div className="px-6 py-4 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                <Building2 className="h-3.5 w-3.5" />
+                Property
+              </p>
+              <p className="text-sm font-medium">{ticket.property.name}</p>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  {ticket.property.address}
+                </p>
+                <p className="text-xs text-muted-foreground pl-4">
+                  {ticket.property.city}, {ticket.property.state}
+                </p>
+              </div>
+            </div>
+
+            {/* Requester */}
+            <div className="px-6 py-4 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5" />
+                Requested By
+              </p>
+              <p className="text-sm font-medium">{ticket.createdBy.name}</p>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Mail className="h-3 w-3 shrink-0" />
+                  {ticket.createdBy.email}
+                </p>
+                {ticket.createdBy.phone && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Phone className="h-3 w-3 shrink-0" />
+                    {ticket.createdBy.phone}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Vendor */}
+            <div className="px-6 py-4 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                <Wrench className="h-3.5 w-3.5" />
+                Assigned Vendor
+              </p>
+              {ticket.vendor ? (
+                <>
+                  <p className="text-sm font-medium">{ticket.vendor.businessName}</p>
+                  <div className="space-y-1">
+                    {ticket.vendor.user?.email && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <Mail className="h-3 w-3 shrink-0" />
+                        {ticket.vendor.user.email}
+                      </p>
+                    )}
+                    {ticket.vendor.user?.phone && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <Phone className="h-3 w-3 shrink-0" />
+                        {ticket.vendor.user.phone}
+                      </p>
+                    )}
+                    {ticket.vendor.rating && (
+                      <div className="flex items-center gap-1 pt-1">
+                        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xs font-medium">
+                          {Number(ticket.vendor.rating).toFixed(1)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          ({ticket.vendor.reviewCount} reviews)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Not assigned</p>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Assigned Vendor */}
-      {ticket.vendor && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wrench className="h-5 w-5" />
-              Assigned Vendor
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p className="font-medium">{ticket.vendor.businessName}</p>
-              <p className="text-sm text-muted-foreground">
-                {ticket.vendor.user?.name}
-              </p>
-              {ticket.vendor.user?.email && (
-                <p className="text-sm text-muted-foreground">
-                  {ticket.vendor.user.email}
-                </p>
-              )}
-              {ticket.vendor.user?.phone && (
-                <p className="text-sm text-muted-foreground">
-                  {ticket.vendor.user.phone}
-                </p>
-              )}
-              {ticket.vendor.rating && (
-                <div className="flex items-center gap-1 mt-2">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-medium">
-                    {Number(ticket.vendor.rating).toFixed(1)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    ({ticket.vendor.reviewCount} reviews)
-                  </span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Cost Information */}
-      {(ticket.estimatedCost || ticket.actualCost || isLandlord) && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Cost Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {ticket.estimatedCost && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Estimated Cost</p>
-                  <p className="font-medium text-lg">
-                    ${ticket.estimatedCost.toLocaleString()}
-                  </p>
-                </div>
-              )}
-              {ticket.actualCost && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Actual Cost</p>
-                  <p className="font-medium text-lg">
-                    ${ticket.actualCost.toLocaleString()}
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Updates Timeline */}
+      {/* ── Updates timeline ── */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              Updates
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAddUpdateOpen(true)}
-            >
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Updates
+              </CardTitle>
+              <CardDescription className='pt-1'>
+                {ticket.updates?.length ?? 0} update{(ticket.updates?.length ?? 0) !== 1 ? "s" : ""}
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setIsAddUpdateOpen(true)}>
               <Send className="h-4 w-4 mr-2" />
               Add Update
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+
+        <CardContent className="p-0">
           {ticket.updates && ticket.updates.length > 0 ? (
-            <div className="space-y-4">
-              {ticket.updates.map((update: any) => (
-                <div
-                  key={update.id}
-                  className="border-l-2 border-muted pl-4 pb-4 last:pb-0"
-                >
-                  <div className="flex items-start justify-between mb-1">
-                    <p className="text-sm font-medium">Update</p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(update.createdAt), "MMM dd, yyyy 'at' h:mm a")}
-                    </p>
+            <div className="divide-y">
+              {ticket.updates.map((update: any, index: number) => (
+                <div key={update.id} className="px-6 py-4 flex gap-4">
+                  {/* Timeline dot */}
+                  <div className="flex flex-col items-center gap-1 pt-0.5">
+                    <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
+                    {index < ticket.updates.length - 1 && (
+                      <div className="w-px flex-1 bg-border" />
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{update.message}</p>
+                  <div className="flex-1 min-w-0 pb-2">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {format(new Date(update.createdAt), "MMM dd, yyyy 'at' h:mm a")}
+                      </p>
+                    </div>
+                    <p className="text-sm">{update.message}</p>
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No updates yet
-            </p>
+            <div className="py-12 text-center">
+              <MessageSquare className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+              <p className="text-sm text-muted-foreground">No updates yet</p>
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Update Status Dialog */}
+      {/* ── Update Status Dialog ── */}
       <Dialog open={isUpdateStatusOpen} onOpenChange={setIsUpdateStatusOpen}>
         <DialogContent>
           <DialogHeader>
@@ -454,9 +443,8 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
               Change the status and update cost information
             </DialogDescription>
           </DialogHeader>
-          
           <div className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Label>Status</Label>
               <Select value={newStatus} onValueChange={setNewStatus}>
                 <SelectTrigger>
@@ -471,10 +459,9 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
                 </SelectContent>
               </Select>
             </div>
-
             {(isLandlord || isVendor) && (
               <>
-                <div>
+                <div className="space-y-2">
                   <Label>Estimated Cost</Label>
                   <Input
                     type="number"
@@ -484,8 +471,7 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
                     onChange={(e) => setEstimatedCost(e.target.value)}
                   />
                 </div>
-
-                <div>
+                <div className="space-y-2">
                   <Label>Actual Cost</Label>
                   <Input
                     type="number"
@@ -498,13 +484,8 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
               </>
             )}
           </div>
-
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsUpdateStatusOpen(false)}
-              disabled={isLoading}
-            >
+            <Button variant="outline" onClick={() => setIsUpdateStatusOpen(false)} disabled={isLoading}>
               Cancel
             </Button>
             <Button onClick={handleUpdateStatus} disabled={isLoading}>
@@ -515,7 +496,7 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
         </DialogContent>
       </Dialog>
 
-      {/* Add Update Dialog */}
+      {/* ── Add Update Dialog ── */}
       <Dialog open={isAddUpdateOpen} onOpenChange={setIsAddUpdateOpen}>
         <DialogContent>
           <DialogHeader>
@@ -524,7 +505,6 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
               Provide an update on this maintenance ticket
             </DialogDescription>
           </DialogHeader>
-          
           <div>
             <Label>Message</Label>
             <Textarea
@@ -534,13 +514,8 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
               rows={4}
             />
           </div>
-
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsAddUpdateOpen(false)}
-              disabled={isLoading}
-            >
+            <Button variant="outline" onClick={() => setIsAddUpdateOpen(false)} disabled={isLoading}>
               Cancel
             </Button>
             <Button onClick={handleAddUpdate} disabled={isLoading}>
@@ -550,6 +525,7 @@ export function MaintenanceDetailsImproved({ ticket, userRole }: MaintenanceDeta
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }

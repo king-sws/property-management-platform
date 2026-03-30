@@ -388,91 +388,127 @@ export async function signLease(
       const allTenantsSigned = updatedLease.tenants.every((lt: { signedAt: any; }) => lt.signedAt);
       const landlordSigned = !!updatedLease.landlordSignedAt;
 
-      // -------------------------------------------------------
-      // ALL SIGNED → ACTIVATE LEASE
-      // -------------------------------------------------------
-      if (allTenantsSigned && landlordSigned) {
-        // 1. Activate lease
-        await tx.lease.update({
-          where: { id: leaseId },
-          data: {
-            status: "ACTIVE" as LeaseStatus,
-            allTenantsSignedAt: now,
-          },
-        });
+// -------------------------------------------------------
+// ALL SIGNED → ACTIVATE LEASE
+// -------------------------------------------------------
+if (allTenantsSigned && landlordSigned) {
+  // 1. Activate lease
+  await tx.lease.update({
+    where: { id: leaseId },
+    data: {
+      status: "ACTIVE" as LeaseStatus,
+      allTenantsSignedAt: now,
+    },
+  });
 
-        // 2. Mark unit as OCCUPIED
-        await tx.unit.update({
-          where: { id: lease.unitId },
-          data: { status: "OCCUPIED" },
-        });
+  // 2. Mark unit as OCCUPIED
+  await tx.unit.update({
+    where: { id: lease.unitId },
+    data: { status: "OCCUPIED" },
+  });
 
-        // 3. Calculate first rent due date
-        const rentDueDay = lease.rentDueDay;
-        const firstDueDate = new Date(now.getFullYear(), now.getMonth(), rentDueDay);
-        // If that day already passed this month, push to next month
-        if (firstDueDate <= now) {
-          firstDueDate.setMonth(firstDueDate.getMonth() + 1);
-        }
+  // 3. Pre-generate ALL monthly rent payments for the lease term
+  const leaseStart = new Date(lease.startDate);
+  const leaseEnd = lease.endDate ? new Date(lease.endDate) : null;
+  const rentDueDay = lease.rentDueDay;
 
-        // 4. Create first pending rent payment for EVERY tenant on the lease
-        for (const leaseTenant of updatedLease.tenants) {
-          await tx.payment.create({
-            data: {
-              leaseId: lease.id,
-              tenantId: leaseTenant.tenantId,          // ✅ Tenant profile id
-              userId: leaseTenant.tenant.userId,        // ✅ User id (from included tenant.user)
-              type: "RENT",
-              status: "PENDING",
-              method: "STRIPE_CARD",
-              amount: lease.rentAmount,
-              fee: 0,
-              netAmount: lease.rentAmount,
-              description: `Rent for ${firstDueDate.toLocaleDateString("en-US", {
-                month: "long",
-                year: "numeric",
-              })}`,
-              dueDate: firstDueDate,
-            },
-          });
-        }
+  // Build list of all due dates from startDate → endDate
+  const dueDates: Date[] = [];
 
-        // 5. Notify landlord that lease is active
-        await tx.notification.create({
-          data: {
-            userId: lease.unit.property.landlord.userId,
-            type: "LEASE_CREATED",
-            title: "Lease Agreement Active",
-            message: `All parties signed. Lease for Unit ${lease.unit.unitNumber} is now active.`,
-            actionUrl: `/dashboard/leases/${leaseId}`,
-            metadata: { leaseId },
-          },
-        });
+  // First due date: find the first rentDueDay on or after startDate
+  let current = new Date(leaseStart.getFullYear(), leaseStart.getMonth(), rentDueDay);
+  if (current < leaseStart) {
+    // e.g. lease starts on the 15th, rentDueDay is 1 → push to next month
+    current.setMonth(current.getMonth() + 1);
+  }
 
-        // 6. Notify each tenant that lease is active + payment created
-        for (const leaseTenant of lease.tenants) {
-          await tx.notification.create({
-            data: {
-              userId: leaseTenant.tenant.userId,
-              type: "LEASE_CREATED",
-              title: "Lease is Now Active 🎉",
-              message: `All parties have signed. Your lease is active and your first rent payment has been created.`,
-              actionUrl: `/dashboard/my-lease`,
-              metadata: { leaseId },
-            },
-          });
-        }
+  // If no end date (month-to-month), generate 12 months ahead
+  const limit = leaseEnd ?? new Date(now.getFullYear(), now.getMonth() + 12, rentDueDay);
 
-        // 7. Log activation
-        await tx.activityLog.create({
-          data: {
-            userId: user.id,
-            type: "LEASE_CREATED" as ActivityType,
-            action: `Lease activated for Unit ${lease.unit.unitNumber} - all signatures collected`,
-            metadata: { leaseId, activatedBy: user.id },
-          },
-        });
-      }
+  while (current <= limit) {
+    dueDates.push(new Date(current));
+    current = new Date(current.getFullYear(), current.getMonth() + 1, rentDueDay);
+  }
+
+  // Create a payment record for EACH due date × EACH tenant
+  for (const dueDate of dueDates) {
+    for (const leaseTenant of updatedLease.tenants) {
+      await tx.payment.create({
+        data: {
+          leaseId: lease.id,
+          tenantId: leaseTenant.tenantId,
+          userId: leaseTenant.tenant.userId,
+          type: "RENT",
+          status: "PENDING",
+          method: "STRIPE_CARD",
+          amount: lease.rentAmount,
+          fee: 0,
+          netAmount: lease.rentAmount,
+          description: `Rent for ${dueDate.toLocaleDateString("en-US", {
+            month: "long",
+            year: "numeric",
+          })}`,
+          dueDate,
+          // Covers the calendar month
+          periodStart: new Date(dueDate.getFullYear(), dueDate.getMonth(), 1),
+          periodEnd: new Date(dueDate.getFullYear(), dueDate.getMonth() + 1, 0),
+        },
+      });
+    }
+  }
+
+  // 4. Create a RecurringPayment record for tracking/Stripe scheduling later
+  await tx.recurringPayment.create({
+    data: {
+      leaseId: lease.id,
+      isActive: true,
+      paymentType: "RENT",
+      amount: lease.rentAmount,
+      frequency: "MONTHLY",
+      dayOfMonth: rentDueDay,
+      startDate: leaseStart,
+      endDate: leaseEnd,
+      nextPaymentDate: dueDates[0] ?? now, // first upcoming due date
+      lastPaymentDate: null,
+    },
+  });
+
+  // 5. Notify landlord that lease is active
+  await tx.notification.create({
+    data: {
+      userId: lease.unit.property.landlord.userId,
+      type: "LEASE_CREATED",
+      title: "Lease Agreement Active",
+      message: `All parties signed. Lease for Unit ${lease.unit.unitNumber} is now active. ${dueDates.length} rent payment${dueDates.length !== 1 ? "s" : ""} scheduled.`,
+      actionUrl: `/dashboard/leases/${leaseId}`,
+      metadata: { leaseId },
+    },
+  });
+
+  // 6. Notify each tenant — lease active + all payments visible
+  for (const leaseTenant of lease.tenants) {
+    await tx.notification.create({
+      data: {
+        userId: leaseTenant.tenant.userId,
+        type: "LEASE_CREATED",
+        title: "Lease is Now Active 🎉",
+        message: `All parties have signed. Your lease is active and ${dueDates.length} rent payment${dueDates.length !== 1 ? "s" : ""} have been scheduled.`,
+        actionUrl: `/dashboard/my-lease`,
+        metadata: { leaseId },
+      },
+    });
+  }
+
+  // 7. Log activation
+  await tx.activityLog.create({
+    data: {
+      userId: user.id,
+      type: "LEASE_CREATED" as ActivityType,
+      action: `Lease activated for Unit ${lease.unit.unitNumber} — ${dueDates.length} payments pre-generated`,
+      metadata: { leaseId, activatedBy: user.id, paymentsGenerated: dueDates.length },
+    },
+  });
+}
 
       return updatedLease;
     });

@@ -117,17 +117,19 @@ async function TenantStats() {
         : "No active lease",
       variant: lease ? ("success" as const) : ("default" as const),
     },
-    {
-      title: "Next Payment",
-      value: payments.nextPaymentDue
-        ? format(new Date(payments.nextPaymentDue), "MMM dd")
-        : "N/A",
-      icon: DollarSign,
-      description: lease
-        ? `$${lease.rentAmount.toLocaleString()}`
-        : "No active lease",
-      variant: payments.pending > 0 ? ("warning" as const) : ("default" as const),
-    },
+{
+  title: "Next Payment",
+  value: payments.nextPaymentDue
+    ? format(new Date(payments.nextPaymentDue), "MMM dd")
+    : "N/A",
+  icon: DollarSign,
+  description: payments.nextPaymentAmount
+    ? `$${payments.nextPaymentAmount.toLocaleString()}`  // ✅ real amount from DB
+    : lease
+    ? `$${lease.rentAmount.toLocaleString()}`
+    : "No active lease",
+  variant: payments.pending > 0 ? ("warning" as const) : ("default" as const),
+},
     {
       title: "Total Payments",
       value: payments.completed,
@@ -213,7 +215,7 @@ async function ActiveLease() {
     );
   }
 
-  const { lease } = result.data;
+const { lease, payments } = result.data;
 
   // Calculate days until lease ends
   const today = new Date();
@@ -271,15 +273,19 @@ async function ActiveLease() {
                   : "th"}
               </p>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Lease End</p>
-              <p className="text-xl font-bold">
-                {format(new Date(lease.endDate || ""), "MMM dd, yyyy")}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Started {format(new Date(lease.startDate), "MMM yyyy")}
-              </p>
-            </div>
+<div>
+  <p className="text-sm text-muted-foreground">Next Payment Due</p>
+  <p className="text-xl font-bold">
+    {payments.nextPaymentDue
+      ? format(new Date(payments.nextPaymentDue), "MMM dd, yyyy")
+      : format(new Date(lease.endDate || ""), "MMM dd, yyyy")}
+  </p>
+  <p className="text-xs text-muted-foreground">
+    {payments.nextPaymentAmount
+      ? `$${payments.nextPaymentAmount.toLocaleString()}`
+      : `$${lease.rentAmount.toLocaleString()}`}
+  </p>
+</div>
           </div>
 
           {lease.deposit > 0 && (

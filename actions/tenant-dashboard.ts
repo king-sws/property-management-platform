@@ -119,16 +119,16 @@ export async function getTenantDashboardStats(): Promise<DashboardResult> {
 
     // Calculate next payment due date
     const today = new Date();
-    let nextPaymentDue = null;
-    if (activeLease) {
-      const rentDueDay = activeLease.rentDueDay;
-      nextPaymentDue = new Date(today.getFullYear(), today.getMonth(), rentDueDay);
+    // let nextPaymentDue = null;
+    // if (activeLease) {
+    //   const rentDueDay = activeLease.rentDueDay;
+    //   nextPaymentDue = new Date(today.getFullYear(), today.getMonth(), rentDueDay);
       
-      // If due date has passed this month, move to next month
-      if (nextPaymentDue < today) {
-        nextPaymentDue = new Date(today.getFullYear(), today.getMonth() + 1, rentDueDay);
-      }
-    }
+    //   // If due date has passed this month, move to next month
+    //   if (nextPaymentDue < today) {
+    //     nextPaymentDue = new Date(today.getFullYear(), today.getMonth() + 1, rentDueDay);
+    //   }
+    // }
 
     return {
       success: true,
@@ -165,7 +165,8 @@ export async function getTenantDashboardStats(): Promise<DashboardResult> {
             dueDate: nextPayment.dueDate?.toISOString() || null,
             type: nextPayment.type,
           } : null,
-          nextPaymentDue: nextPaymentDue?.toISOString() || null,
+nextPaymentDue: nextPayment?.dueDate?.toISOString() ?? null,
+nextPaymentAmount: nextPayment ? Number(nextPayment.amount) : null,
         },
         maintenance: {
           open: openTickets,
@@ -344,6 +345,7 @@ export async function getTenantRecentPayments(limit: number = 5): Promise<Dashbo
     const payments = await prisma.payment.findMany({
       where: {
         tenantId: tenant.id,
+        status: { notIn: ["CANCELLED"] },
       },
       include: {
         lease: {

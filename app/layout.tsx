@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { SessionProviderWrapper } from "@/components/providers/session-provider";
 import { ThemeProvider } from "next-themes";
+import Script from 'next/script'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,10 @@ export const metadata: Metadata = {
   authors: [{ name: "Propely", url: "https://propely.site" }],
   creator: "Propely",
   metadataBase: new URL("https://propely.site"), 
+
+  other: {
+    "google-adsense-account": "ca-pub-1335845015981714",
+  },
 
   // ── Canonical & robots ────────────────────────────────
   alternates: {
@@ -98,8 +103,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1335845015981714"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased activity-scroll`}
       >
         <SessionProviderWrapper>
           <ThemeProvider

@@ -33,19 +33,22 @@ export default async function EditPropertyPage({
 
   const { id } = await params;
 
-  const property = await prisma.property.findFirst({
-    where: {
-      id: id,
-      landlordId: landlord.id,
-      deletedAt: null,
+const property = await prisma.property.findFirst({
+  where: {
+    id: id,
+    landlordId: landlord.id,
+    deletedAt: null,
+  },
+  include: {
+    images: {
+      orderBy: [{ isPrimary: "desc" }, { order: "asc" }],
     },
-    include: {
-      images: {
-        orderBy: [{ isPrimary: "desc" }, { order: "asc" }],
-      },
+    policies: {                          // ✅ ADD THIS
+      orderBy: { order: "asc" },
     },
-  });
-
+  },
+});
+ 
   if (!property) {
     notFound();
   }
@@ -85,6 +88,13 @@ export default async function EditPropertyPage({
     order: img.order,
   }));
 
+  const policies = property.policies.map((p) => ({
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    order: p.order,
+  }));
+
   return (
     <Container padding="none" size="full">
       <Stack spacing="lg">
@@ -100,6 +110,7 @@ export default async function EditPropertyPage({
           propertyId={property.id}
           initialData={initialData}
           images={images}
+          policies={policies}
         />
       </Stack>
     </Container>

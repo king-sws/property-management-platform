@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
-import { Edit, Home, DollarSign, Calendar, Plus } from "lucide-react";
+import { Edit, Home, Users, DollarSign, Building2, Calendar, Plus, Square, Bath, Bed, ArrowLeft } from "lucide-react";
 import UnitCard from "@/components/properties/unit-card";
 import AddUnitDialog from "@/components/properties/add-unit-dialog";
 import DeletePropertyButton from "@/components/properties/delete-property-button";
@@ -65,6 +65,7 @@ export default async function PropertyDetailsPage({
                           id: true,
                           name: true,
                           email: true,
+                          avatar: true,
                         },
                       },
                     },
@@ -154,6 +155,7 @@ export default async function PropertyDetailsPage({
             id: lt.tenant.user.id,
             name: lt.tenant.user.name,
             email: lt.tenant.user.email,
+            avatar: lt.tenant.user.avatar,
           },
         },
       })),
@@ -162,90 +164,102 @@ export default async function PropertyDetailsPage({
 
   return (
     <div className="space-y-6">
+
+<Link
+        href={`/dashboard/properties`}
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Back to Properties
+      </Link>
+
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200">{property.name}</h1>
-          <p className="text-gray-500 mt-1">
-            {property.address}, {property.city}, {property.state} {property.zipCode}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href={`/dashboard/properties/${property.id}/edit`}>
-            <Button variant="outline">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          </Link>
-          <DeletePropertyButton propertyId={property.id} propertyName={property.name} />
-        </div>
-      </div>
+      <div className="flex items-start justify-between gap-4">
+  <div>
+    <div className="flex items-center gap-3 mb-1">
+      <h1 className="text-2xl font-medium">
+        {property.name}
+      </h1>
+
+      {/* Status Badge */}
+      {/* {property.status && (
+        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+          {property.status}
+        </span>
+      )} */}
+    </div>
+
+    <p className="text-sm text-muted-foreground">
+      {property.address} · {property.city}, {property.state} {property.zipCode}
+    </p>
+  </div>
+
+  <div className="flex gap-2 shrink-0">
+    <Link href={`/dashboard/properties/${property.id}/edit`}>
+      <Button variant="outline">
+        <Edit className="w-4 h-4 mr-2" />
+        Edit
+      </Button>
+    </Link>
+
+    <DeletePropertyButton
+      propertyId={property.id}
+      propertyName={property.name}
+    />
+  </div>
+</div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total Units</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-200 mt-1">{totalUnits}</p>
-              </div>
-              <Home className="w-8 h-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  {[
+    {
+      icon: Home,
+      label: "Total Units",
+      value: totalUnits,
+      color: "text-blue-500 bg-blue-50 dark:bg-blue-950/30",
+    },
+    {
+      icon: Users,
+      label: "Occupancy",
+      value: `${occupancyRate}%`,
+      sub: `${occupiedUnits} occupied`,
+      color: "text-green-500 bg-green-50 dark:bg-green-950/30",
+    },
+    {
+      icon: DollarSign,
+      label: "Monthly Rent",
+      value: `$${currentRent.toLocaleString()}`,
+      sub: `of $${totalRent.toLocaleString()}`,
+      color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30",
+    },
+    {
+      icon: Building2,
+      label: "Property Type",
+      value: property.type.replace("_", " "),
+      color: "text-purple-500 bg-purple-50 dark:bg-purple-950/30",
+    },
+  ].map((stat) => (
+    <div
+      key={stat.label}
+      className="bg-card border rounded-xl p-5 flex items-start justify-between hover:shadow-sm transition"
+    >
+      <div>
+        <p className="text-sm text-muted-foreground">{stat.label}</p>
+        <p className="text-2xl font-semibold mt-1">{stat.value}</p>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Occupancy</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-200 mt-1">{occupancyRate}%</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {occupiedUnits} occupied, {vacantUnits} vacant
-                </p>
-              </div>
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-green-600 font-bold text-sm">{occupancyRate}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Monthly Rent</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-200 mt-1">
-                  ${currentRent.toLocaleString()}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  of ${totalRent.toLocaleString()} potential
-                </p>
-              </div>
-              <DollarSign className="w-8 h-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Property Type</p>
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-200 mt-1">
-                  {property.type.replace("_", " ")}
-                </p>
-                {property.yearBuilt && (
-                  <p className="text-xs text-gray-500 mt-1">Built {property.yearBuilt}</p>
-                )}
-              </div>
-              <Calendar className="w-8 h-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
+        {stat.sub && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {stat.sub}
+          </p>
+        )}
       </div>
+
+      <div className={`p-2 rounded-lg ${stat.color}`}>
+        <stat.icon className="w-5 h-5" />
+      </div>
+    </div>
+  ))}
+</div>
 
       {/* Tabs */}
       <Tabs defaultValue="units" className="space-y-4">
@@ -265,65 +279,140 @@ export default async function PropertyDetailsPage({
             <AddUnitDialog propertyId={property.id} />
           </div>
 
-          {unitsForClient.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Home className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-2">
-                  No units yet
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  Add your first unit to start managing this property
-                </p>
-                <AddUnitDialog propertyId={property.id} />
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {unitsForClient.map((unit) => {
-                // Get active lease and tenant info
-                const activeLease = unit.leases[0];
-                const tenants = activeLease?.tenants || [];
+{/* Empty state */}
+{unitsForClient.length === 0 ? (
+  <Card>
+    <CardContent className="p-12 text-center">
+      <Home className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+      <h3 className="text-lg font-semibold mb-2">No units yet</h3>
+      <p className="text-muted-foreground mb-4">
+        Add your first unit to start managing this property
+      </p>
+      <AddUnitDialog propertyId={property.id} />
+    </CardContent>
+  </Card>
+) : (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {unitsForClient.map((unit) => {
+      const activeLease = unit.leases[0];
+      const tenants = activeLease?.tenants || [];
 
-                return (
-                  <Card key={unit.id}>
-                    <CardContent className="p-6">
-                      <UnitCard unit={unit} propertyId={property.id} />
-                      
-                      {/* MESSAGE TENANTS SECTION */}
-                      {tenants.length > 0 && (
-                        <div className="mt-4 pt-4 border-t">
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Current Tenants:
-                          </p>
-                          <div className="space-y-2">
-                            {tenants.map((lt) => (
-                              <div
-                                key={lt.tenantId}
-                                className="flex items-center justify-between gap-2"
-                              >
-                                <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                                  {lt.tenant.user.name || lt.tenant.user.email}
-                                </span>
-                                <MessageTenantButton
-                                  tenantId={lt.tenantId}
-                                  tenantName={lt.tenant.user.name || "Tenant"}
-                                  propertyName={property.name}
-                                  unitNumber={unit.unitNumber}
-                                  variant="ghost"
-                                  size="sm"
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
+      // Status config
+      const statusConfig: Record<string, { label: string; className: string }> = {
+        OCCUPIED:    { label: "Occupied",    className: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400" },
+        VACANT:      { label: "Vacant",      className: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400" },
+        MAINTENANCE: { label: "Maintenance", className: "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400" },
+        UNAVAILABLE: { label: "Unavailable", className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
+      };
+      const status = statusConfig[unit.status] ?? statusConfig.UNAVAILABLE;
+
+      // Initials helper
+      const initials = (name: string) =>
+        name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+
+      return (
+        <div
+          key={unit.id}
+          className="bg-background border border-border/50 rounded-xl overflow-hidden hover:border-border hover:shadow-sm transition-all"
+        >
+          {/* Status bar */}
+          <div className={`px-4 py-1.5 flex items-center justify-between text-xs font-medium ${status.className}`}>
+            <span>{status.label}</span>
+            <span className="opacity-75">Unit {unit.unitNumber}</span>
+          </div>
+
+          <div className="p-4 space-y-4">
+            {/* Header */}
+            <div className="flex items-baseline justify-between">
+              <span className="text-lg font-medium">Unit {unit.unitNumber}</span>
+              <span className="text-base font-medium text-emerald-600 dark:text-emerald-400">
+                ${unit.rentAmount.toLocaleString()}
+                <span className="text-xs font-normal text-muted-foreground">/mo</span>
+              </span>
             </div>
-          )}
+
+            {/* Unit specs */}
+            <div className="flex gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Bed className="w-3.5 h-3.5" />
+                {unit.bedrooms} bed
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Bath className="w-3.5 h-3.5" />
+                {unit.bathrooms} bath
+              </span>
+              {unit.squareFeet && (
+                <span className="flex items-center gap-1.5">
+                  <Square className="w-3.5 h-3.5" />
+                  {unit.squareFeet.toLocaleString()} sqft
+                </span>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2">
+              <Link
+                href={`/dashboard/properties/${property.id}/units/${unit.id}`}
+                className="flex-1 text-center py-1.5 text-sm border border-border/50 rounded-lg hover:bg-muted transition-colors"
+              >
+                View unit
+              </Link>
+              <Link
+                href={`/dashboard/properties/${property.id}/units/${unit.id}`}
+                className="flex-1 text-center py-1.5 text-sm border border-border/50 rounded-lg hover:bg-muted transition-colors"
+              >
+                Edit
+              </Link>
+            </div>
+
+            {/* Tenants section */}
+            <div className="border-t border-border/50 pt-3">
+              {tenants.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">
+                    Current tenants
+                  </p>
+                  {tenants.map((lt) => {
+                    const name = lt.tenant.user.name || lt.tenant.user.email || "Tenant";
+                    return (
+                      <div key={lt.tenantId} className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {/* Avatar */}
+                          {lt.tenant.user.avatar ? (
+                            <img
+                            src={lt.tenant.user.avatar}
+                              alt={name}
+                              className="w-7 h-7 rounded-full object-cover shrink-0"
+                            />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-950 flex items-center justify-center text-xs font-medium text-blue-700 dark:text-blue-300 shrink-0">
+                              {initials(name)}
+                            </div>
+                          )}
+                          <span className="text-sm truncate">{name}</span>
+                        </div>
+                        <MessageTenantButton
+                          tenantId={lt.tenantId}
+                          tenantName={name}
+                          propertyName={property.name}
+                          unitNumber={unit.unitNumber}
+                          variant="ghost"
+                          size="sm"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">No active tenants</p>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}
         </TabsContent>
 
         {/* Details Tab */}

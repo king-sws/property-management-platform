@@ -7,6 +7,8 @@ import { ExpenseForm } from "@/components/expenses/expense-form";
 import { ExpenseFormSkeleton } from "@/components/expenses/expense-form-skeleton";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 import Link from "next/link";
 
 interface PageProps {
@@ -27,25 +29,29 @@ export default async function EditExpensePage({ params }: PageProps) {
   const { id } = await params;
   
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/dashboard/expenses/${id}`}>
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Edit Expense</h1>
-          <p className="text-muted-foreground">
-            Update expense information
-          </p>
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href={`/dashboard/expenses/${id}`}>
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <div>
+            <Typography variant="h2" className="mb-1">
+              Edit Expense
+            </Typography>
+            <Typography variant="muted">
+              Update expense information
+            </Typography>
+          </div>
         </div>
-      </div>
 
-      <Suspense fallback={<ExpenseFormSkeleton />}>
-        <ExpenseFormWrapper expenseId={id} />
-      </Suspense>
-    </div>
+        <Suspense fallback={<ExpenseFormSkeleton />}>
+          <ExpenseFormWrapper expenseId={id} />
+        </Suspense>
+      </Stack>
+    </Container>
   );
 }
 
@@ -59,7 +65,9 @@ async function ExpenseFormWrapper({ expenseId }: { expenseId: string }) {
     
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-        <p className="text-sm text-red-800">{result.error}</p>
+        <Typography variant="muted" className="text-sm text-red-800">
+          {result.error}
+        </Typography>
       </div>
     );
   }

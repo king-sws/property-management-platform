@@ -36,6 +36,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import PropertyImageUploader from "@/components/properties/property-image-uploader";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PoliciesEditor } from "./policies-editor";
 
 const propertySchema = z.object({
   name: z.string().min(1, "Property name is required"),
@@ -78,12 +79,14 @@ interface PropertyFormProps {
   propertyId?: string;
   initialData?: Partial<FormValues>;
   images?: PropertyImage[];
+  policies?: { id?: string; name: string; description: string; order: number }[];
 }
 
 export default function PropertyForm({
   propertyId,
   initialData,
   images = [],
+  policies = [],
 }: PropertyFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showImageSection, setShowImageSection] = useState(false);
@@ -156,12 +159,13 @@ export default function PropertyForm({
     return (
       <div className="space-y-6">
         {/* Back Button */}
-        <Link href="/dashboard/properties" >
-          <Button variant="ghost" size="sm" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Properties
-          </Button>
-        </Link>
+        <Link
+        href={`/dashboard/properties`}
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Back to Properties
+      </Link>
 
         <Alert>
           <Info className="h-4 w-4" />
@@ -202,11 +206,14 @@ export default function PropertyForm({
   return (
     <div className="space-y-6">
       {/* Back Button */}
-      <Link href="/dashboard/properties">
-        <Button variant="ghost" size="sm" className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Properties
-        </Button>
+      
+
+      <Link
+        href={`/dashboard/properties`}
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Back to Properties
       </Link>
 
       <Form {...form}>
@@ -585,6 +592,25 @@ export default function PropertyForm({
                 <PropertyImageUploader
                   propertyId={propertyId}
                   images={images}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Policies Section - Only shown when editing */}
+          {isEditing && propertyId && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Property Policies</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add policies like pet rules, smoking policy, parking rules, etc.
+                  Tenants will see these when browsing your property.
+                </p>
+                <PoliciesEditor
+                  propertyId={propertyId}
+                  initialPolicies={policies}
                 />
               </CardContent>
             </Card>
