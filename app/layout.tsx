@@ -30,6 +30,7 @@ export const metadata: Metadata = {
   description:
     "Propely helps landlords manage properties, tenants, leases, and payments — all in one place. Built for modern property management.",
   keywords: [
+    "propely",
     "property management",
     "landlord software",
     "rental management",

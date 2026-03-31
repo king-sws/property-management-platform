@@ -65,7 +65,7 @@ export default function PrivacyPage() {
                   7. Data Retention
                 </a>
                 <a href="#children-privacy" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  8. Children's Privacy
+                  8. Children&apos;s Privacy
                 </a>
                 <a href="#changes" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
                   9. Changes to This Policy
@@ -190,6 +190,9 @@ export default function PrivacyPage() {
                 <li><strong>Advertising Cookies:</strong> Used to deliver relevant advertisements</li>
                 <li><strong>Preference Cookies:</strong> Remember your settings and preferences</li>
               </ul>
+              <p className="text-muted-foreground leading-relaxed">
+                Third-party vendors, including Google, use cookies to serve ads based on a user&apos;s prior visits to your website. Google&apos;s use of advertising cookies enables it and its partners to serve ads to our users based on their visit to propely.site.
+              </p>
             </div>
 
             {/* Section 6 */}
@@ -233,7 +236,7 @@ export default function PrivacyPage() {
             {/* Section 8 */}
             <div id="children-privacy" className="space-y-4 mb-10">
               <h2 className="text-xl font-semibold text-foreground">
-                8. Children's Privacy
+                8. Children&apos;s Privacy
               </h2>
               <p className="text-muted-foreground leading-relaxed">
                 Our services are not intended for individuals under the age of 18. We do not knowingly collect personal information from children. If we become aware that we have collected personal information from a child without parental consent, we will take steps to delete that information.
@@ -268,9 +271,9 @@ export default function PrivacyPage() {
               </p>
               <div className="rounded-xl bg-muted/50 border border-border p-6 mt-4">
                 <ul className="space-y-2 text-muted-foreground">
-                  <li><strong>Email:</strong> privacy@propertyplatform.com</li>
-                  <li><strong>Phone:</strong> (555) 123-4567</li>
-                  <li><strong>Address:</strong> 123 Property Lane, Suite 100, City, State 12345</li>
+                  <li><strong>Email:</strong> privacy@propely.site</li>
+                  <li><strong>Phone:</strong> (555) 953-3503</li>
+                  <li><strong>Address:</strong> 13 Property Lane, Suite 100, City, State 12345</li>
                 </ul>
               </div>
             </div>
