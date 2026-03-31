@@ -112,10 +112,10 @@ const FooterSection = () => {
     <ul className="flex gap-x-3 flex-col items-start flex-wrap gap-y-1.5">
       {[
         { label: 'Blog', href: '/blog' },
-        { label: 'Showcase', href: '/#showcase' },
-        { label: 'Changelog', href: '/#changelog' },
-        { label: 'Documentation', href: '/#docs' },
-        { label: 'Become an Affiliate', href: '/#affiliate' },
+        { label: 'Case Studies', href: '/case-studies' },
+        { label: 'Templates', href: '/templates' },
+        { label: 'Help Center', href: '/help' },
+        { label: 'Contact Support', href: '/support' },
       ].map((item) => (
         <li key={item.label}>
           <Link
@@ -133,7 +133,7 @@ const FooterSection = () => {
                 className="
                   absolute -bottom-0.5 left-0 h-px w-0
                   bg-current transition-all duration-200
-                  group-hover:w-full 
+                  group-hover:w-full
                 "
               />
             </span>
@@ -148,27 +148,31 @@ const FooterSection = () => {
 
         {/* Bottom Section */}
         <div className="flex flex-wrap items-center justify-start gap-5 border-t pt-5">
-          <Link 
-            href="/privacy" 
+          <Link
+            href="/privacy"
             className="text-xs font-[450] text-foreground hover:text-secondary-foreground"
           >
             Privacy Policy
           </Link>
-          <Link 
-            href="/terms" 
+          <span className="text-xs text-muted-foreground">•</span>
+          <Link
+            href="/terms"
             className="text-xs font-[450] text-foreground hover:text-secondary-foreground"
           >
             Terms of Service
           </Link>
-          <Link 
-            href="/license" 
+          <span className="text-xs text-muted-foreground">•</span>
+          <Link
+            href="/legal/cookie-policy"
             className="text-xs font-[450] text-foreground hover:text-secondary-foreground"
           >
-            License Policy
+            Cookie Policy
           </Link>
-          
+
+          <div className="flex-1"></div>
+
           <span className="text-xs text-muted-foreground">
-            © 2026 Dirstarter. All rights reserved.
+            © 2026 Property Platform. All rights reserved.
           </span>
         </div>
       </div>

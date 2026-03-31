@@ -31,6 +31,7 @@ type ResourceCategories = {
   LEARN: ResourceItem[];
   RESOURCES: ResourceItem[];
   SUPPORT: ResourceItem[];
+  LEGAL: ResourceItem[];
   'CUSTOMER STORIES': CustomerStoryItem[];
 }
 
@@ -126,8 +127,8 @@ const resourcesCategories: ResourceCategories = {
   'RESOURCES': [
     { title: 'Blog', href: '/blog' },
     { title: 'Case Studies', href: '/case-studies' },
-    { title: 'Templates', href: '/templates' },  // Lease templates, etc.
-    { title: 'Legal Resources', href: '/legal' },
+    { title: 'Templates', href: '/templates' },
+    { title: 'Integrations', href: '/integrations' },
   ],
   'SUPPORT': [
     { title: 'Contact Support', href: '/support' },
@@ -135,8 +136,13 @@ const resourcesCategories: ResourceCategories = {
     { title: 'Live Chat', href: '/chat' },
     { title: 'Status Page', href: '/status' },
   ],
+  'LEGAL': [
+    { title: 'Privacy Policy', href: '/privacy' },
+    { title: 'Terms of Service', href: '/terms' },
+    { title: 'Cookie Policy', href: '/legal/cookie-policy' },
+  ],
   'CUSTOMER STORIES': [
-    { 
+    {
       logo: '🏢',
       quote: 'Propely helped us manage 50+ properties efficiently',
       cta: 'Read the story →',
