@@ -15,7 +15,7 @@ const FooterSection = () => {
             <p className="max-w-64 text-sm text-muted-foreground">
               Next.js directory template for building profitable directory websites.
             </p>
-            
+
             {/* Social Icons */}
             <div className="flex gap-x-3 gap-y-2 flex-row items-center place-content-start flex-wrap mt-4">
               <Link
@@ -62,88 +62,126 @@ const FooterSection = () => {
             </div>
           </div>
 
-          {/* Product Column */}
-          <div className="grid grid-cols-2 gap-12 sm:gap-16 mt-5 md:mt-5 lg:mt-0">
-  {/* Product Column */}
-  <div className="space-y-4">
-    <h3 className="font-mono text-[11px] font-medium tracking-wider uppercase text-foreground/50">
-      Product
-    </h3>
+          {/* Product, Resources, and Company Columns */}
+          <div className="grid grid-cols-3 gap-12 sm:gap-16 mt-5 md:mt-5 lg:mt-0">
+            {/* Product Column */}
+            <div className="space-y-4">
+              <h3 className="font-mono text-[11px] font-medium tracking-wider uppercase text-foreground/50">
+                Product
+              </h3>
 
-    <ul className="space-y-3">
-      {[
-        { label: 'Buy Now', href: '#pricing' },
-        { label: 'Demo', href: '#demo' },
-        { label: 'Pricing', href: '#pricing' },
-        { label: 'Features', href: '#features' },
-      ].map((item) => (
-        <li key={item.label}>
-          <Link
-            href={item.href}
-            className="
-              group inline-flex items-center gap-1
-              text-xs font-[450] text-foreground
-              transition-all duration-200
-              hover:text-secondary-foreground
-            "
-          >
-            <span className="relative">
-              {item.label}
-              <span
-                className="
-                  absolute -bottom-0.5 left-0 h-px w-0
-                  bg-current transition-all duration-200
-                  group-hover:w-full
-                "
-              />
-            </span>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  </div>
+              <ul className="space-y-3">
+                {[
+                  { label: 'Buy Now', href: '#pricing' },
+                  { label: 'Demo', href: '#demo' },
+                  { label: 'Pricing', href: '#pricing' },
+                  { label: 'Features', href: '#features' },
+                ].map((item) => (
+                  <li key={item.label}>
+                    <Link
+                      href={item.href}
+                      className="
+                        group inline-flex items-center gap-1
+                        text-xs font-[450] text-foreground
+                        transition-all duration-200
+                        hover:text-secondary-foreground
+                      "
+                    >
+                      <span className="relative">
+                        {item.label}
+                        <span
+                          className="
+                            absolute -bottom-0.5 left-0 h-px w-0
+                            bg-current transition-all duration-200
+                            group-hover:w-full
+                          "
+                        />
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-  {/* Resources Column */}
-  <div className="space-y-4 mb-5">
-    <h3 className="font-mono text-[11px] font-medium tracking-wider uppercase text-foreground/50">
-      Resources
-    </h3>
+            {/* Resources Column */}
+            <div className="space-y-4 mb-5">
+              <h3 className="font-mono text-[11px] font-medium tracking-wider uppercase text-foreground/50">
+                Resources
+              </h3>
 
-    <ul className="flex gap-x-3 flex-col items-start flex-wrap gap-y-1.5">
-      {[
-        { label: 'Blog', href: '/blog' },
-        { label: 'Case Studies', href: '/case-studies' },
-        { label: 'Templates', href: '/templates' },
-        { label: 'Help Center', href: '/help' },
-        { label: 'Contact Support', href: '/support' },
-      ].map((item) => (
-        <li key={item.label}>
-          <Link
-            href={item.href}
-            className="
-              group inline-flex items-center gap-1
-              text-xs font-[450] text-foreground
-              transition-all duration-200
-              hover:text-secondary-foreground
-            "
-          >
-            <span className="relative">
-              {item.label}
-              <span
-                className="
-                  absolute -bottom-0.5 left-0 h-px w-0
-                  bg-current transition-all duration-200
-                  group-hover:w-full
-                "
-              />
-            </span>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  </div>
-</div>
+              <ul className="flex gap-x-3 flex-col items-start flex-wrap gap-y-1.5">
+                {[
+                  { label: 'Blog', href: '/blog' },
+                  { label: 'Case Studies', href: '/case-studies' },
+                  { label: 'Templates', href: '/templates' },
+                  { label: 'Help Center', href: '/help' },
+                  { label: 'Contact Support', href: '/support' },
+                ].map((item) => (
+                  <li key={item.label}>
+                    <Link
+                      href={item.href}
+                      className="
+                        group inline-flex items-center gap-1
+                        text-xs font-[450] text-foreground
+                        transition-all duration-200
+                        hover:text-secondary-foreground
+                      "
+                    >
+                      <span className="relative">
+                        {item.label}
+                        <span
+                          className="
+                            absolute -bottom-0.5 left-0 h-px w-0
+                            bg-current transition-all duration-200
+                            group-hover:w-full
+                          "
+                        />
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
+            {/* Company Column */}
+            <div className="space-y-4 mb-5">
+              <h3 className="font-mono text-[11px] font-medium tracking-wider uppercase text-foreground/50">
+                Company
+              </h3>
+
+              <ul className="flex gap-x-3 flex-col items-start flex-wrap gap-y-1.5">
+                {[
+                  { label: 'About Propely', href: '/about' },
+                  { label: 'Contact Us', href: '/contact' },
+                  { label: 'Help Center', href: '/help' },
+                  { label: 'Support', href: '/support' },
+                ].map((item) => (
+                  <li key={item.label}>
+                    <Link
+                      href={item.href}
+                      className="
+                        group inline-flex items-center gap-1
+                        text-xs font-[450] text-foreground
+                        transition-all duration-200
+                        hover:text-secondary-foreground
+                      "
+                    >
+                      <span className="relative">
+                        {item.label}
+                        <span
+                          className="
+                            absolute -bottom-0.5 left-0 h-px w-0
+                            bg-current transition-all duration-200
+                            group-hover:w-full
+                          "
+                        />
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
 
         {/* Bottom Section */}

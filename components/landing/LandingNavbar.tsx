@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ChevronDown, Home, Users, FileText, Wrench, DollarSign, BarChart, Building2, Zap, Shield } from 'lucide-react';
+import { Menu, X, ChevronDown, Home, Users, FileText, Wrench, DollarSign, BarChart, Building2, Zap, Shield, Headphones } from 'lucide-react';
 
 // Types
 interface DropdownItem {
@@ -267,7 +267,7 @@ const resourcesCategories: ResourceCategories = {
                 </Link>
 
                 {/* Resources Dropdown */}
-                <button 
+                <button
                   onClick={() => toggleDropdown('resources')}
                   className={`flex items-center gap-1 px-3 py-2 rounded-md font-medium text-sm button-instant ${
                     activeDropdown === 'resources' ? 'bg-gray-800 text-white' : 'text-foreground hover:text-gray-300 hover:bg-gray-800/50'
@@ -443,6 +443,78 @@ const resourcesCategories: ResourceCategories = {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Company Dropdown - About & Contact */}
+              {activeDropdown === 'company' && (
+                <div className="grid grid-cols-2 gap-12 max-w-2xl">
+                  <div>
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                      About Us
+                    </div>
+                    <div className="space-y-2">
+                      <Link
+                        href="/about"
+                        onClick={() => setActiveDropdown(null)}
+                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-white/5 button-instant group"
+                      >
+                        <div className="text-blue-400 mt-0.5 group-hover:scale-110 icon-scale">
+                          <Building2 className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm text-white mb-0.5">About Propely</div>
+                          <div className="text-xs text-gray-400 leading-snug">Learn about our mission and team</div>
+                        </div>
+                      </Link>
+                      <Link
+                        href="/contact"
+                        onClick={() => setActiveDropdown(null)}
+                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-white/5 button-instant group"
+                      >
+                        <div className="text-purple-400 mt-0.5 group-hover:scale-110 icon-scale">
+                          <Users className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm text-white mb-0.5">Contact Us</div>
+                          <div className="text-xs text-gray-400 leading-snug">Get in touch with our team</div>
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                      Quick Links
+                    </div>
+                    <div className="space-y-2">
+                      <Link
+                        href="/help"
+                        onClick={() => setActiveDropdown(null)}
+                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-white/5 button-instant group"
+                      >
+                        <div className="text-green-400 mt-0.5 group-hover:scale-110 icon-scale">
+                          <Wrench className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm text-white mb-0.5">Help Center</div>
+                          <div className="text-xs text-gray-400 leading-snug">Find answers and guides</div>
+                        </div>
+                      </Link>
+                      <Link
+                        href="/support"
+                        onClick={() => setActiveDropdown(null)}
+                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-white/5 button-instant group"
+                      >
+                        <div className="text-orange-400 mt-0.5 group-hover:scale-110 icon-scale">
+                          <Headphones className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm text-white mb-0.5">Support</div>
+                          <div className="text-xs text-gray-400 leading-snug">Contact our support team</div>
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

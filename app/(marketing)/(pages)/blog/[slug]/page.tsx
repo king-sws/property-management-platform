@@ -55,8 +55,7 @@ const blogPosts = [
     trending: false,
     slug: 'first-time-landlords-tips',
     image:
-      'data:image/svg+xml,%3Csvg width="800" height="500" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3ClinearGradient id="grad1" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%234f46e5;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%237c3aed;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="800" height="500" fill="url(%23grad1)"/%3E%3Ccircle cx="200" cy="150" r="80" fill="white" opacity="0.1"/%3E%3Ccircle cx="600" cy="350" r="100" fill="white" opacity="0.1"/%3E%3Crect x="250" y="180" width="300" height="200" rx="15" fill="white" opacity="0.15"/%3E%3C/svg%3E',
-  },
+'/images/10.png'  },
   {
     title: 'How to Screen Tenants Effectively',
     excerpt:

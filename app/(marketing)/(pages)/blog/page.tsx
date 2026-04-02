@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRightIcon, CalendarIcon, ClockIcon, UserIcon } from 'lucide-react'
+import { NewsletterSignup } from '@/components/landing/NewsletterSignup'
 
 const categories = [
   { name: 'All', href: '/blog' },
@@ -24,7 +25,7 @@ const blogPosts = [
     category: 'Property Management',
     featured: true,
     href: '/blog/first-time-landlords-tips',
-    image: 'data:image/svg+xml,%3Csvg width="800" height="500" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3ClinearGradient id="grad1" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%234f46e5;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%237c3aed;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="800" height="500" fill="url(%23grad1)"/%3E%3Ccircle cx="200" cy="150" r="80" fill="white" opacity="0.1"/%3E%3Ccircle cx="600" cy="350" r="100" fill="white" opacity="0.1"/%3E%3Crect x="250" y="180" width="300" height="200" rx="15" fill="white" opacity="0.15"/%3E%3C/svg%3E',
+    image: '/images/10.png',
   },
   {
     title: 'How to Screen Tenants Effectively',
@@ -104,37 +105,6 @@ function AdPlaceholder({ size, label }: { size: string; label: string }) {
   )
 }
 
-function NewsletterSignup() {
-  return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 p-8 md:p-10">
-      <div className="relative z-10 flex flex-col items-center text-center gap-4">
-        <h3 className="text-xl font-semibold text-white">
-          Subscribe to our newsletter
-        </h3>
-        <p className="text-white/80 text-sm max-w-md">
-          Get the latest property management tips, tenant screening guides, and
-          industry insights delivered to your inbox weekly.
-        </p>
-        <form className="flex w-full max-w-md gap-2">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="flex-1 rounded-lg border-0 bg-white/90 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-white/50"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-foreground px-6 py-2.5 text-sm font-medium text-background hover:bg-foreground/90 transition-colors"
-          >
-            Subscribe
-          </button>
-        </form>
-      </div>
-      {/* Decorative elements */}
-      <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-white/10" />
-      <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-white/10" />
-    </div>
-  )
-}
 
 export default function BlogPage() {
   const featuredPost = blogPosts.find((post) => post.featured)
