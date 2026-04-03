@@ -210,7 +210,7 @@ const FooterSection = () => {
           <div className="flex-1"></div>
 
           <span className="text-xs text-muted-foreground">
-            © 2026 Property Platform. All rights reserved.
+            © 2026 Propely. All rights reserved.
           </span>
         </div>
       </div>

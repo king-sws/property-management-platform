@@ -4,8 +4,8 @@ import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Reset Password | Property Management Platform',
-  description: 'Reset your property management account password',
+  title: 'Reset Password | Propely',
+  description: 'Reset your Propely account password',
   robots: {
     index: false,
     follow: false,

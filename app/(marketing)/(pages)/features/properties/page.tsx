@@ -344,7 +344,7 @@ export default function PropertyManagementPage() {
               Built for serious landlords
             </h2>
             <p className="text-[#b4b4b5] max-w-xl mx-auto">
-              Every tool you need, none of the complexity you don't.
+              Every tool you need, none of the complexity you don&#39;t.
             </p>
           </div>
 

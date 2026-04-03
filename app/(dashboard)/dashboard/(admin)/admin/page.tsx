@@ -157,7 +157,7 @@ async function SystemOverview() {
       title: "Landlords",
       value: totalLandlords,
       icon: Building2,
-      description: "Property managers",
+      description: "Property owners",
       variant: "default" as const,
     },
     {

@@ -19,7 +19,7 @@ import {
 import Link from "next/link";
 
 export const metadata = {
-  title: "Vendor Dashboard | Property Management",
+  title: "Vendor Dashboard | Propely",
   description: "Manage your jobs and appointments",
 };
 

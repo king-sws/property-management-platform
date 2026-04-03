@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import nodemailer from "nodemailer";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-const APP_NAME = "Property Manager";
+const APP_NAME = "Propely";
 
 // Nodemailer Transporter (Brevo SMTP)
 const transporter = nodemailer.createTransport({

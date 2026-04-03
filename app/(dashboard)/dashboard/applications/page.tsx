@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ApplicationsHeader } from "@/components/applications/applications-header";
 
 export const metadata = {
-  title: "Applications | Property Management",
+  title: "Applications | Propely",
   description: "Manage rental applications",
 };
 

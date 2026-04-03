@@ -131,7 +131,6 @@ export const WELCOME_EMAIL_TEMPLATE = `
 </body>
 </html>
 `;
-// lib/email/templates.ts - Email Templates for Oussama Property Management System
 
 /**
  * Welcome Email Template for New Tenants
@@ -289,12 +288,12 @@ export const TENANT_WELCOME_EMAIL_TEMPLATE = `
   <div class="email-container">
     <div class="header">
       <div class="logo">🏠</div>
-      <h1>Welcome to Oussama Property</h1>
+      <h1>Welcome to Propely</h1>
     </div>
     <div class="body">
       <p>Hello <strong>{userName}</strong>,</p>
       
-      <p>Welcome to <span class="highlight">Oussama Property Management System</span>! Your landlord has created a tenant account for you to manage your rental experience.</p>
+      <p>Welcome to <span class="highlight">Propely</span>! Your landlord has created a tenant account for you to manage your rental experience.</p>
       
       <div class="credentials-box">
         <h3>🔐 Your Login Credentials</h3>
@@ -359,11 +358,11 @@ export const TENANT_WELCOME_EMAIL_TEMPLATE = `
       <p>We're here to make your rental experience as smooth as possible! 🏡</p>
      
       <p>Best regards,<br>
-      <span class="highlight">Oussama Property Management Team</span></p>
+      <span class="highlight">Propely Team</span></p>
     </div>
     <div class="footer">
-      <p><strong>Oussama Property Management System</strong></p>
-      <p>© 2025 Oussama Property. All rights reserved.</p>
+      <p><strong>Propely</strong></p>
+      <p>© 2026 Propely. All rights reserved.</p>
       <p>This email was sent to {userEmail}</p>
       <p style="margin-top: 15px; font-size: 12px; color: #999;">
         This is an automated message. Please do not reply directly to this email.
@@ -505,7 +504,7 @@ export const PASSWORD_RESET_EMAIL_TEMPLATE = `
     <div class="body">
       <p>Hello <strong>{userName}</strong>,</p>
       
-      <p>We received a request to reset your password for your Oussama Property Management account.</p>
+      <p>We received a request to reset your password for your Propely account.</p>
       
       <p>Click the button below to reset your password:</p>
       
@@ -542,11 +541,11 @@ export const PASSWORD_RESET_EMAIL_TEMPLATE = `
       <p>If you didn't request a password reset, please ignore this email. Your password will remain unchanged. You can also contact us at <a href="mailto:{supportEmail}" style="color: #dc2626;">{supportEmail}</a> if you have concerns.</p>
      
       <p>Best regards,<br>
-      <strong>Oussama Property Security Team</strong></p>
+      <strong>Propely Security Team</strong></p>
     </div>
     <div class="footer">
-      <p><strong>Oussama Property Management System</strong></p>
-      <p>© 2025 Oussama Property. All rights reserved.</p>
+      <p><strong>Propely</strong></p>
+      <p>© 2026 Propely. All rights reserved.</p>
       <p>This email was sent to {userEmail}</p>
       <p style="margin-top: 15px; font-size: 12px; color: #999;">
         This is an automated security email. Please do not reply directly to this email.
@@ -683,10 +682,10 @@ export const PAYMENT_CONFIRMATION_EMAIL_TEMPLATE = `
       <p>A receipt has been generated and is available in your tenant portal.</p>
      
       <p>Best regards,<br>
-      <strong>Oussama Property Management</strong></p>
+      <strong>Propely</strong></p>
     </div>
     <div class="footer">
-      <p>© 2025 Oussama Property. All rights reserved.</p>
+      <p>© 2026 Propely. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -782,10 +781,10 @@ export const LEASE_EXPIRING_EMAIL_TEMPLATE = `
       </center>
      
       <p>Best regards,<br>
-      <strong>Oussama Property Management</strong></p>
+      <strong>Propely</strong></p>
     </div>
     <div class="footer">
-      <p>© 2025 Oussama Property. All rights reserved.</p>
+      <p>© 2026 Propely. All rights reserved.</p>
     </div>
   </div>
 </body>

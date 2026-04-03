@@ -7,7 +7,7 @@ import { Container, Stack } from "@/components/ui/container";
 import { Typography } from "@/components/ui/typography";
 
 export const metadata = {
-  title: "Edit Application | Property Management",
+  title: "Edit Application | Propely",
 };
 
 interface PageProps {
