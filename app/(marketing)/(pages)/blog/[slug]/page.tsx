@@ -99,8 +99,7 @@ const blogPosts = [
     featured: false,
     trending: true,
     slug: 'screen-tenants-effectively',
-    image:
-      'data:image/svg+xml,%3Csvg width="800" height="500" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3ClinearGradient id="grad2" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%2306b6d4;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%230891b2;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="800" height="500" fill="url(%23grad2)"/%3E%3Ccircle cx="150" cy="250" r="120" fill="white" opacity="0.1"/%3E%3Ccircle cx="650" cy="250" r="120" fill="white" opacity="0.1"/%3E%3Crect x="300" y="150" width="200" height="250" rx="20" fill="white" opacity="0.2"/%3E%3C/svg%3E',
+    image: '/blogs/blog-1.png'
   },
   {
     title: 'Preventive Maintenance Checklist for Rental Properties',
@@ -165,9 +164,7 @@ const blogPosts = [
     featured: false,
     trending: false,
     slug: 'preventive-maintenance-checklist',
-    image:
-      'data:image/svg+xml,%3Csvg width="800" height="500" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3ClinearGradient id="grad3" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%2310b981;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%23059669;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="800" height="500" fill="url(%23grad3)"/%3E%3Cpath d="M 400 100 L 500 250 L 400 400 L 300 250 Z" fill="white" opacity="0.1"/%3E%3Ccircle cx="400" cy="250" r="100" fill="none" stroke="white" stroke-width="3" opacity="0.3"/%3E%3C/svg%3E',
-  },
+image: '/blogs/blog-2.png'  },
   {
     title: 'Understanding Rental Property Tax Deductions',
     excerpt:
@@ -217,9 +214,7 @@ const blogPosts = [
     featured: false,
     trending: true,
     slug: 'rental-property-tax-deductions',
-    image:
-      'data:image/svg+xml,%3Csvg width="800" height="500" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3ClinearGradient id="grad4" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%23f59e0b;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%23d97706;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="800" height="500" fill="url(%23grad4)"/%3E%3Crect x="150" y="350" width="80" height="100" fill="white" opacity="0.3"/%3E%3Crect x="250" y="280" width="80" height="170" fill="white" opacity="0.3"/%3E%3C/svg%3E',
-  },
+    image: '/blogs/blog-3.png'  },
   {
     title: 'Digital Marketing Strategies for Rental Properties',
     excerpt:
@@ -266,9 +261,7 @@ const blogPosts = [
     featured: false,
     trending: false,
     slug: 'digital-marketing-rental-properties',
-    image:
-      'data:image/svg+xml,%3Csvg width="800" height="500" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3ClinearGradient id="grad5" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%23ec4899;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%23db2777;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="800" height="500" fill="url(%23grad5)"/%3E%3Crect x="200" y="100" width="400" height="300" rx="15" fill="white" opacity="0.15"/%3E%3C/svg%3E',
-  },
+    image: '/blogs/blog-4.png'  },
   {
     title: 'Creating a Seamless Tenant Onboarding Experience',
     excerpt:
@@ -312,9 +305,7 @@ const blogPosts = [
     featured: false,
     trending: false,
     slug: 'tenant-onboarding-experience',
-    image:
-      'data:image/svg+xml,%3Csvg width="800" height="500" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3ClinearGradient id="grad6" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%238b5cf6;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%236d28d9;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="800" height="500" fill="url(%23grad6)"/%3E%3Ccircle cx="400" cy="200" r="80" fill="white" opacity="0.2"/%3E%3C/svg%3E',
-  },
+    image: '/blogs/blog-5.png'  },
 ]
 
 interface BlogPostPageProps {
@@ -322,6 +313,7 @@ interface BlogPostPageProps {
 }
 
 // Extracts initials from a full name for the avatar fallback
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getInitials(name: string): string {
   return name
     .split(' ')

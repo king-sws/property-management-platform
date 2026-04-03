@@ -1,6 +1,7 @@
 'use client'
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const CTASection = () => {
   return (
@@ -36,11 +37,13 @@ const CTASection = () => {
           </p>
 
           {/* CTA Button */}
-          <button
+          <Link
+            href="/sign-up"
             className="group/cta inline-flex items-center justify-center font-medium text-start
               whitespace-nowrap hover:z-10 disabled:opacity-60 disabled:pointer-events-none
               bg-white text-black hover:bg-gray-100 px-6 py-3 gap-2 rounded-lg text-base
               mt-4 transition-all"
+            aria-label="Start your free trial"
           >
             <span className="flex-1 truncate">
               Start Your Free Trial
@@ -66,7 +69,7 @@ const CTASection = () => {
               <path d="M7 7h10v10" />
               <path d="M7 17 17 7" />
             </svg>
-          </button>
+          </Link>
         </div>
       </div>
     </section>
