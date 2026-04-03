@@ -13,7 +13,7 @@ const FooterSection = () => {
           <div className="flex gap-x-3 gap-y-2 flex-col items-start flex-wrap sm:grow">
             <Image src='/propely-dark.svg' alt='logo' width={120} height={60} className='flex gap-x-2 gap-y-1 flex-row items-center place-content-start text-sm hover:opacity-70' />
             <p className="max-w-64 text-sm text-muted-foreground">
-              Next.js directory template for building profitable directory websites.
+              Propely — Your trusted platform for managing and discovering properties with ease.
             </p>
 
             {/* Social Icons */}
