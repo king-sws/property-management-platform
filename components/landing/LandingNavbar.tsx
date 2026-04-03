@@ -15,7 +15,7 @@ interface DropdownItem {
 }
 
 interface CustomerStoryItem {
-  logo: string;
+  logo: React.ReactNode;
   quote: string;
   cta: string;
   href: string;
@@ -143,7 +143,7 @@ const resourcesCategories: ResourceCategories = {
   ],
   'CUSTOMER STORIES': [
     {
-      logo: '🏢',
+      logo: <Building2 className="w-5 h-5 text-muted-foreground" />,
       quote: 'Propely helped us manage 50+ properties efficiently',
       cta: 'Read the story →',
       href: '/case-studies/1'
