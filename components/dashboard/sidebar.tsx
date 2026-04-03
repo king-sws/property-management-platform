@@ -46,7 +46,12 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   roles: UserRole[];
   statKey?: string;
-  color?: string;
+  section?: string; // section group label shown above this item
+}
+
+interface NavSection {
+  label?: string;
+  items: NavItem[];
 }
 
 interface SidebarStats {
@@ -61,10 +66,6 @@ interface SidebarStats {
 
 // ============================================================================
 // BADGE COLOR BY ROLE
-// - Landlord: red   → action-required alerts
-// - Tenant:   blue  → informational counts
-// - Vendor:   amber → operational counts
-// - Admin:    slate → neutral system counts
 // ============================================================================
 
 const getBadgeClasses = (role: UserRole): string => {
@@ -92,210 +93,125 @@ const getDashboardPath = (role: UserRole): string => {
 };
 
 // ============================================================================
-// NAVIGATION
-// Each item has its own distinct color, but items stay within cohesive
-// category families so the sidebar reads as intentional, not random.
-//
-// Communication / Nav  → blue family   (blue-500, cyan-500)
-// Property & People    → purple family (indigo-500, violet-500, purple-500, fuchsia-500, indigo-400)
-// Operations           → warm family   (orange-500, amber-500)
-// Finance              → green family  (emerald-500, green-500, teal-500, lime-600)
-// Documents            → sky family    (sky-500, sky-600)
-// Vendor               → amber family  (amber-500, orange-500, yellow-500, amber-400)
-// Admin                → neutral       (slate-500, zinc-500, stone-500)
+// NAVIGATION — grouped into sections
 // ============================================================================
 
-const getNavigation = (role: UserRole): NavItem[] => {
+interface NavSectionDef {
+  label?: string;
+  items: NavItem[];
+}
+
+const getNavSections = (role: UserRole): NavSectionDef[] => {
   const dashboardPath = getDashboardPath(role);
 
+  // Landlord sections
+  if (role === UserRole.LANDLORD) {
+    return [
+      {
+        items: [
+          { title: "Overview",    href: dashboardPath,             icon: LayoutDashboard, roles: [UserRole.LANDLORD] },
+          { title: "Messages",    href: "/dashboard/messages",     icon: MessageSquare,   roles: [UserRole.LANDLORD], statKey: "messages" },
+          { title: "Properties",  href: "/dashboard/properties",   icon: Building2,       roles: [UserRole.LANDLORD] },
+          { title: "Tenants",     href: "/dashboard/tenants",      icon: Users,           roles: [UserRole.LANDLORD], statKey: "tenants" },
+          { title: "Leases",      href: "/dashboard/leases",       icon: FileText,        roles: [UserRole.LANDLORD] },
+          { title: "Applications",href: "/dashboard/applications", icon: ClipboardList,   roles: [UserRole.LANDLORD], statKey: "applications" },
+          { title: "Vendors",     href: "/dashboard/vendors",      icon: Briefcase,       roles: [UserRole.LANDLORD] },
+        ],
+      },
+      {
+        label: "Operations",
+        items: [
+          { title: "Maintenance", href: "/dashboard/maintenance",  icon: Wrench,    roles: [UserRole.LANDLORD], statKey: "maintenance" },
+          { title: "Schedule",    href: "/dashboard/schedule",     icon: Calendar,  roles: [UserRole.LANDLORD] },
+        ],
+      },
+      {
+        label: "Finance",
+        items: [
+          { title: "Payments",  href: "/dashboard/payments",  icon: DollarSign, roles: [UserRole.LANDLORD], statKey: "payments" },
+          { title: "Invoices",  href: "/dashboard/invoices",  icon: Receipt,    roles: [UserRole.LANDLORD] },
+          { title: "Expenses",  href: "/dashboard/expenses",  icon: Wallet,     roles: [UserRole.LANDLORD] },
+        ],
+      },
+      {
+        label: "Documents",
+        items: [
+          { title: "Documents", href: "/dashboard/documents", icon: FileStack,  roles: [UserRole.LANDLORD] },
+        ],
+      },
+      {
+        label: "Reports",
+        items: [
+          { title: "Reports",   href: "/dashboard/reports",   icon: TrendingUp, roles: [UserRole.LANDLORD] },
+        ],
+      },
+    ];
+  }
+
+  // Tenant sections
+  if (role === UserRole.TENANT) {
+    return [
+      {
+        items: [
+          { title: "Overview",          href: dashboardPath,                  icon: LayoutDashboard, roles: [UserRole.TENANT] },
+          { title: "Messages",          href: "/dashboard/messages",          icon: MessageSquare,   roles: [UserRole.TENANT], statKey: "messages" },
+          { title: "Browse Apartments", href: "/dashboard/browse-properties", icon: Building2,       roles: [UserRole.TENANT] },
+          { title: "Applications",      href: "/dashboard/applications",      icon: ClipboardList,   roles: [UserRole.TENANT], statKey: "applications" },
+        ],
+      },
+      {
+        label: "My Tenancy",
+        items: [
+          { title: "My Lease",     href: "/dashboard/my-lease",   icon: FileText,  roles: [UserRole.TENANT] },
+          { title: "Rent Payments",href: "/dashboard/payments",   icon: Wallet,    roles: [UserRole.TENANT] },
+          { title: "Maintenance",  href: "/dashboard/maintenance",icon: Wrench,    roles: [UserRole.TENANT], statKey: "maintenance" },
+        ],
+      },
+      {
+        label: "Documents",
+        items: [
+          { title: "Documents", href: "/dashboard/documents", icon: FileStack, roles: [UserRole.TENANT] },
+        ],
+      },
+    ];
+  }
+
+  // Vendor sections
+  if (role === UserRole.VENDOR) {
+    return [
+      {
+        items: [
+          { title: "Overview", href: dashboardPath,           icon: LayoutDashboard, roles: [UserRole.VENDOR] },
+          { title: "Messages", href: "/dashboard/messages",   icon: MessageSquare,   roles: [UserRole.VENDOR], statKey: "messages" },
+        ],
+      },
+      {
+        label: "Work",
+        items: [
+          { title: "My Jobs",    href: "/dashboard/vendor/tickets",  icon: ClipboardList, roles: [UserRole.VENDOR], statKey: "myJobs" },
+          { title: "Schedule",   href: "/dashboard/vendor/schedule", icon: Calendar,      roles: [UserRole.VENDOR] },
+          { title: "My Invoices",href: "/dashboard/vendor/invoices", icon: Receipt,       roles: [UserRole.VENDOR], statKey: "pendingInvoices" },
+          { title: "Reviews",    href: "/dashboard/vendor/reviews",  icon: Star,          roles: [UserRole.VENDOR] },
+        ],
+      },
+    ];
+  }
+
+  // Admin sections
   return [
-    // ── Communication / Nav ─────────────────────────────────────────────────
     {
-      title: "Overview",
-      href: dashboardPath,
-      icon: LayoutDashboard,
-      roles: [UserRole.LANDLORD, UserRole.TENANT, UserRole.VENDOR, UserRole.ADMIN],
-      color: "text-blue-500 dark:text-blue-400",
+      items: [
+        { title: "Overview", href: dashboardPath,         icon: LayoutDashboard, roles: [UserRole.ADMIN] },
+        { title: "Messages", href: "/dashboard/messages", icon: MessageSquare,   roles: [UserRole.ADMIN], statKey: "messages" },
+      ],
     },
     {
-      title: "Messages",
-      href: "/dashboard/messages",
-      icon: MessageSquare,
-      roles: [UserRole.LANDLORD, UserRole.TENANT, UserRole.VENDOR, UserRole.ADMIN],
-      statKey: "messages",
-      color: "text-cyan-500 dark:text-cyan-400",
-    },
-
-    // ── Property & People ───────────────────────────────────────────────────
-    {
-      title: "Browse Apartments",
-      href: "/dashboard/browse-properties",
-      icon: Building2,
-      roles: [UserRole.TENANT],
-      color: "text-violet-500 dark:text-violet-400",
-    },
-    {
-      title: "Properties",
-      href: "/dashboard/properties",
-      icon: Building2,
-      roles: [UserRole.LANDLORD],
-      color: "text-indigo-500 dark:text-indigo-400",
-    },
-    {
-      title: "Tenants",
-      href: "/dashboard/tenants",
-      icon: Users,
-      roles: [UserRole.LANDLORD],
-      statKey: "tenants",
-      color: "text-violet-500 dark:text-violet-400",
-    },
-    {
-      title: "Leases",
-      href: "/dashboard/leases",
-      icon: FileText,
-      roles: [UserRole.LANDLORD],
-      color: "text-purple-500 dark:text-purple-400",
-    },
-    {
-      title: "Applications",
-      href: "/dashboard/applications",
-      icon: ClipboardList,
-      roles: [UserRole.LANDLORD, UserRole.TENANT],
-      statKey: "applications",
-      color: "text-fuchsia-500 dark:text-fuchsia-400",
-    },
-    {
-      title: "Vendors",
-      href: "/dashboard/vendors",
-      icon: Briefcase,
-      roles: [UserRole.LANDLORD],
-      color: "text-indigo-400 dark:text-indigo-300",
-    },
-
-    // ── Operations ──────────────────────────────────────────────────────────
-    {
-      title: "Maintenance",
-      href: "/dashboard/maintenance",
-      icon: Wrench,
-      roles: [UserRole.LANDLORD, UserRole.TENANT],
-      statKey: "maintenance",
-      color: "text-orange-500 dark:text-orange-400",
-    },
-    {
-      title: "Schedule",
-      href: "/dashboard/schedule",
-      icon: Calendar,
-      roles: [UserRole.LANDLORD],
-      color: "text-amber-500 dark:text-amber-400",
-    },
-
-    // ── Finance ─────────────────────────────────────────────────────────────
-    {
-      title: "Payments",
-      href: "/dashboard/payments",
-      icon: DollarSign,
-      roles: [UserRole.LANDLORD],
-      statKey: "payments",
-      color: "text-emerald-500 dark:text-emerald-400",
-    },
-    {
-      title: "Invoices",
-      href: "/dashboard/invoices",
-      icon: Receipt,
-      roles: [UserRole.LANDLORD],
-      color: "text-green-500 dark:text-green-400",
-    },
-    {
-      title: "Expenses",
-      href: "/dashboard/expenses",
-      icon: Wallet,
-      roles: [UserRole.LANDLORD],
-      color: "text-teal-500 dark:text-teal-400",
-    },
-    {
-      title: "Reports",
-      href: "/dashboard/reports",
-      icon: TrendingUp,
-      roles: [UserRole.LANDLORD],
-      color: "text-lime-600 dark:text-lime-400",
-    },
-    {
-      title: "Rent Payments",
-      href: "/dashboard/payments",
-      icon: Wallet,
-      roles: [UserRole.TENANT],
-      color: "text-emerald-500 dark:text-emerald-400",
-    },
-
-    // ── Documents ───────────────────────────────────────────────────────────
-    {
-      title: "Documents",
-      href: "/dashboard/documents",
-      icon: FileStack,
-      roles: [UserRole.LANDLORD, UserRole.TENANT],
-      color: "text-sky-500 dark:text-sky-400",
-    },
-    {
-      title: "My Lease",
-      href: "/dashboard/my-lease",
-      icon: FileText,
-      roles: [UserRole.TENANT],
-      color: "text-sky-600 dark:text-sky-300",
-    },
-
-    // ── Vendor ──────────────────────────────────────────────────────────────
-    {
-      title: "My Jobs",
-      href: "/dashboard/vendor/tickets",
-      icon: ClipboardList,
-      roles: [UserRole.VENDOR],
-      statKey: "myJobs",
-      color: "text-amber-500 dark:text-amber-400",
-    },
-    {
-      title: "Schedule",
-      href: "/dashboard/vendor/schedule",
-      icon: Calendar,
-      roles: [UserRole.VENDOR],
-      color: "text-orange-500 dark:text-orange-400",
-    },
-    {
-      title: "My Invoices",
-      href: "/dashboard/vendor/invoices",
-      icon: Receipt,
-      roles: [UserRole.VENDOR],
-      statKey: "pendingInvoices",
-      color: "text-yellow-500 dark:text-yellow-400",
-    },
-    {
-      title: "Reviews",
-      href: "/dashboard/vendor/reviews",
-      icon: Star,
-      roles: [UserRole.VENDOR],
-      color: "text-amber-400 dark:text-amber-300",
-    },
-
-    // ── Admin ────────────────────────────────────────────────────────────────
-    {
-      title: "All Users",
-      href: "/dashboard/users",
-      icon: Users,
-      roles: [UserRole.ADMIN],
-      color: "text-slate-500 dark:text-slate-400",
-    },
-    {
-      title: "Analytics",
-      href: "/dashboard/analytics",
-      icon: BarChart3,
-      roles: [UserRole.ADMIN],
-      color: "text-zinc-500 dark:text-zinc-400",
-    },
-    {
-      title: "System",
-      href: "/dashboard/system",
-      icon: Shield,
-      roles: [UserRole.ADMIN],
-      color: "text-stone-500 dark:text-stone-400",
+      label: "Management",
+      items: [
+        { title: "All Users",  href: "/dashboard/users",     icon: Users,     roles: [UserRole.ADMIN] },
+        { title: "Analytics",  href: "/dashboard/analytics", icon: BarChart3, roles: [UserRole.ADMIN] },
+        { title: "System",     href: "/dashboard/system",    icon: Shield,    roles: [UserRole.ADMIN] },
+      ],
     },
   ];
 };
@@ -303,20 +219,15 @@ const getNavigation = (role: UserRole): NavItem[] => {
 // ============================================================================
 // FETCH STATS
 // ============================================================================
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function fetchSidebarStats(role: UserRole): Promise<SidebarStats> {
   try {
     const response = await fetch("/api/stats/dashboard", {
       next: { revalidate: 30 },
       headers: { "Cache-Control": "max-age=30" },
     });
-    if (!response.ok) {
-      console.error("Failed to fetch stats:", response.statusText);
-      return {};
-    }
+    if (!response.ok) return {};
     return await response.json();
-  } catch (error) {
-    console.error("Error fetching sidebar stats:", error);
+  } catch {
     return {};
   }
 }
@@ -347,24 +258,34 @@ const NavItemComponent = memo(
     return (
       <Link href={item.href} onClick={onMobileClose}>
         <Button
-          variant={isActive ? "secondary" : "ghost"}
+          variant="ghost"
           className={cn(
-            "w-full justify-start gap-3 relative overflow-visible",
-            isActive && "bg-primary/10 text-primary hover:bg-primary/20",
+            "w-full justify-start gap-3 relative overflow-visible h-9 px-3",
+            "text-sm font-medium rounded-md",
+            // Default: readable text
+            "text-slate-700 dark:text-slate-300",
+            "hover:text-slate-900 dark:hover:text-white",
+            "hover:bg-slate-100 dark:hover:bg-slate-800/60",
+            // Active: dark navy highlight matching the screenshot
+            isActive && [
+              "bg-slate-200 dark:bg-[#1e3a5f]",
+              "text-slate-900 dark:text-white",
+              "hover:bg-slate-200 dark:hover:bg-[#1e3a5f]",
+            ],
             isCollapsed && "justify-center px-2"
           )}
         >
-          {/* Icon */}
+          {/* Icon — same color as text, no individual color overrides */}
           <item.icon
             className={cn(
-              "h-5 w-5 shrink-0 transition-colors",
+              "h-[18px] w-[18px] shrink-0",
               isActive
-                ? "text-primary"
-                : item.color || "text-slate-500 dark:text-slate-400"
+                ? "text-slate-900 dark:text-white"
+                : "text-slate-600 dark:text-slate-300"
             )}
           />
 
-          {/* Expanded state: label + badge pill */}
+          {/* Expanded: label + badge */}
           {!isCollapsed && (
             <>
               <span className="truncate">{item.title}</span>
@@ -381,10 +302,7 @@ const NavItemComponent = memo(
             </>
           )}
 
-          {/*
-            Collapsed state: tiny number badge anchored to top-right of icon.
-            Stays within the w-16 sidebar — no overflow bleeding out.
-          */}
+          {/* Collapsed: tiny dot badge */}
           {isCollapsed && showBadge && (
             <span
               className={cn(
@@ -402,6 +320,24 @@ const NavItemComponent = memo(
 );
 
 NavItemComponent.displayName = "NavItemComponent";
+
+// ============================================================================
+// SECTION LABEL
+// ============================================================================
+
+const SectionLabel = ({ label, isCollapsed }: { label: string; isCollapsed: boolean }) => {
+  if (isCollapsed) {
+    // Render a short divider line instead of text when collapsed
+    return <div className="mx-3 my-2 border-t border-slate-200 dark:border-slate-800" />;
+  }
+  return (
+    <div className="mt-4 mb-1 px-3">
+      <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-600">
+        {label}
+      </span>
+    </div>
+  );
+};
 
 // ============================================================================
 // SIDEBAR COMPONENT
@@ -427,11 +363,7 @@ export function DashboardSidebar({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const navigation = useMemo(() => getNavigation(role), [role]);
-  const filteredNav = useMemo(
-    () => navigation.filter((item) => item.roles.includes(role)),
-    [navigation, role]
-  );
+  const navSections = useMemo(() => getNavSections(role), [role]);
   const dashboardPath = useMemo(() => getDashboardPath(role), [role]);
   const badgeClasses = useMemo(() => getBadgeClasses(role), [role]);
 
@@ -474,19 +406,10 @@ export function DashboardSidebar({
         : "/propely-light.svg";
 
     return (
-      /*
-        Scroll fix:
-        - `min-h-0` on the outer div is the critical addition.
-          Without it, a flex column child won't shrink below its natural
-          content height, so ScrollArea never clips — it just grows forever.
-        - ScrollArea gets `flex-1 min-h-0` so it fills remaining space
-          and activates scrolling within that boundary.
-        - No `overflow-y-auto` anywhere — ScrollArea owns scrolling entirely.
-      */
       <div className="flex h-full min-h-0 flex-col">
 
-        {/* Logo — fixed height, never enters scroll */}
-        <div className="flex h-16 shrink-0 items-center px-6">
+        {/* Logo */}
+        <div className="flex h-16 shrink-0 items-center px-4">
           {!effectiveCollapsed ? (
             <Link
               href="/"
@@ -508,34 +431,46 @@ export function DashboardSidebar({
               className="flex w-full items-center justify-center"
               onClick={() => isMobile && onMobileClose()}
             >
-              <Home className="h-6 w-6 text-blue-500 dark:text-blue-400" />
+              <Home className="h-5 w-5 text-slate-400 dark:text-slate-500" />
             </Link>
           )}
         </div>
 
-        {/* Scrollable nav area */}
-        <ScrollArea className="flex-1 min-h-0 px-3">
-          <nav className="flex flex-col gap-1 py-2">
-            {filteredNav.map((item) => (
-              <NavItemComponent
-                key={item.href}
-                item={item}
-                isActive={isNavItemActive(item.href)}
-                isCollapsed={effectiveCollapsed}
-                onMobileClose={isMobile ? onMobileClose : undefined}
-                statValue={
-                  item.statKey
-                    ? stats[item.statKey as keyof SidebarStats]
-                    : undefined
-                }
-                badgeClasses={badgeClasses}
-              />
+        {/* Scrollable nav */}
+        <ScrollArea className="flex-1 min-h-0 px-2">
+          <nav className="flex flex-col pb-4">
+            {navSections.map((section, sIdx) => (
+              <div key={sIdx}>
+                {/* Section label (skip for the first unlabeled section) */}
+                {section.label && (
+                  <SectionLabel label={section.label} isCollapsed={effectiveCollapsed} />
+                )}
+
+                {/* Items */}
+                <div className="flex flex-col gap-0.5 mt-0.5">
+                  {section.items.map((item) => (
+                    <NavItemComponent
+                      key={item.href}
+                      item={item}
+                      isActive={isNavItemActive(item.href)}
+                      isCollapsed={effectiveCollapsed}
+                      onMobileClose={isMobile ? onMobileClose : undefined}
+                      statValue={
+                        item.statKey
+                          ? stats[item.statKey as keyof SidebarStats]
+                          : undefined
+                      }
+                      badgeClasses={badgeClasses}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
           </nav>
         </ScrollArea>
 
-        {/* Settings — pinned to bottom */}
-        <div className="shrink-0 border-t border-slate-200 p-4 dark:border-slate-800">
+        {/* Settings — pinned bottom */}
+        <div className="shrink-0 border-t border-slate-200 dark:border-slate-800 p-2">
           <Link
             href="/dashboard/settings"
             onClick={() => isMobile && onMobileClose()}
@@ -543,23 +478,26 @@ export function DashboardSidebar({
             <Button
               variant="ghost"
               className={cn(
-                "w-full justify-start gap-3",
-                pathname.startsWith("/dashboard/settings") &&
-                  "bg-primary/10 text-primary",
+                "w-full justify-start gap-3 h-9 px-3 text-sm font-medium rounded-md",
+                "text-slate-700 dark:text-slate-300",
+                "hover:text-slate-900 dark:hover:text-white",
+                "hover:bg-slate-100 dark:hover:bg-slate-800/60",
+                pathname.startsWith("/dashboard/settings") && [
+                  "bg-slate-200 dark:bg-[#1e3a5f]",
+                  "text-slate-900 dark:text-white",
+                ],
                 effectiveCollapsed && "justify-center px-2"
               )}
             >
               <Settings
                 className={cn(
-                  "h-5 w-5 shrink-0 transition-colors",
+                  "h-[18px] w-[18px] shrink-0",
                   pathname.startsWith("/dashboard/settings")
-                    ? "text-primary"
-                    : "text-slate-500 dark:text-slate-400"
+                    ? "text-slate-900 dark:text-white"
+                    : "text-slate-600 dark:text-slate-300"
                 )}
               />
-              {!effectiveCollapsed && (
-                <span className="truncate">Settings</span>
-              )}
+              {!effectiveCollapsed && <span className="truncate">Settings</span>}
             </Button>
           </Link>
         </div>
@@ -580,18 +518,6 @@ export function DashboardSidebar({
 
       {/* DESKTOP */}
       <div className="hidden lg:block">
-        {/*
-          Hover zone:
-          Slightly wider than the sidebar (extra ~12px on right) so the
-          cursor moving from the sidebar edge onto the protruding button
-          does NOT trigger mouseleave — button stays visible.
-
-          Toggle button:
-          - Always mounted (never conditionally rendered)
-          - Opacity transitions from 0 → 1 on hover via CSS
-          - `transition-opacity duration-500` gives the slow, smooth fade
-          - `pointer-events-none` when invisible so it can't intercept clicks
-        */}
         <div
           className="fixed inset-y-0 left-0 z-50"
           style={{ width: isCollapsed ? "5rem" : "17.5rem" }}
@@ -620,7 +546,6 @@ export function DashboardSidebar({
               "border-2 border-slate-200 bg-white shadow-md",
               "hover:bg-slate-100 hover:shadow-lg hover:scale-110",
               "dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700",
-              // Slow fade in/out — 500ms feels deliberate without being sluggish
               "transition-opacity duration-500 ease-in-out",
               isHovering && !isTransitioning
                 ? "opacity-100 pointer-events-auto"
@@ -635,7 +560,7 @@ export function DashboardSidebar({
           </button>
         </div>
 
-        {/* Spacer — keeps page content pushed right of the sidebar */}
+        {/* Spacer */}
         <div
           className="transition-[width] duration-300 ease-in-out"
           style={{ width: isCollapsed ? "4rem" : "16rem" }}
