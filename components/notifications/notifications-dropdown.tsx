@@ -298,7 +298,7 @@ export function NotificationDropdown({ initialCount = 0 }: NotificationDropdownP
     setUnreadCount((prev) => Math.max(0, prev - 1));
 
     try {
-      const result = await markNotificationAsRead(notificationId, undefined);
+      const result = await markNotificationAsRead(notificationId);
       if (!result.success) throw new Error(result.error);
       router.refresh();
     } catch {
@@ -370,7 +370,7 @@ export function NotificationDropdown({ initialCount = 0 }: NotificationDropdownP
       setUnreadCount((prev) => Math.max(0, prev - 1));
 
       try {
-        await markNotificationAsRead(notification.id, undefined);
+        await markNotificationAsRead(notification.id);
         router.refresh();
       } catch {
         // Silent — navigation takes priority

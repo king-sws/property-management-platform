@@ -79,7 +79,7 @@ export function NotificationsList({
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
-      const result = await markNotificationAsRead(notificationId, {} as any);
+      const result = await markNotificationAsRead(notificationId);
       if (result.success) {
         setNotifications((prev) =>
           prev.map((n) =>
