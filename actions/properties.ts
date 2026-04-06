@@ -7,6 +7,7 @@ import prisma from "@/lib/prisma";
 import { PropertyType } from "@/lib/generated/prisma/enums";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getLandlordAccess, getAccessMessage } from "@/lib/subscription-guard";
 
 // Validation Schema
 const propertySchema = z.object({
@@ -55,34 +56,52 @@ export async function createProperty(
     // Get landlord
     const landlord = await prisma.landlord.findUnique({
       where: { userId: session.user.id },
-      include: {
-        properties: {
-          where: { deletedAt: null, isActive: true },
-        },
-      },
     });
 
     if (!landlord) {
       return { success: false, error: "Landlord profile not found" };
     }
 
-    // Check property limit
-    if (landlord.properties.length >= landlord.propertyLimit) {
+    // ✅ SUBSCRIPTION GUARD: check write access before creating
+    const access = await getLandlordAccess(landlord.id);
+    if (!access.canWrite) {
       return {
         success: false,
-        error: `You have reached your property limit (${landlord.propertyLimit}). Please upgrade your subscription.`,
+        error:
+          getAccessMessage(access) ??
+          "Your subscription is inactive. Please update your payment method.",
       };
     }
 
-    // Create property
-    const property = await prisma.property.create({
-      data: {
-        landlordId: landlord.id,
-        ...validated,
-      },
+    // ✅ FIX: Wrap property count check + creation in a transaction to prevent race conditions
+    const property = await prisma.$transaction(async (tx) => {
+      // Count properties inside the transaction for atomic check
+      const propertyCount = await tx.property.count({
+        where: {
+          landlordId: landlord.id,
+          deletedAt: null,
+          isActive: true,
+        },
+      });
+
+      if (propertyCount >= landlord.propertyLimit) {
+        throw new Error(
+          `You have reached your property limit (${landlord.propertyLimit}). Please upgrade your subscription.`
+        );
+      }
+
+      // Create property
+      const newProperty = await tx.property.create({
+        data: {
+          landlordId: landlord.id,
+          ...validated,
+        },
+      });
+
+      return newProperty;
     });
 
-    // Log activity
+    // Log activity (outside transaction — not critical to atomicity)
     await prisma.activityLog.create({
       data: {
         userId: session.user.id,
@@ -100,6 +119,14 @@ export async function createProperty(
       data: { id: property.id },
     };
   } catch (error) {
+    // ✅ Handle the transaction error message
+    if (error instanceof Error && error.message.startsWith("You have reached")) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
     console.error("Create property error:", error);
 
     if (error instanceof z.ZodError) {
@@ -130,6 +157,9 @@ export async function updateProperty(
       return { success: false, error: "Unauthorized" };
     }
 
+    // ✅ FIX: Validate partial input through Zod
+    const validated = propertySchema.partial().parse(input);
+
     // Get landlord
     const landlord = await prisma.landlord.findUnique({
       where: { userId: session.user.id },
@@ -137,6 +167,17 @@ export async function updateProperty(
 
     if (!landlord) {
       return { success: false, error: "Landlord profile not found" };
+    }
+
+    // ✅ SUBSCRIPTION GUARD
+    const access = await getLandlordAccess(landlord.id);
+    if (!access.canWrite) {
+      return {
+        success: false,
+        error:
+          getAccessMessage(access) ??
+          "Your subscription is inactive. Please update your payment method.",
+      };
     }
 
     // Verify ownership
@@ -152,10 +193,10 @@ export async function updateProperty(
       return { success: false, error: "Property not found" };
     }
 
-    // Update property
+    // Update property with validated data
     await prisma.property.update({
       where: { id },
-      data: input,
+      data: validated,
     });
 
     // Log activity
@@ -210,6 +251,17 @@ export async function deleteProperty(id: string): Promise<ActionResult> {
       return { success: false, error: "Landlord profile not found" };
     }
 
+    // ✅ SUBSCRIPTION GUARD
+    const access = await getLandlordAccess(landlord.id);
+    if (!access.canWrite) {
+      return {
+        success: false,
+        error:
+          getAccessMessage(access) ??
+          "Your subscription is inactive. Please update your payment method.",
+      };
+    }
+
     // Verify ownership
     const property = await prisma.property.findFirst({
       where: {
@@ -240,14 +292,73 @@ export async function deleteProperty(id: string): Promise<ActionResult> {
     if (hasActiveLeases) {
       return {
         success: false,
-        error: "Cannot delete property with active leases. Please terminate all leases first.",
+        error:
+          "Cannot delete property with active leases. Please terminate all leases first.",
       };
     }
 
-    // Soft delete
-    await prisma.property.update({
-      where: { id },
-      data: { deletedAt: new Date() },
+    // ✅ FIX: Soft delete with cascade to child entities
+    // Use a transaction to atomically soft-delete the property and all children
+    await prisma.$transaction(async (tx) => {
+      // Soft-delete the property
+      await tx.property.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
+
+      // Soft-delete all units belonging to this property
+      await tx.unit.updateMany({
+        where: { propertyId: id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
+
+      // Hard-delete all property images (no soft-delete support)
+      await tx.propertyImage.deleteMany({
+        where: { propertyId: id },
+      });
+
+      // Hard-delete all property policies (no soft-delete support)
+      await tx.propertyPolicy.deleteMany({
+        where: { propertyId: id },
+      });
+
+      // Hard-delete all parking spaces (no soft-delete support)
+      await tx.parkingSpace.deleteMany({
+        where: { propertyId: id },
+      });
+
+      // Hard-delete all utilities (no soft-delete support)
+      await tx.utility.deleteMany({
+        where: { propertyId: id },
+      });
+
+      // Hard-delete all insurance claims (no soft-delete support)
+      await tx.insuranceClaim.deleteMany({
+        where: { propertyId: id },
+      });
+
+      // Hard-delete all inspections (no soft-delete support)
+      await tx.inspection.deleteMany({
+        where: { propertyId: id },
+      });
+
+      // Soft-delete all maintenance tickets
+      await tx.maintenanceTicket.updateMany({
+        where: { propertyId: id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
+
+      // Soft-delete all expenses linked to this property
+      await tx.expense.updateMany({
+        where: { propertyId: id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
+
+      // Soft-delete all documents linked to this property
+      await tx.document.updateMany({
+        where: { propertyId: id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
     });
 
     // Log activity
@@ -276,9 +387,7 @@ export async function deleteProperty(id: string): Promise<ActionResult> {
 // -------------------------
 // Toggle Property Active Status
 // -------------------------
-export async function togglePropertyStatus(
-  id: string
-): Promise<ActionResult> {
+export async function togglePropertyStatus(id: string): Promise<ActionResult> {
   try {
     const session = await auth();
 
@@ -292,6 +401,17 @@ export async function togglePropertyStatus(
 
     if (!landlord) {
       return { success: false, error: "Landlord profile not found" };
+    }
+
+    // ✅ SUBSCRIPTION GUARD
+    const access = await getLandlordAccess(landlord.id);
+    if (!access.canWrite) {
+      return {
+        success: false,
+        error:
+          getAccessMessage(access) ??
+          "Your subscription is inactive. Please update your payment method.",
+      };
     }
 
     const property = await prisma.property.findFirst({
@@ -449,7 +569,11 @@ export async function getPropertyStatistics(id: string) {
     }, 0);
 
     const currentMonth = new Date();
-    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const startOfMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth(),
+      1
+    );
 
     const monthlyExpenses = await prisma.expense.aggregate({
       where: {
@@ -469,7 +593,8 @@ export async function getPropertyStatistics(id: string) {
       occupancyRate: totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0,
       monthlyRevenue,
       monthlyExpenses: Number(monthlyExpenses._sum.amount || 0),
-      netIncome: monthlyRevenue - Number(monthlyExpenses._sum.amount || 0),
+      netIncome:
+        monthlyRevenue - Number(monthlyExpenses._sum.amount || 0),
       openTickets: property.maintenanceTickets.length,
     };
   } catch (error) {
@@ -477,7 +602,6 @@ export async function getPropertyStatistics(id: string) {
     return null;
   }
 }
-// -------------------------
 
 // -------------------------
 // Get User Properties
@@ -495,7 +619,11 @@ export async function getUserProperties() {
     });
 
     if (!landlord) {
-      return { success: false, error: "Landlord profile not found", properties: [] };
+      return {
+        success: false,
+        error: "Landlord profile not found",
+        properties: [],
+      };
     }
 
     const properties = await prisma.property.findMany({
@@ -526,6 +654,3 @@ export async function getUserProperties() {
     };
   }
 }
-
-
-

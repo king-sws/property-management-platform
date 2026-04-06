@@ -5,89 +5,87 @@ import Image from 'next/image';
 
 const TestimonialsSection = () => {
   const testimonials = [
-    {
-      id: 1,
-      rating: 5,
-      text: "Propely has completely transformed how I manage my rental properties. The maintenance tracking and vendor coordination alone save me hours every week. Highly recommend!",
-      author: "Sarah Mitchell",
-      company: "Mitchell Properties",
-      avatar: "/images/dudu.webp",
-    },
-    {
-      id: 2,
-      rating: 5,
-      text: "Finally, a property management system that actually works! The tenant screening is thorough, rent collection is automated, and the financial reports are exactly what I need for tax season. Best investment I've made for my business.",
-      author: "James Rodriguez",
-      company: "Urban Living Rentals",
-      avatar: "/images/avatar-2.png",
-    },
-    {
-      id: 3,
-      rating: 5,
-      text: "As someone managing 15 units, Propely is a game-changer. The lease management and automated notifications keep everything running smoothly. My tenants love the portal too!",
-      author: "Emily Chen",
-      company: "Chen Property Group",
-      avatar: "/images/avatar-6.png",
-    },
-    {
-      id: 4,
-      rating: 5,
-      text: "I'm really impressed by the attention to detail. Every feature I need is here - from application tracking to expense categorization. The vendor invoice system is particularly brilliant! 🎉",
-      author: "Michael Thompson",
-      company: "Thompson Residential",
-      avatar: "/images/avatar-4.png",
-    },
-    {
-      id: 5,
-      rating: 5,
-      text: "Best property management platform I've used. Clean interface, powerful features, and excellent support. Managing my properties has never been easier. 5 stars ⭐",
-      author: "Lisa Anderson",
-      company: "Anderson Estates",
-      avatar: "/images/avatar-8.png",
-    },
-    {
-      id: 6,
-      rating: 5,
-      text: "The automated rent collection and late fee tracking have improved my cash flow significantly. Plus, having all documents in one secure place is invaluable. Love this platform!",
-      author: "David Park",
-      company: "Park Property Management",
-      avatar: "/images/avatar-3.png",
-    },
-    {
-      id: 7,
-      rating: 5,
-      text: "Switched from spreadsheets and it's like night and day. The financial reporting, maintenance tracking, and tenant communication tools are exactly what landlords need. Respect!",
-      author: "Rachel Green",
-      company: "Green Rentals LLC",
-      avatar: "/images/avatar-5.png",
-    },
-    {
-      id: 8,
-      rating: 5,
-      text: "The inspection checklists and photo documentation features have saved me from several disputes. Everything is timestamped and organized. This is professional-grade software! 🎉",
-      author: "Marcus Johnson",
-      company: "Johnson Property Services",
-      avatar: "/images/avatar-7.png",
-    },
-    // Duplicate for continuous scroll
-{
-  id: 9,
-  rating: 5,
-  text: "Propely completely changed how we manage our portfolio. From tracking maintenance requests to coordinating vendors, everything is finally in one place. What used to take hours every week now takes minutes.",
-  author: "Emma Collins",
-  company: "Collins Property Group",
-  avatar: "/images/dudu.webp",
-},
-{
-  id: 10,
-  rating: 5,
-  text: "We’ve tried multiple property management tools, but Propely is the first one that truly fits our workflow. Automated rent collection, clear financial reports, and smooth tenant management — it just works.",
-  author: "Daniel Perez",
-  company: "UrbanStay Management",
-  avatar: "/images/tiago.webp",
-},
-
-  ];
+  {
+    id: 1,
+    rating: 5,
+    text: "Managing a mixed-use portfolio used to be a spreadsheet nightmare. Propely centralized our maintenance workflows and improved our response time by 40%. It's an essential part of our operations now.",
+    author: "Omar El Amrani",
+    company: "Atlas Asset Management",
+    avatar: "/images/dudu.webp",
+  },
+  {
+    id: 2,
+    rating: 5,
+    text: "The automated rent collection changed the game for us. We went from chasing checks to 98% on-time digital payments within the first two months. The ROI on the subscription was immediate.",
+    author: "Sarah K. Jenkins",
+    company: "Summit Residential Group",
+    avatar: "/images/avatar-2.png",
+  },
+  {
+    id: 3,
+    rating: 5,
+    text: "Propely’s tenant screening is the most thorough I’ve used. It integrates credit, criminal, and eviction history into a single report that actually helps us make better placement decisions.",
+    author: "Marcus Thorne",
+    company: "Thorne Realty Partners",
+    avatar: "/images/avatar-6.png",
+  },
+  {
+    id: 4,
+    rating: 5,
+    text: "What I appreciate most is the vendor portal. Being able to send work orders and receive invoices in one thread saves my team roughly 10 hours of admin work every single week.",
+    author: "Elena Rodriguez",
+    company: "Coastal Living Rentals",
+    avatar: "/images/avatar-4.png",
+  },
+  {
+    id: 5,
+    rating: 5,
+    text: "Finally, a platform that understands the needs of modern landlords. The financial reporting is clean, tax-ready, and significantly more intuitive than the enterprise software we were using before.",
+    author: "David Chen",
+    company: "Metro Property Advisors",
+    avatar: "/images/avatar-8.png",
+  },
+  {
+    id: 6,
+    rating: 5,
+    text: "The document storage and automated lease renewals keep us compliant and organized. I no longer worry about missing a deadline or losing a signed addendum. Highly reliable.",
+    author: "Linda Foster",
+    company: "Foster & Co. Real Estate",
+    avatar: "/images/avatar-3.png",
+  },
+  {
+    id: 7,
+    rating: 5,
+    text: "Transitioning our 40 units to Propely was seamless. Their support team actually knows the industry, and the UI is so clean that our older tenants had zero issues using the portal.",
+    author: "Robert Miller",
+    company: "Blue Chip Management",
+    avatar: "/images/avatar-5.png",
+  },
+  {
+    id: 8,
+    rating: 5,
+    text: "As a small shop, we needed something powerful but affordable. Propely gives us the same tools as the big firms without the massive overhead. It’s helped us scale our business faster.",
+    author: "Sofia Alami",
+    company: "Alami Property Services",
+    avatar: "/images/avatar-7.png",
+  },
+  {
+    id: 9,
+    rating: 5,
+    text: "The inspection module is brilliant. Taking photos on-site and having them automatically attached to the move-out report has settled three security deposit disputes in our favor this year alone.",
+    author: "Jameson Wright",
+    company: "Wright Choice Rentals",
+    avatar: "/images/dudu.webp",
+  },
+  {
+    id: 10,
+    rating: 5,
+    text: "Propely isn't just software; it's a productivity multiplier. Our property managers can now handle double the units they used to because the manual tasks are all automated.",
+    author: "Nadia Benson",
+    company: "Urban Core Property Group",
+    avatar: "/images/tiago.webp",
+  },
+];
 
   const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -133,7 +131,7 @@ const TestimonialsSection = () => {
 
         {/* First Row - Scrolling Left to Right */}
         <div className="group overflow-clip mask-l-from-90 mask-r-from-90">
-          <div 
+          <div
             className="flex gap-6 w-max animate-marquee group-hover:paused"
             style={{ animationDuration: '95.84s', animationDirection: 'normal' }}
           >
@@ -170,7 +168,7 @@ const TestimonialsSection = () => {
 
         {/* Second Row - Scrolling Right to Left */}
         <div className="group overflow-clip mask-l-from-90 mask-r-from-90">
-          <div 
+          <div
             className="flex gap-6 w-max animate-marquee group-hover:paused"
             style={{ animationDuration: '95.84s', animationDirection: 'reverse' }}
           >
@@ -205,8 +203,6 @@ const TestimonialsSection = () => {
           </div>
         </div>
       </div>
-
-      
     </section>
   );
 };

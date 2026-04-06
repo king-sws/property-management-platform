@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   
   return {
-    title: `Application ${id.slice(0, 8)} | Propely`,
+    title: `Application ${id.slice(0, 8)}`,
     description: "View rental application details",
   };
 }

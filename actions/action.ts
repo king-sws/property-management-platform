@@ -10,6 +10,12 @@ import { AuthError } from "next-auth";
 import { AccountStatus, SubscriptionStatus, SubscriptionTier, UserRole, VendorCategory } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { createStripeCustomer, SUBSCRIPTION_PLANS, createSubscription } from "@/services/stripe";
+import {
+  sendTenantWelcomeEmail,
+  sendLandlordWelcomeEmail,
+  sendVendorWelcomeEmail,
+  sendPasswordResetEmail,
+} from "@/nodemailer/email";
 
 // -------------------------
 // Validation Schemas
@@ -387,6 +393,16 @@ export const SignUpWithCredentials = async (
         redirect: false,
       });
 
+      if (validated.role === "LANDLORD" && result.stripeSetupSucceeded) {
+        const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+        .toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+        sendLandlordWelcomeEmail(validated.email, validated.name, trialEndsAt).catch(console.error);
+      } else if (validated.role === "TENANT") {
+        sendTenantWelcomeEmail(validated.email, validated.name, "").catch(console.error);
+      } else if (validated.role === "VENDOR") {
+        sendVendorWelcomeEmail(validated.email, validated.name).catch(console.error);
+      }
+
       return {
         success: true,
         userId: result.user.id,
@@ -473,7 +489,7 @@ export const ForgotPassword = async (email: string): Promise<AuthResult> => {
     });
 
     // TODO: Send password reset email
-    // await sendPasswordResetEmail(user.email, resetToken)
+    await sendPasswordResetEmail(user.email, user.name ?? "there", resetToken).catch(console.error);
 
     return {
       success: true,

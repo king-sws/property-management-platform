@@ -21,7 +21,7 @@ import { SubscriptionWidget } from "@/components/dashboard/subscription-widget";
 import { WelcomeTrialBanner } from "@/components/dashboard/welcome-trial-banner";
 
 export const metadata = {
-  title: "Landlord Dashboard | Propely",
+  title: "Landlord Dashboard",
 };
 
 export default async function LandlordDashboardPage() {
@@ -59,7 +59,7 @@ export default async function LandlordDashboardPage() {
           <FinancialMetrics userId={session.user.id} />
         </Suspense>
 
-        <WelcomeTrialBanner />
+        {/* <WelcomeTrialBanner /> */}
 
         
         

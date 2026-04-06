@@ -392,6 +392,12 @@ export async function signLease(
 // ALL SIGNED → ACTIVATE LEASE
 // -------------------------------------------------------
 if (allTenantsSigned && landlordSigned) {
+  // Idempotency check: skip if already active
+  if (updatedLease.status === "ACTIVE") {
+    // Already activated, just return
+    return updatedLease;
+  }
+
   // 1. Activate lease
   await tx.lease.update({
     where: { id: leaseId },

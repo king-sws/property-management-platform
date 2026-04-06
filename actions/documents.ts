@@ -180,10 +180,11 @@ export async function uploadDocument(
       }
     }
     
-    // ✅ SAVE FILE TO DISK
+    // ✅ SAVE FILE TO DISK (with MIME type validation)
     const { fileUrl, storageKey } = await saveFileToUploads(
       validated.file.base64,
-      validated.file.filename
+      validated.file.filename,
+      validated.file.mimetype
     );
     
     // Create document record
@@ -769,8 +770,27 @@ export async function getAllTags(): Promise<DocumentResult> {
   }
 }
 
-async function saveFileToUploads(base64: string, filename: string): Promise<{ fileUrl: string; storageKey: string }> {
+async function saveFileToUploads(base64: string, filename: string, mimetype?: string): Promise<{ fileUrl: string; storageKey: string }> {
   try {
+    // ✅ Validate MIME type if provided
+    const ALLOWED_MIME_TYPES = new Set([
+      // Images
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+      // Documents
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      // Spreadsheets
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      // Text
+      'text/plain', 'text/csv',
+    ]);
+
+    if (mimetype && !ALLOWED_MIME_TYPES.has(mimetype)) {
+      throw new Error(`File type "${mimetype}" is not allowed`);
+    }
+
     // Create uploads directory if it doesn't exist
     const uploadsDir = join(process.cwd(), 'public', 'uploads');
     if (!existsSync(uploadsDir)) {

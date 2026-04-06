@@ -28,7 +28,7 @@ import {
 import { Suspense } from "react";
 
 export const metadata = {
-  title: "Admin Dashboard | Propely",
+  title: "Admin Dashboard",
 };
 
 export default async function AdminDashboardPage() {

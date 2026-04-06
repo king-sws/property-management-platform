@@ -16,8 +16,12 @@ const updateProfileSchema = z.object({
   phone: z.string().optional(),
 });
 
+// Accept both full URLs and relative paths (e.g., "/avatars/user123.jpg?t=...")
 const updateAvatarSchema = z.object({
-  avatar: z.string().url("Invalid avatar URL"),
+  avatar: z.union([
+    z.string().min(1, "Avatar path is required").url(),
+    z.string().min(1, "Avatar path is required").startsWith("/").min(2),
+  ]),
 });
 
 // -------------------------

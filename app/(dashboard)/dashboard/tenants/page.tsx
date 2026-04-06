@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
+import { Users } from "lucide-react";
 
 export const metadata = {
   title: "Tenants | Property Management",
@@ -77,7 +78,28 @@ async function TenantPaymentOverview() {
     (t: any) => t.leaseMembers?.length > 0
   );
 
-  if (activeTenants.length === 0) return null;
+  // AFTER
+if (activeTenants.length === 0) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Payment Overview</CardTitle>
+        <CardDescription>Next scheduled payment for each active tenant</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+          <div className="rounded-full border-2 border-dashed border-muted-foreground/20 p-5">
+            <Users className="h-8 w-8 text-muted-foreground/40" />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground">No active tenants</p>
+          <p className="text-xs text-muted-foreground/60 max-w-55">
+            Tenants with an active lease will appear here with their payment schedule.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
   // Sort: overdue first, then due soonest
   const sorted = [...activeTenants].sort((a: any, b: any) => {

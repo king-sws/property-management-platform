@@ -8,6 +8,7 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 import { ActivityType, VendorCategory } from "@/lib/generated/prisma/enums";
 import { Prisma } from "@/lib/generated/prisma/client";
+import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { sendVendorInviteEmail } from "@/nodemailer/email";
 
@@ -166,12 +167,31 @@ function serializeVendor(vendor: any) {
 }
 
 function generateTemporaryPassword(): string {
-  const adjectives = ['Swift', 'Blue', 'Green', 'Bright', 'Smart', 'Quick'];
-  const nouns = ['Tiger', 'Eagle', 'River', 'Mountain', 'Ocean', 'Forest'];
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const numbers = Math.floor(1000 + Math.random() * 9000);
-  return `${adjective}${noun}${numbers}!`;
+  const lowercase = "abcdefghijklmnopqrstuvwxyz";
+  const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const digits = "0123456789";
+  const symbols = "!@#$%^&*";
+  const allChars = lowercase + uppercase + digits + symbols;
+  
+  const bytes = randomBytes(16);
+  let password = "";
+  
+  for (let i = 0; i < 16; i++) {
+    password += allChars[bytes[i] % allChars.length];
+  }
+  
+  password = password.slice(0, 13) + 
+    uppercase[bytes[13] % uppercase.length] + 
+    digits[bytes[14] % digits.length] + 
+    symbols[bytes[15] % symbols.length];
+  
+  const shuffled = password.split("");
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = bytes[i % bytes.length] % (i + 1);
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  
+  return shuffled.join("");
 }
 
 async function hashPassword(password: string): Promise<string> {

@@ -4,12 +4,21 @@ import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { ActivityType } from "@/lib/generated/prisma/enums";
 import sharp from "sharp";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, writeFile, unlink, access } from "fs/promises";
 import path from "path";
-import fs from "fs";
 
 const AVATAR_SIZE = 256;
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+
+/** Async check if file exists — no blocking sync fs calls */
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,18 +70,16 @@ export async function POST(request: NextRequest) {
 
     // 📁 Ensure avatar directory exists
     const avatarDir = path.join(process.cwd(), "public", "avatars");
-    if (!fs.existsSync(avatarDir)) {
-      await mkdir(avatarDir, { recursive: true });
-    }
+    await mkdir(avatarDir, { recursive: true });
 
-    // 🧾 Save file with timestamp for cache busting
-    const timestamp = Date.now();
+    // 🧾 Save file — always {userId}.jpg (overwrites previous)
     const fileName = `${session.user.id}.jpg`;
     const filePath = path.join(avatarDir, fileName);
 
     await writeFile(filePath, optimizedBuffer);
 
     // 🌐 Public URL with cache buster
+    const timestamp = Date.now();
     const avatarUrl = `/avatars/${fileName}?t=${timestamp}`;
 
     // 🗄️ Update DB
@@ -134,7 +141,7 @@ export async function DELETE() {
       },
     });
 
-    // Remove file
+    // Remove file (async, no blocking)
     const filePath = path.join(
       process.cwd(),
       "public",
@@ -142,8 +149,8 @@ export async function DELETE() {
       `${session.user.id}.jpg`
     );
 
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    if (await fileExists(filePath)) {
+      await unlink(filePath);
     }
 
     // Log activity

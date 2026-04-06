@@ -262,8 +262,8 @@ const NavItemComponent = memo(
           className={cn(
             "w-full justify-start gap-3 relative overflow-visible h-9 px-3",
             "text-sm font-medium rounded-md",
-            // Default: readable text
-            "text-slate-700 dark:text-slate-300",
+            // Default: readable text — enhanced visibility
+            "text-slate-800 dark:text-slate-200",
             "hover:text-slate-900 dark:hover:text-white",
             "hover:bg-slate-100 dark:hover:bg-slate-800/60",
             // Active: dark navy highlight matching the screenshot
@@ -281,7 +281,7 @@ const NavItemComponent = memo(
               "h-[18px] w-[18px] shrink-0",
               isActive
                 ? "text-slate-900 dark:text-white"
-                : "text-slate-600 dark:text-slate-300"
+                : "text-slate-700 dark:text-slate-200"
             )}
           />
 
@@ -328,11 +328,11 @@ NavItemComponent.displayName = "NavItemComponent";
 const SectionLabel = ({ label, isCollapsed }: { label: string; isCollapsed: boolean }) => {
   if (isCollapsed) {
     // Render a short divider line instead of text when collapsed
-    return <div className="mx-3 my-2 border-t border-slate-200 dark:border-slate-800" />;
+    return <div className="mx-3 my-2 border-t border-slate-200 dark:border-slate-700" />;
   }
   return (
     <div className="mt-4 mb-1 px-3">
-      <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-600">
+      <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
         {label}
       </span>
     </div>
@@ -431,7 +431,7 @@ export function DashboardSidebar({
               className="flex w-full items-center justify-center"
               onClick={() => isMobile && onMobileClose()}
             >
-              <Home className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+              <Home className="h-5 w-5 text-slate-500 dark:text-slate-300" />
             </Link>
           )}
         </div>
@@ -494,7 +494,7 @@ export function DashboardSidebar({
                   "h-[18px] w-[18px] shrink-0",
                   pathname.startsWith("/dashboard/settings")
                     ? "text-slate-900 dark:text-white"
-                    : "text-slate-600 dark:text-slate-300"
+                    : "text-slate-700 dark:text-slate-200"
                 )}
               />
               {!effectiveCollapsed && <span className="truncate">Settings</span>}
@@ -541,7 +541,7 @@ export function DashboardSidebar({
             onClick={handleToggle}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             className={cn(
-              "absolute -right-3 top-1/2 -translate-y-1/2 z-[60]",
+              "absolute right-0 top-1/2 -translate-y-1/2 z-[60]",
               "flex h-7 w-7 items-center justify-center rounded-full",
               "border-2 border-slate-200 bg-white shadow-md",
               "hover:bg-slate-100 hover:shadow-lg hover:scale-110",
@@ -553,9 +553,9 @@ export function DashboardSidebar({
             )}
           >
             {isCollapsed ? (
-              <ChevronRight className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
+              <ChevronRight className="h-3.5 w-3.5 text-slate-700 dark:text-slate-200" />
             ) : (
-              <ChevronLeft className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
+              <ChevronLeft className="h-3.5 w-3.5 text-slate-700 dark:text-slate-200" />
             )}
           </button>
         </div>

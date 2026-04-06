@@ -165,7 +165,10 @@ model Landlord {
   propertyLimit       Int                @default(5)
   trialUsed           Boolean            @default(false)
   trialEndsAt         DateTime?
-  
+
+  // Dunning tracking — tracks which dunning day was last notified
+  lastDunningDay      Int                @default(0)
+
   // Relations
   properties      Property[]
   expenses        Expense[]
@@ -391,7 +394,10 @@ model Tenant {
   id              String   @id @default(cuid())
   userId          String   @unique
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
+  // Stripe Integration
+  stripeCustomerId String?  @unique // Stripe customer ID for payments
+
   dateOfBirth     DateTime?
   ssn             String?   @db.Char(11) // Encrypted in production
   ssnEncrypted    Boolean   @default(false) // Flag for encrypted data

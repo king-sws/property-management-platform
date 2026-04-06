@@ -123,16 +123,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       await mkdir(propertyImagesDir, { recursive: true });
     }
 
-    // Generate unique filename
+    // Generate unique filename with UUID to prevent collisions
     const timestamp = Date.now();
-    const fileName = `${timestamp}.jpg`;
+    const uuid = crypto.randomUUID();
+    const fileName = `${timestamp}-${uuid}.jpg`;
     const storageKey = `properties/${propertyId}/${fileName}`;
 
-    // 🧠 Process and save images in different sizes
+    // 🧠 Process image
     const largeBuffer = await sharp(buffer)
-      .resize(IMAGE_SIZES.large.width, IMAGE_SIZES.large.height, { 
+      .resize(IMAGE_SIZES.large.width, IMAGE_SIZES.large.height, {
         fit: "inside",
-        withoutEnlargement: true 
+        withoutEnlargement: true
       })
       .jpeg({ quality: 85 })
       .toBuffer();
@@ -143,36 +144,41 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // 🌐 Public URL
     const imageUrl = `/properties/${propertyId}/${fileName}`;
 
-    // If this is set as primary, unset other primary images
-    if (isPrimary) {
-      await prisma.propertyImage.updateMany({
-        where: {
-          propertyId: propertyId,
-          isPrimary: true,
-        },
-        data: {
-          isPrimary: false,
-        },
-      });
-    }
-
-    // Get next order number
+    // Get next order number (inside transaction)
     const maxOrder = property.images.reduce(
       (max, img) => Math.max(max, img.order),
       -1
     );
 
-    // 🗄️ Save to database
-    const propertyImage = await prisma.propertyImage.create({
-      data: {
-        propertyId: propertyId,
-        url: imageUrl,
-        storageProvider: "local",
-        storageKey: storageKey,
-        caption: caption || null,
-        isPrimary: isPrimary || property.images.length === 0,
-        order: maxOrder + 1,
-      },
+    // ✅ FIX: Wrap unset primary + create in a transaction to prevent race conditions
+    const propertyImage = await prisma.$transaction(async (tx) => {
+      // If this is set as primary, unset other primary images atomically
+      if (isPrimary) {
+        await tx.propertyImage.updateMany({
+          where: {
+            propertyId: propertyId,
+            isPrimary: true,
+          },
+          data: {
+            isPrimary: false,
+          },
+        });
+      }
+
+      // Create the new image record
+      const newImage = await tx.propertyImage.create({
+        data: {
+          propertyId: propertyId,
+          url: imageUrl,
+          storageProvider: "local",
+          storageKey: storageKey,
+          caption: caption || null,
+          isPrimary: isPrimary || property.images.length === 0,
+          order: maxOrder + 1,
+        },
+      });
+
+      return newImage;
     });
 
     // 🧾 Log activity
@@ -362,27 +368,43 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // If setting as primary, unset other primary images
+    // ✅ FIX: Wrap unset primary + update in a transaction to prevent race conditions
     if (isPrimary) {
-      await prisma.propertyImage.updateMany({
-        where: {
-          propertyId: propertyId,
-          isPrimary: true,
-        },
-        data: {
-          isPrimary: false,
-        },
+      await prisma.$transaction(async (tx) => {
+        // Unset other primary images
+        await tx.propertyImage.updateMany({
+          where: {
+            propertyId: propertyId,
+            isPrimary: true,
+            id: { not: imageId },
+          },
+          data: {
+            isPrimary: false,
+          },
+        });
+
+        // Set this image as primary
+        await tx.propertyImage.update({
+          where: { id: imageId },
+          data: { isPrimary: true },
+        });
       });
+    } else {
+      // Update other fields without touching isPrimary
+      const updateData: any = {};
+      if (caption !== undefined) updateData.caption = caption;
+      if (order !== undefined) updateData.order = order;
+
+      if (Object.keys(updateData).length > 0) {
+        await prisma.propertyImage.update({
+          where: { id: imageId },
+          data: updateData,
+        });
+      }
     }
 
-    // Update image
-    const updatedImage = await prisma.propertyImage.update({
+    const updatedImage = await prisma.propertyImage.findUnique({
       where: { id: imageId },
-      data: {
-        isPrimary: isPrimary !== undefined ? isPrimary : undefined,
-        caption: caption !== undefined ? caption : undefined,
-        order: order !== undefined ? order : undefined,
-      },
     });
 
     return NextResponse.json({

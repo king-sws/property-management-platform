@@ -9,10 +9,11 @@ export const metadata: Metadata = {
 }
 
 const stats = [
-  { value: '500+', label: 'Property managers' },
-  { value: '12,000+', label: 'Units managed' },
-  { value: '$2M+', label: 'Rent processed' },
-{ value: '1,120+', label: 'Leases managed' }]
+  { value: 'Built for landlords', label: 'by landlords' },
+  { value: 'All-in-one platform', label: 'Properties, tenants, payments' },
+  { value: 'Secure & compliant', label: 'Your data stays protected' },
+  { value: 'Ongoing updates', label: 'New features every month' },
+]
 
 const values = [
   {

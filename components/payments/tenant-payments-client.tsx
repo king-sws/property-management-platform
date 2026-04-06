@@ -129,7 +129,7 @@ export function TenantPaymentsClient({
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button 
+                <Button
                   size="lg"
                   variant="outline"
                   onClick={() => {
@@ -140,7 +140,12 @@ export function TenantPaymentsClient({
                   <Banknote className="h-4 w-4 mr-2" />
                   Pay Cash
                 </Button>
-                <Button size="lg">
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    window.location.href = `/dashboard/payments/pay/${upcomingPayment.id}`;
+                  }}
+                >
                   <CreditCard className="h-4 w-4 mr-2" />
                   Pay Online
                 </Button>

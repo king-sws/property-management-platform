@@ -19,88 +19,159 @@ const blogPosts = [
     title: '10 Essential Tips for First-Time Landlords',
     excerpt:
       'Starting your journey as a landlord? Learn the fundamental practices that will help you succeed and avoid common pitfalls in property management.',
-    author: 'Sarah Johnson',
+    author: 'Propely Editorial Team',
     date: 'March 25, 2026',
     readTime: '8 min read',
     category: 'Property Management',
     featured: true,
     href: '/blog/first-time-landlords-tips',
-    image: '/images/10.png',
+    image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=450&fit=crop',
   },
   {
     title: 'How to Screen Tenants Effectively',
     excerpt:
       'A comprehensive guide to background checks, credit scores, and finding reliable tenants for your rental properties.',
-    author: 'Michael Chen',
+    author: 'Propely Editorial Team',
     date: 'March 22, 2026',
     readTime: '6 min read',
     category: 'Tenant Tips',
     featured: false,
     href: '/blog/screen-tenants-effectively',
-    image: '/blogs/blog-1.png'
-   },
+    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=450&fit=crop',
+  },
   {
     title: 'Preventive Maintenance Checklist for Rental Properties',
     excerpt:
       'Keep your properties in top condition and avoid costly repairs with this seasonal maintenance checklist.',
-    author: 'David Martinez',
+    author: 'Propely Editorial Team',
     date: 'March 20, 2026',
     readTime: '10 min read',
     category: 'Maintenance',
     featured: false,
     href: '/blog/preventive-maintenance-checklist',
-image: '/blogs/blog-2.png'  },
+    image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=450&fit=crop',
+  },
   {
     title: 'Understanding Rental Property Tax Deductions',
     excerpt:
       'Maximize your returns by learning about legitimate tax deductions available to property owners.',
-    author: 'Emily Roberts',
+    author: 'Propely Editorial Team',
     date: 'March 18, 2026',
     readTime: '7 min read',
     category: 'Legal & Finance',
     featured: false,
     href: '/blog/rental-property-tax-deductions',
-image: '/blogs/blog-3.png'  },
+    image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&h=450&fit=crop',
+  },
   {
     title: 'Digital Marketing Strategies for Rental Properties',
     excerpt:
       'Learn how to attract quality tenants faster with effective online marketing techniques and listing optimization.',
-    author: 'Jessica Lee',
+    author: 'Propely Editorial Team',
     date: 'March 15, 2026',
     readTime: '5 min read',
     category: 'Marketing',
     featured: false,
     href: '/blog/digital-marketing-rental-properties',
-image: '/blogs/blog-4.png'  },
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=450&fit=crop',
+  },
   {
     title: 'Creating a Seamless Tenant Onboarding Experience',
     excerpt:
       'Set the tone for a great landlord-tenant relationship with a smooth move-in process and clear communication.',
-    author: 'Sarah Johnson',
+    author: 'Propely Editorial Team',
     date: 'March 12, 2026',
     readTime: '6 min read',
     category: 'Tenant Tips',
     featured: false,
     href: '/blog/tenant-onboarding-experience',
-image: '/blogs/blog-5.png'  },
+    image: 'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=800&h=450&fit=crop',
+  },
+  {
+    title: 'How to Handle Late Rent Payments Professionally',
+    excerpt:
+      'Dealing with late payments is inevitable. Here\'s how to address them firmly, fairly, and in full compliance with the law.',
+    author: 'Propely Editorial Team',
+    date: 'March 10, 2026',
+    readTime: '5 min read',
+    category: 'Property Management',
+    featured: false,
+    href: '/blog/handle-late-rent-payments',
+    image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&h=450&fit=crop',
+  },
+  {
+    title: 'Security Deposits: What Landlords Need to Know',
+    excerpt:
+      'A complete guide to collecting, holding, and returning security deposits while staying compliant with local laws.',
+    author: 'Propely Editorial Team',
+    date: 'March 8, 2026',
+    readTime: '6 min read',
+    category: 'Legal & Finance',
+    featured: false,
+    href: '/blog/security-deposits-guide',
+    image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&h=450&fit=crop',
+  },
+  {
+    title: 'Lease Renewal Strategies to Retain Great Tenants',
+    excerpt:
+      'Keeping a good tenant is far cheaper than finding a new one. Learn how to approach renewals and reduce turnover.',
+    author: 'Propely Editorial Team',
+    date: 'March 5, 2026',
+    readTime: '5 min read',
+    category: 'Tenant Tips',
+    featured: false,
+    href: '/blog/lease-renewal-strategies',
+    image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&h=450&fit=crop',
+  },
+  {
+    title: 'How to Price Your Rental Property in Any Market',
+    excerpt:
+      'Pricing your rental right is both an art and a science. Discover the tools and frameworks landlords use to maximize occupancy and income.',
+    author: 'Propely Editorial Team',
+    date: 'March 3, 2026',
+    readTime: '7 min read',
+    category: 'Property Management',
+    featured: false,
+    href: '/blog/how-to-price-rental-property',
+    image: 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=800&h=450&fit=crop',
+  },
+  {
+    title: 'Landlord Insurance: Coverage Every Property Owner Needs',
+    excerpt:
+      'Standard homeowner\'s insurance won\'t protect your rental. Here\'s exactly what coverage to get and why it matters.',
+    author: 'Propely Editorial Team',
+    date: 'February 28, 2026',
+    readTime: '6 min read',
+    category: 'Legal & Finance',
+    featured: false,
+    href: '/blog/landlord-insurance-guide',
+    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=450&fit=crop',
+  },
+  {
+    title: 'Managing Multiple Rental Properties Without Burning Out',
+    excerpt:
+      'Scaling your portfolio is exciting — but without the right systems, it becomes overwhelming fast. Here\'s how to stay in control.',
+    author: 'Propely Editorial Team',
+    date: 'February 25, 2026',
+    readTime: '8 min read',
+    category: 'Property Management',
+    featured: false,
+    href: '/blog/managing-multiple-rental-properties',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=450&fit=crop',
+  },
 ]
 
-// Ad placeholder component - ready for future ad integration
-function AdPlaceholder({ size, label }: { size: string; label: string }) {
-  return (
-    <div
-      className={`relative w-full ${size} bg-muted/50 border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center`}
-    >
-      <div className="text-center">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Advertisement
-        </p>
-        <p className="text-[10px] text-muted-foreground/60 mt-1">{label}</p>
-      </div>
-    </div>
-  )
+/**
+ * Ad slot — renders nothing until Google AdSense is approved and real ad code
+ * is inserted here. Keeping the component so you can swap in the real script
+ * without touching the layout. Set NEXT_PUBLIC_ADSENSE_APPROVED=true in your
+ * Vercel env vars once approved and replace the inner content with the real
+ * adsbygoogle snippet.
+ */
+function AdSlot({ className = '' }: { className?: string }) {
+  // Return null until AdSense is live — no placeholder text visible to Google reviewers
+  return <div className={className} aria-hidden="true" />
 }
-
 
 export default function BlogPage() {
   const featuredPost = blogPosts.find((post) => post.featured)
@@ -125,10 +196,8 @@ export default function BlogPage() {
           </p>
         </div>
 
-        {/* Top Ad Banner */}
-        <div className="mb-12">
-          <AdPlaceholder size="h-32" label="Leaderboard (728x90)" />
-        </div>
+        {/* Top Ad slot — invisible until approved */}
+        <AdSlot className="mb-12" />
 
         {/* Categories */}
         <div className="flex flex-wrap justify-center gap-2 mb-12">
@@ -161,9 +230,7 @@ export default function BlogPage() {
                     <span className="rounded-full bg-indigo-100 dark:bg-indigo-900/30 px-3 py-0.5 text-xs font-medium text-indigo-700 dark:text-indigo-300">
                       {featuredPost.category}
                     </span>
-                    <span className="text-xs text-muted-foreground">
-                      Featured
-                    </span>
+                    <span className="text-xs text-muted-foreground">Featured</span>
                   </div>
                   <h2 className="text-2xl font-semibold text-foreground leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                     {featuredPost.title}
@@ -195,10 +262,8 @@ export default function BlogPage() {
           </article>
         )}
 
-        {/* Sidebar Ad - Desktop */}
-        <div className="hidden lg:block mb-12">
-          <AdPlaceholder size="h-48" label="Sidebar Banner (300x250)" />
-        </div>
+        {/* Sidebar Ad slot — invisible until approved */}
+        <AdSlot className="hidden lg:block mb-12" />
 
         {/* Blog Posts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
@@ -224,9 +289,7 @@ export default function BlogPage() {
                     <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                       {post.category}
                     </span>
-                    <span className="text-xs text-muted-foreground">
-                      {post.readTime}
-                    </span>
+                    <span className="text-xs text-muted-foreground">{post.readTime}</span>
                   </div>
 
                   <h3 className="text-lg font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
@@ -249,32 +312,14 @@ export default function BlogPage() {
           ))}
         </div>
 
-        {/* In-Feed Ad */}
-        <div className="mb-12">
-          <AdPlaceholder size="h-40" label="In-Feed Ad (Responsive)" />
-        </div>
+        {/* In-feed ad slot — invisible until approved */}
+        <AdSlot className="mb-12" />
 
         {/* Pagination */}
         <div className="flex justify-center items-center gap-2 mb-16">
-          <button className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50">
-            Previous
-          </button>
-          <button className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background">
-            1
-          </button>
-          <button className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
-            2
-          </button>
-          <button className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
-            3
-          </button>
-          <span className="text-muted-foreground">...</span>
-          <button className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
-            10
-          </button>
-          <button className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors">
-            Next
-          </button>
+          <span className="text-sm text-muted-foreground">
+            Showing all {blogPosts.length} articles
+          </span>
         </div>
 
         {/* Newsletter Signup */}
@@ -282,10 +327,8 @@ export default function BlogPage() {
           <NewsletterSignup />
         </div>
 
-        {/* Bottom Ad Banner */}
-        <div className="mb-8">
-          <AdPlaceholder size="h-32" label="Bottom Banner (728x90)" />
-        </div>
+        {/* Bottom ad slot — invisible until approved */}
+        <AdSlot className="mb-8" />
       </div>
     </section>
   )

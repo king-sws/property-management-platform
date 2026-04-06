@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import prisma from "@/lib/prisma";
-import { constructWebhookEvent } from "@/services/stripe";
+import { constructWebhookEvent, stripe } from "@/services/stripe";
 import {
   SubscriptionStatus,
   PaymentStatus,
@@ -201,7 +201,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     // ✅ FIXED: Use safe date conversion
     const currentPeriodEnd = safeUnixToDate(subscription.current_period_end);
     const trialEnd = safeUnixToDate(subscription.trial_end);
-    
+
     const isTrialing = isActuallyInTrial(subscription);
     const status = mapStripeStatusToOurs(subscription);
 
@@ -217,6 +217,8 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 
     if (isTrialing && trialEnd) {
       updateData.trialEndsAt = trialEnd;
+      // Mark trial as used when the webhook confirms a trial subscription was created
+      updateData.trialUsed = true;
     }
 
     await prisma.landlord.update({
@@ -682,36 +684,69 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   try {
     const customerId = invoice.customer as string;
-
+ 
     const landlord = await prisma.landlord.findUnique({
       where: { stripeCustomerId: customerId },
       include: { user: true },
     });
-
+ 
     if (!landlord) {
       console.error("Landlord not found for customer:", customerId);
       return;
     }
-
+ 
+    // Record the exact moment the subscription lapsed so the dunning
+    // cron can compute days-since-lapse accurately.
+    const lapsedAt = new Date();
+ 
     await prisma.landlord.update({
       where: { id: landlord.id },
       data: {
         subscriptionStatus: SubscriptionStatus.PAST_DUE,
+        // Store lapsedAt in currentPeriodEnd only if it isn't already set
+        // (first failure wins — we don't want retries to reset the clock).
+        currentPeriodEnd: landlord.currentPeriodEnd ?? lapsedAt,
       },
     });
-
+ 
+    // Day-1 dunning notification — sent immediately on first failure.
+    // The cron handles Days 3 and 7.
+    await prisma.notification.create({
+      data: {
+        userId: landlord.userId,
+        type: "PAYMENT_FAILED",
+        channel: "IN_APP",
+        title: "Action required: Payment failed",
+        message:
+          "Your subscription payment has failed. You have 7 days to update your payment method before your account is restricted. Your properties and tenant data are safe.",
+        actionUrl: "/dashboard/settings/subscription",
+        metadata: {
+          dunningDay: 1,
+          invoiceId: invoice.id,
+          lapsedAt: lapsedAt.toISOString(),
+        },
+      },
+    });
+ 
     await prisma.notification.create({
       data: {
         userId: landlord.userId,
         type: "PAYMENT_FAILED",
         channel: "EMAIL",
-        title: "Subscription Payment Failed",
-        message: "Your subscription payment has failed. Please update your payment method to continue using the service.",
+        title: "Action required: Payment failed",
+        message:
+          "Your Propely subscription payment has failed. You have 7 days to update your payment method before your account is restricted. Update now → propely.site/dashboard/settings/subscription",
         actionUrl: "/dashboard/settings/subscription",
+        metadata: {
+          dunningDay: 1,
+          invoiceId: invoice.id,
+          recipientEmail: landlord.user.email,
+          lapsedAt: lapsedAt.toISOString(),
+        },
       },
     });
-
-    console.log("Invoice payment failed:", invoice.id);
+ 
+    console.log("Invoice payment failed + dunning Day 1 sent:", invoice.id);
   } catch (error) {
     console.error("Handle invoice payment failed error:", error);
   }
@@ -760,9 +795,66 @@ async function handlePaymentMethodAttached(paymentMethod: Stripe.PaymentMethod) 
 
     const landlord = await prisma.landlord.findUnique({
       where: { stripeCustomerId: customerId },
+      include: { user: true },
     });
 
     if (landlord) {
+      // If the landlord is PAST_DUE, attempt to resume the subscription
+      // and charge the latest failed invoice
+      if (landlord.subscriptionStatus === SubscriptionStatus.PAST_DUE && landlord.stripeSubscriptionId) {
+        try {
+          // Retrieve the subscription to check its state
+          const subscription = await stripe.subscriptions.retrieve(landlord.stripeSubscriptionId);
+
+          // If the subscription is still past_due or paused, resume it
+          if (subscription.status === "past_due" || subscription.status === "paused") {
+            await stripe.subscriptions.resume(landlord.stripeSubscriptionId, {
+              billing_cycle_anchor: "now",
+            });
+
+            console.log("✅ Subscription resumed after payment method attached:", landlord.stripeSubscriptionId);
+          }
+
+          // If the subscription is active now, update the DB
+          if (subscription.status === "active" || subscription.status === "trialing") {
+            await prisma.landlord.update({
+              where: { id: landlord.id },
+              data: {
+                subscriptionStatus: SubscriptionStatus.ACTIVE,
+                trialEndsAt: null,
+              },
+            });
+
+            // Send success notification
+            await prisma.notification.create({
+              data: {
+                userId: landlord.userId,
+                type: "PAYMENT_RECEIVED",
+                channel: "EMAIL",
+                title: "Subscription restored!",
+                message: "Your payment method was successfully added and your subscription has been restored. Thank you!",
+                actionUrl: "/dashboard/settings/subscription",
+              },
+            });
+
+            console.log("✅ Subscription status updated to ACTIVE:", landlord.stripeSubscriptionId);
+          }
+        } catch (resumeError) {
+          console.error("Failed to resume subscription after payment method attached:", resumeError);
+          // Still log the activity so the landlord knows a payment method was added
+          await prisma.notification.create({
+            data: {
+              userId: landlord.userId,
+              type: "PAYMENT_FAILED",
+              channel: "EMAIL",
+              title: "Payment method added — manual action required",
+              message: "Your payment method was added but we couldn't automatically resume your subscription. Please visit your subscription settings to retry.",
+              actionUrl: "/dashboard/settings/subscription",
+            },
+          });
+        }
+      }
+
       await prisma.activityLog.create({
         data: {
           userId: landlord.userId,

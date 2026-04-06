@@ -27,7 +27,7 @@ import {
 import prisma from "@/lib/prisma";
 
 export const metadata = {
-  title: "Tenant Dashboard | Propely",
+  title: "Tenant Dashboard",
 };
 
 export default async function TenantDashboardPage() {

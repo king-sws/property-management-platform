@@ -4,7 +4,7 @@ import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Reset Password | Propely',
+  title: 'Reset Password',
   description: 'Reset your Propely account password',
   robots: {
     index: false,

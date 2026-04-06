@@ -9,7 +9,7 @@ import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 
 export const metadata: Metadata = {
-  title: 'Authentication Error | Propely',
+  title: 'Authentication Error',
   description: 'An error occurred during authentication',
   robots: {
     index: false,

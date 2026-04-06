@@ -30,52 +30,52 @@ const categories = [
     title: 'Getting started',
     description: 'Set up your account, import properties, and invite your team.',
     articles: 12,
-    href: '/docs/getting-started',
+    href: '/help',
   },
   {
     icon: <CreditCard className="size-5" />,
     title: 'Payments & billing',
     description: 'Online rent collection, late fees, invoices, and subscription management.',
     articles: 18,
-    href: '/docs/payments',
+    href: '/help',
   },
   {
     icon: <Users className="size-5" />,
     title: 'Tenants & leases',
     description: 'Screening, lease creation, renewals, move-in and move-out workflows.',
     articles: 24,
-    href: '/docs/tenants',
+    href: '/help',
   },
   {
     icon: <Wrench className="size-5" />,
     title: 'Maintenance',
     description: 'Request tracking, vendor assignment, scheduling, and work order history.',
     articles: 15,
-    href: '/docs/maintenance',
+    href: '/help',
   },
   {
     icon: <BarChart2 className="size-5" />,
     title: 'Reports & analytics',
     description: 'Income statements, expense tracking, occupancy rates, and exports.',
     articles: 9,
-    href: '/docs/reports',
+    href: '/help',
   },
   {
     icon: <ShieldCheck className="size-5" />,
     title: 'Security & compliance',
     description: 'Data encryption, GDPR, CCPA, two-factor authentication, and audit logs.',
     articles: 7,
-    href: '/docs/security',
+    href: '/help',
   },
 ]
 
 const popular = [
-  { title: 'How to collect rent online', href: '/docs/payments/online-rent', tag: 'Payments' },
-  { title: 'Setting up automated late fees', href: '/docs/payments/late-fees', tag: 'Payments' },
-  { title: 'Importing tenants from a spreadsheet', href: '/docs/tenants/import', tag: 'Tenants' },
-  { title: 'Creating and sending a lease', href: '/docs/tenants/leases', tag: 'Leases' },
-  { title: 'Inviting team members', href: '/docs/getting-started/team', tag: 'Account' },
-  { title: 'Connecting a bank account', href: '/docs/payments/bank', tag: 'Payments' },
+  { title: 'How to collect rent online', href: '/help', tag: 'Payments' },
+  { title: 'Setting up automated late fees', href: '/help', tag: 'Payments' },
+  { title: 'Importing tenants from a spreadsheet', href: '/help', tag: 'Tenants' },
+  { title: 'Creating and sending a lease', href: '/help', tag: 'Leases' },
+  { title: 'Inviting team members', href: '/help', tag: 'Account' },
+  { title: 'Connecting a bank account', href: '/help', tag: 'Payments' },
 ]
 
 const faqs = [
@@ -320,14 +320,15 @@ export default function SupportPage() {
             </p>
 
             {/* Search bar */}
-            <div className="relative w-full max-w-md mt-2">
+            <form action="/help" method="GET" className="relative w-full max-w-md mt-2">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
               <input
-                type="text"
-                placeholder="Search documentation…"
+                type="search"
+                name="q"
+                placeholder="Search help articles…"
                 className="w-full rounded-lg border border-border bg-background/60 pl-11 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-blue-500/60 transition"
               />
-            </div>
+            </form>
 
             {/* Status strip */}
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground mt-1">
@@ -339,7 +340,7 @@ export default function SupportPage() {
                 <CheckCircle2 className="size-3.5 text-green-500" />
                 <span className="text-green-500">All systems operational</span>
               </span>
-              <Link href="https://status.propely.site" className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors text-xs">
+              <Link href="/status" className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors text-xs">
                 Status page
                 <ArrowRight className="size-3" />
               </Link>
@@ -409,8 +410,54 @@ export default function SupportPage() {
         </div>
       </section>
 
-      {/* ── Ticket form + FAQ ─────────────────────────────── */}
-      
+      {/* ── FAQ ─────────────────────────────── */}
+      <section className="w-full border-t border-border py-14">
+        <div className="container px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-6 max-w-3xl mx-auto">
+            <div className="flex items-center gap-3">
+              <FileText className="size-4 text-muted-foreground" />
+              <h2 className="font-semibold text-base text-foreground">Frequently asked questions</h2>
+            </div>
+            <div className="space-y-4">
+              <div className="rounded-xl border border-border p-5">
+                <h3 className="font-medium text-foreground mb-2">How do I get started with Propely?</h3>
+                <p className="text-sm text-muted-foreground">Sign up for a free trial at <a href="/sign-up" className="text-indigo-600 dark:text-indigo-400 hover:underline">propely.site/sign-up</a>. You'll get access to all features for 14 days with no credit card required.</p>
+              </div>
+              <div className="rounded-xl border border-border p-5">
+                <h3 className="font-medium text-foreground mb-2">Can I import data from my current system?</h3>
+                <p className="text-sm text-muted-foreground">Yes. Propely supports importing tenant data, property details, and lease information from spreadsheets. Contact our team for a guided migration.</p>
+              </div>
+              <div className="rounded-xl border border-border p-5">
+                <h3 className="font-medium text-foreground mb-2">What payment methods do you accept?</h3>
+                <p className="text-sm text-muted-foreground">We accept all major credit cards (Visa, Mastercard, Amex) and ACH bank transfers through Stripe. Invoices are available for annual plans.</p>
+              </div>
+              <div className="rounded-xl border border-border p-5">
+                <h3 className="font-medium text-foreground mb-2">How do I cancel my subscription?</h3>
+                <p className="text-sm text-muted-foreground">You can cancel anytime from your account settings. Your access continues until the end of your current billing period. No cancellation fees.</p>
+              </div>
+              <div className="rounded-xl border border-border p-5">
+                <h3 className="font-medium text-foreground mb-2">Is my data secure?</h3>
+                <p className="text-sm text-muted-foreground">Yes. Propely uses encryption at rest and in transit, regular backups, and complies with data protection regulations. Read our <a href="/privacy" className="text-indigo-600 dark:text-indigo-400 hover:underline">Privacy Policy</a> for details.</p>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="text-center rounded-xl bg-muted/40 p-8 mt-4">
+              <h3 className="font-medium mb-2">Still need help?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Our team is available Monday through Friday, 9 AM to 6 PM UTC.
+              </p>
+              <a
+                href="mailto:hello@propely.site"
+                className="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                hello@propely.site →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
 
     </main>
   )

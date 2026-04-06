@@ -244,14 +244,14 @@ export default function HelpPage() {
 
         {/* Quick Links */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <Link href="mailto:support@propely.com">
+          <Link href="mailto:hello@propely.site">
             <Card className="transition-all hover:border-primary cursor-pointer">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <CardTitle className="text-sm font-medium">Email Support</CardTitle>
-                    <CardDescription className="text-xs">support@propely.com</CardDescription>
+                    <CardDescription className="text-xs">hello@propely.site</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -348,7 +348,7 @@ export default function HelpPage() {
                 </Typography>
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
-                <Link href="mailto:support@propely.com">
+                <Link href="mailto:hello@propely.site">
                   <Button variant="default" size="sm">
                     <Mail className="mr-2 h-4 w-4" />
                     Contact Support

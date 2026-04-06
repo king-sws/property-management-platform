@@ -66,8 +66,9 @@ export function ProfileEditor({ profile }: ProfileEditorProps) {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size must be less than 5MB");
+    // ✅ Aligned with API limit (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image size must be less than 2MB");
       return;
     }
 
@@ -96,10 +97,10 @@ export function ProfileEditor({ profile }: ProfileEditorProps) {
 
       const result = await response.json();
 
-      if (result.success && result.url) {
-        // Update avatar in database
-        const updateResult = await updateAvatar(result.url);
-        
+      // ✅ Fixed: API returns result.data.avatar, not result.url
+      if (result.success && result.data?.avatar) {
+        const updateResult = await updateAvatar(result.data.avatar);
+
         if (updateResult.success) {
           toast.success("Avatar updated successfully");
           router.refresh();

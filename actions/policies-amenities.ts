@@ -84,6 +84,11 @@ export async function createAmenity(
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
+    // ✅ FIX: Only landlords can create amenities
+    if (session.user.role !== "LANDLORD") {
+      return { success: false, error: "Only landlords can create amenities" };
+    }
+
     // Check for duplicate
     const existing = await prisma.amenity.findUnique({ where: { name } });
     if (existing) return { success: true, data: existing }; // return existing if already exists

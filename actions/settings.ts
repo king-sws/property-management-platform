@@ -576,7 +576,7 @@ export async function updateVendorSettings(
 export async function deleteAccount(password: string): Promise<SettingsResult> {
   try {
     const currentUser = await getCurrentUserWithRole();
-    
+
     // Verify password for credential accounts
     if (currentUser.password) {
       const isValid = await bcrypt.compare(password, currentUser.password);
@@ -587,24 +587,77 @@ export async function deleteAccount(password: string): Promise<SettingsResult> {
         };
       }
     }
-    
-    // Soft delete
-    await prisma.user.update({
-      where: { id: currentUser.id },
-      data: {
-        deletedAt: new Date(),
-        status: "INACTIVE",
-      },
+
+    // Clean up related records before deleting user to avoid orphaned data
+    await prisma.$transaction(async (tx) => {
+      // If landlord: soft delete related entities
+      if (currentUser.role === "LANDLORD" && currentUser.landlordProfile) {
+        const landlordId = currentUser.landlordProfile.id;
+
+        // Soft delete properties (which cascades to units, leases, etc.)
+        await tx.property.updateMany({
+          where: { landlordId },
+          data: { deletedAt: new Date() },
+        });
+
+        // Soft delete landlord
+        await tx.landlord.update({
+          where: { id: landlordId },
+          data: { deletedAt: new Date() },
+        });
+      }
+
+      // If tenant: soft delete related entities
+      if (currentUser.role === "TENANT" && currentUser.tenantProfile) {
+        const tenantId = currentUser.tenantProfile.id;
+
+        // Soft delete tenant
+        await tx.tenant.update({
+          where: { id: tenantId },
+          data: { deletedAt: new Date() },
+        });
+      }
+
+      // If vendor: soft delete related entities
+      if (currentUser.role === "VENDOR" && currentUser.vendorProfile) {
+        const vendorId = currentUser.vendorProfile.id;
+
+        // Soft delete vendor
+        await tx.vendor.update({
+          where: { id: vendorId },
+          data: { deletedAt: new Date() },
+        });
+      }
+
+      // Delete all sessions for this user
+      await tx.session.deleteMany({
+        where: { userId: currentUser.id },
+      });
+
+      // Delete all OAuth accounts for this user
+      await tx.account.deleteMany({
+        where: { userId: currentUser.id },
+      });
+
+      // Soft delete user
+      await tx.user.update({
+        where: { id: currentUser.id },
+        data: {
+          deletedAt: new Date(),
+          status: "INACTIVE",
+        },
+      });
+
+      // Log activity before user is soft-deleted
+      await tx.activityLog.create({
+        data: {
+          userId: currentUser.id,
+          type: "USER_LOGOUT" as ActivityType,
+          action: "Account deleted",
+        },
+      });
     });
-    
-    await prisma.activityLog.create({
-      data: {
-        userId: currentUser.id,
-        type: "USER_LOGOUT" as ActivityType,
-        action: "Account deleted",
-      },
-    });
-    
+
     return {
       success: true,
       message: "Account deleted successfully",

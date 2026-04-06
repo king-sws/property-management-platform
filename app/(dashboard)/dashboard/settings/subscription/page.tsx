@@ -4,7 +4,7 @@ import { SubscriptionManagement } from "@/components/settings/subscription-manag
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Subscription & Billing | Propely",
+  title: "Subscription & Billing",
   description: "Manage your subscription and billing settings",
 };
 

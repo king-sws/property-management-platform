@@ -214,14 +214,26 @@ function serializeLease(lease: any) {
 export async function createLease(data: z.infer<typeof createLeaseSchema>): Promise<LeaseResult> {
   try {
     const currentUser = await getCurrentUserWithRole();
-    
+
     if (currentUser.role !== "LANDLORD" && currentUser.role !== "ADMIN") {
       return {
         success: false,
         error: "Only landlords can create leases",
       };
     }
-    
+
+    // ✅ SUBSCRIPTION GUARD
+    if (currentUser.role === "LANDLORD" && currentUser.landlordProfile) {
+      const { getLandlordAccess, getAccessMessage } = await import("@/lib/subscription-guard");
+      const access = await getLandlordAccess(currentUser.landlordProfile.id);
+      if (!access.canWrite) {
+        return {
+          success: false,
+          error: getAccessMessage(access) ?? "Your subscription is inactive. Please update your payment method.",
+        };
+      }
+    }
+
     const validated = createLeaseSchema.parse(data);
     
     // Verify unit exists and belongs to landlord
@@ -1135,17 +1147,33 @@ export async function getLeaseStatistics(leaseId: string): Promise<LeaseResult> 
 // -------------------------
 export async function syncLeaseAndUnitStatuses(): Promise<LeaseResult> {
   try {
+    const currentUser = await getCurrentUserWithRole();
+
+    // 🔒 Only landlords and admins can sync statuses
+    if (currentUser.role !== "LANDLORD" && currentUser.role !== "ADMIN") {
+      return {
+        success: false,
+        error: "Only landlords and admins can sync lease statuses",
+      };
+    }
+
     const results = await prisma.$transaction(async (tx) => {
-      // Find all active leases
+      // Build landlord filter — landlords only see their own leases
+      const landlordFilter = currentUser.role === "LANDLORD"
+        ? { unit: { property: { landlordId: currentUser.landlordProfile?.id } } }
+        : {};
+
+      // Find all active leases (scoped to landlord)
       const activeLeases = await tx.lease.findMany({
         where: {
           status: "ACTIVE",
+          ...landlordFilter,
         },
         include: {
           unit: true,
         },
       });
-      
+
       // Mark their units as OCCUPIED
       const occupiedUnits = await Promise.all(
         activeLeases
@@ -1157,19 +1185,20 @@ export async function syncLeaseAndUnitStatuses(): Promise<LeaseResult> {
             })
           )
       );
-      
-      // Find all terminated/expired leases
+
+      // Find all terminated/expired leases (scoped to landlord)
       const inactiveLeases = await tx.lease.findMany({
         where: {
           status: {
             in: ["TERMINATED", "EXPIRED"],
           },
+          ...landlordFilter,
         },
         include: {
           unit: true,
         },
       });
-      
+
       // Mark their units as VACANT (if no other active lease exists)
       const vacantUnitsPromises = inactiveLeases
         .filter(async (lease: { unitId: any; id: any; unit: { status: string; }; }) => {
@@ -1189,7 +1218,7 @@ export async function syncLeaseAndUnitStatuses(): Promise<LeaseResult> {
             data: { status: "VACANT" },
           })
         );
-        
+
       const vacantUnits = await Promise.all(vacantUnitsPromises);
       
       return {

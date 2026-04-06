@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | Property Management Platform',
+  title: 'Terms of Service | Propely',
   description: 'Terms and conditions for using our property management platform. Read our service agreement, user responsibilities, and legal terms.',
 }
 
@@ -30,7 +30,7 @@ export default function TermsPage() {
             {/* Introduction */}
             <div className="space-y-6 mb-12">
               <p className="text-muted-foreground leading-relaxed">
-                Welcome to Property Management Platform. These Terms of Service govern your access to and use of our website, software, and related services. By accessing or using our services, you agree to be bound by these terms.
+                Welcome to Propely. These Terms of Service govern your access to and use of our website, software, and related services. By accessing or using our services, you agree to be bound by these terms.
               </p>
               <p className="text-muted-foreground leading-relaxed">
                 Please read these terms carefully before using our services. If you do not agree to these terms, please do not use our platform.
@@ -98,7 +98,7 @@ export default function TermsPage() {
                 2. Description of Services
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                Property Management Platform provides a comprehensive suite of tools for property managers, landlords, and real estate professionals, including:
+                Propely provides a comprehensive suite of tools for property managers, landlords, and real estate professionals, including:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1">
                 <li>Property listing and management tools</li>
@@ -186,7 +186,7 @@ export default function TermsPage() {
               </h2>
               <div className="space-y-4">
                 <p className="text-muted-foreground leading-relaxed">
-                  Our services and their original content, features, and functionality are owned by Property Management Platform and are protected by international copyright, trademark, and other intellectual property laws.
+                  Our services and their original content, features, and functionality are owned by Propely and are protected by international copyright, trademark, and other intellectual property laws.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
                   You retain ownership of any content you submit, post, or display through our services. By submitting content, you grant us a license to use, store, and display that content in connection with providing our services.
@@ -222,7 +222,7 @@ export default function TermsPage() {
                 8. Limitation of Liability
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                To the maximum extent permitted by law, Property Management Platform shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including:
+                To the maximum extent permitted by law, Propely shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1">
                 <li>Loss of profits, data, or business opportunities</li>
@@ -297,9 +297,8 @@ export default function TermsPage() {
               </p>
               <div className="rounded-xl bg-muted/50 border border-border p-6 mt-4">
                 <ul className="space-y-2 text-muted-foreground">
-                  <li><strong>Email:</strong> legal@propertyplatform.com</li>
-                  <li><strong>Phone:</strong> (555) 123-4567</li>
-                  <li><strong>Address:</strong> 123 Property Lane, Suite 100, City, State 12345</li>
+                  <li><strong>Email:</strong> <a href="mailto:hello@propely.site" className="text-indigo-600 dark:text-indigo-400 hover:underline">hello@propely.site</a></li>
+                  <li><strong>Website:</strong> <a href="https://propely.site" className="text-indigo-600 dark:text-indigo-400 hover:underline">propely.site</a></li>
                 </ul>
               </div>
             </div>

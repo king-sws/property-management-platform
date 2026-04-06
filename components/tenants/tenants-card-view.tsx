@@ -116,20 +116,20 @@ export function TenantsCardView({ initialData }: TenantsCardViewProps) {
 
       {initialData.tenants.length === 0 ? (
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="rounded-full bg-muted p-3 mb-4">
-              <UserPlus className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">No tenants found</h3>
-            <p className="text-sm text-muted-foreground mb-4 max-w-sm">
-              Get started by adding your first tenant
-            </p>
-            <Button onClick={() => router.push("/dashboard/tenants/new")}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Add Tenant
-            </Button>
-          </CardContent>
-        </Card>
+  <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+    <div className="rounded-full border-2 border-dashed border-muted-foreground/20 p-5 mb-3">
+      <UserPlus className="h-8 w-8 text-muted-foreground/40" />
+    </div>
+    <p className="text-sm font-medium text-muted-foreground mb-1">No tenants found</p>
+    <p className="text-xs text-muted-foreground/60 max-w-[220px] mb-4">
+      Get started by adding your first tenant to manage leases and payments.
+    </p>
+    <Button onClick={() => router.push("/dashboard/tenants/new")}>
+      <UserPlus className="mr-2 h-4 w-4" />
+      Add Tenant
+    </Button>
+  </CardContent>
+</Card>
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

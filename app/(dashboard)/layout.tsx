@@ -5,6 +5,7 @@ import { UserRole } from "@/lib/generated/prisma/enums";
 import { getUnreadNotificationCount } from "@/actions/notifications";
 import { unstable_cache } from "next/cache";
 import prisma from "@/lib/prisma";
+import { SubscriptionBanner } from "@/components/dashboard/subscription-banner";
 
 // ============================================================================
 // TYPES
@@ -260,6 +261,7 @@ export default async function DashboardLayout({
       initialStats={initialStats}
       unreadCount={unreadCount}
     >
+      <SubscriptionBanner />
       {children}
     </DashboardClientWrapper>
   );

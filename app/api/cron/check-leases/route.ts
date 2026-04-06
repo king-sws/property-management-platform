@@ -80,21 +80,27 @@ export async function GET(request: Request) {
     );
     // Only notify at 60, 30, 14, 7 days
     if ([60, 30, 14, 7].includes(daysLeft)) {
-      await prisma.notification.upsert({
+      // Check if notification already exists for this lease + daysLeft combination
+      const existingNotification = await prisma.notification.findFirst({
         where: {
-          // Use a unique identifier to avoid duplicate notifications
-          id: `expiry-${lease.id}-${daysLeft}d`,
-        },
-        update: {},
-        create: {
           userId: lease.unit.property.landlord.userId,
           type: "LEASE_RENEWAL_OFFER",
-          title: `Lease Expiring in ${daysLeft} Days`,
-          message: `Lease for ${lease.unit.property.name} Unit ${lease.unit.unitNumber} expires in ${daysLeft} days.`,
-          actionUrl: `/dashboard/leases/${lease.id}`,
-          metadata: { leaseId: lease.id, daysLeft },
+          metadata: { path: ["leaseId"], equals: lease.id },
         },
       });
+
+      if (!existingNotification) {
+        await prisma.notification.create({
+          data: {
+            userId: lease.unit.property.landlord.userId,
+            type: "LEASE_RENEWAL_OFFER",
+            title: `Lease Expiring in ${daysLeft} Days`,
+            message: `Lease for ${lease.unit.property.name} Unit ${lease.unit.unitNumber} expires in ${daysLeft} days.`,
+            actionUrl: `/dashboard/leases/${lease.id}`,
+            metadata: { leaseId: lease.id, daysLeft },
+          },
+        });
+      }
     }
   }
 

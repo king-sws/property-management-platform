@@ -9,9 +9,20 @@ import { SubscriptionStatus, UserRole } from "@/lib/generated/prisma/enums";
 /**
  * SUBSCRIPTION SIMULATOR API
  * Handles all test actions for subscription scenarios
+ *
+ * ⚠️ SECURITY: This endpoint is gated behind ENABLE_SUBSCRIPTION_SIMULATOR.
+ * It must NEVER be enabled in production. Only use for local/staging testing.
  */
 export async function POST(req: Request) {
   try {
+    // 🔒 Hard gate — must be explicitly enabled via env var
+    if (process.env.ENABLE_SUBSCRIPTION_SIMULATOR !== "true") {
+      return NextResponse.json(
+        { success: false, error: "Subscription simulator is disabled" },
+        { status: 403 }
+      );
+    }
+
     const session = await auth();
     if (!session?.user?.id || session.user.role !== UserRole.LANDLORD) {
       return NextResponse.json(

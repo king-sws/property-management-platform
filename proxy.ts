@@ -46,6 +46,60 @@ export async function proxy(request: NextRequest) {
   if (isAdminRoute && session?.user?.role !== 'ADMIN') {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
+
+  // ✅ ADD: Role-based route protection
+  // Tenants should only access tenant-specific routes
+  if (session?.user?.role === 'TENANT') {
+    const tenantAllowedRoutes = [
+      '/dashboard',
+      '/dashboard/tenant',
+      '/dashboard/my-lease',
+      '/dashboard/payments',
+      '/dashboard/maintenance',
+      '/dashboard/messages',
+      '/dashboard/profile',
+      '/dashboard/settings',
+      '/dashboard/notifications',
+      '/dashboard/lease-signing',
+    ]
+
+    const isTenantAllowed = tenantAllowedRoutes.some(route =>
+      pathname === route || pathname.startsWith(route + '/')
+    )
+
+    // Block tenants from accessing landlord/vendor/admin routes
+    const isLandlordRoute = pathname.startsWith('/dashboard/landlord') ||
+                            pathname.startsWith('/dashboard/properties') ||
+                            pathname.startsWith('/dashboard/tenants') ||
+                            pathname.startsWith('/dashboard/vendors') ||
+                            pathname.startsWith('/dashboard/leases') ||
+                            pathname.startsWith('/dashboard/expenses') ||
+                            pathname.startsWith('/dashboard/reports')
+
+    const isVendorRoute = pathname.startsWith('/dashboard/vendor')
+
+    if (isLandlordRoute || isVendorRoute || !isTenantAllowed) {
+      return NextResponse.redirect(new URL('/dashboard/tenant', request.url))
+    }
+  }
+
+  // Landlords should not access tenant-only routes
+  if (session?.user?.role === 'LANDLORD') {
+    if (pathname.startsWith('/dashboard/my-lease') ||
+        pathname.startsWith('/dashboard/tenant')) {
+      return NextResponse.redirect(new URL('/dashboard/landlord', request.url))
+    }
+  }
+
+  // Vendors should not access landlord/tenant routes
+  if (session?.user?.role === 'VENDOR') {
+    if (pathname.startsWith('/dashboard/landlord') ||
+        pathname.startsWith('/dashboard/tenant') ||
+        pathname.startsWith('/dashboard/my-lease') ||
+        pathname.startsWith('/dashboard/properties')) {
+      return NextResponse.redirect(new URL('/dashboard/vendor', request.url))
+    }
+  }
   
   // 2. Logged in user needs to complete profile (OAuth users)
   // ✅ FIX: Skip profile setup for ADMIN users

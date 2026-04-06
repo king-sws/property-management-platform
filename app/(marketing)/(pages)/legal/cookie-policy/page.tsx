@@ -259,9 +259,8 @@ export default function CookiePolicyPage() {
               </p>
               <div className="rounded-xl bg-muted/50 border border-border p-6 mt-4">
                 <ul className="space-y-2 text-muted-foreground">
-                  <li><strong>Email:</strong> privacy@propertyplatform.com</li>
-                  <li><strong>Phone:</strong> (555) 123-4567</li>
-                  <li><strong>Address:</strong> 123 Property Lane, Suite 100, City, State 12345</li>
+                  <li><strong>Email:</strong> <a href="mailto:hello@propely.site" className="text-indigo-600 dark:text-indigo-400 hover:underline">hello@propely.site</a></li>
+                  <li><strong>Website:</strong> <a href="https://propely.site" className="text-indigo-600 dark:text-indigo-400 hover:underline">propely.site</a></li>
                 </ul>
               </div>
             </div>

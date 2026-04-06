@@ -51,8 +51,8 @@ export default async function CompleteProfilePage() {
         {/* Footer */}
         <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
           Need help? Contact us at{' '}
-          <a href="mailto:support@propertyhub.com" className="text-blue-600 dark:text-blue-400 hover:underline">
-            support@propertyhub.com
+          <a href="mailto:hello@propely.site" className="text-blue-600 dark:text-blue-400 hover:underline">
+            hello@propely.site
           </a>
         </p>
       </div>

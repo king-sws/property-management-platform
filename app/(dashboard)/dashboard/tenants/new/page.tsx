@@ -2,38 +2,38 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { TenantForm } from "@/components/tenants/tenant-form";
-import { Users } from "lucide-react";
+import { Container, Stack } from "@/components/ui/container";
+import { Typography } from "@/components/ui/typography";
 
 export const metadata = {
-  title: "Add Tenant | Property Management",
+  title: "Add Tenant",
 };
 
 export default async function NewTenantPage() {
   const session = await auth();
-  
+
   if (!session?.user) {
     redirect("/sign-in");
   }
-  
+
   if (session.user.role !== "LANDLORD" && session.user.role !== "ADMIN") {
     redirect("/dashboard");
   }
-  
+
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-          <Users className="h-6 w-6 text-primary" />
-        </div>
+    <Container padding="none" size="full">
+      <Stack spacing="lg">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Add New Tenant</h1>
-          <p className="text-muted-foreground">
+          <Typography variant="h2" className="mb-1">
+            Add New Tenant
+          </Typography>
+          <Typography variant="muted">
             Create a new tenant profile in your system
-          </p>
+          </Typography>
         </div>
-      </div>
-      
-      <TenantForm />
-    </div>
+
+        <TenantForm />
+      </Stack>
+    </Container>
   );
 }

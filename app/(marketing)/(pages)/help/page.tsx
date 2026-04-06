@@ -93,7 +93,7 @@ const supportOptions = [
     desc: 'Get help via email',
     availability: 'Response within 24 hours',
     action: 'Send email',
-    href: 'mailto:support@example.com',
+    href: 'mailto:hello@propely.site',
     color: 'bg-green-500/10 text-green-600 dark:text-green-400',
   },
   {
@@ -132,14 +132,15 @@ export default function HelpPage() {
 
           {/* Search Bar */}
           <div className="w-full max-w-2xl mt-4">
-            <div className="relative">
+            <form action="/help" method="GET" className="relative">
               <input
-                type="text"
+                type="search"
+                name="q"
                 placeholder="Search for help articles..."
                 className="w-full px-6 py-4 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
               />
               <ArrowRightIcon className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
-            </div>
+            </form>
           </div>
         </div>
 

@@ -4,7 +4,7 @@ import { AuthLayout } from '@/components/auth/AuthLayout'
 import { SignInForm } from '@/components/auth/SignInForm'
 
 export const metadata: Metadata = {
-  title: 'Sign In | Propely',
+  title: 'Sign In',
   description: 'Sign in to your Propely account',
   robots: {
     index: false,

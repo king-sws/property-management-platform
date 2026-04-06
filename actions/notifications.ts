@@ -144,7 +144,7 @@ export async function getUnreadNotificationCount(): Promise<NotificationResult> 
 // -------------------------
 // Mark Notification as Read
 // -------------------------
-export async function markNotificationAsRead(notificationId: string, p0: unknown): Promise<NotificationResult> {
+export async function markNotificationAsRead(notificationId: string): Promise<NotificationResult> {
   try {
     const currentUser = await getCurrentUser();
     
@@ -303,8 +303,25 @@ export async function createNotification(
   data: z.infer<typeof createNotificationSchema>
 ): Promise<NotificationResult> {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return {
+        success: false,
+        error: "Unauthorized",
+      };
+    }
+
+    // 🔒 Only admins or system processes can create arbitrary notifications
+    // Regular users cannot use this endpoint
+    if (session.user.role !== "ADMIN") {
+      return {
+        success: false,
+        error: "Only administrators can create notifications",
+      };
+    }
+
     const validated = createNotificationSchema.parse(data);
-    
+
     const notification = await prisma.notification.create({
       data: {
         userId: validated.userId,
@@ -316,21 +333,21 @@ export async function createNotification(
         metadata: validated.metadata,
       },
     });
-    
+
     return {
       success: true,
       data: serializeNotification(notification),
     };
   } catch (error) {
     console.error("Create notification error:", error);
-    
+
     if (error instanceof z.ZodError) {
       return {
         success: false,
         error: error.issues[0]?.message || "Invalid input",
       };
     }
-    
+
     return {
       success: false,
       error: "Failed to create notification",
@@ -352,74 +369,78 @@ export async function sendNotification(params: {
   sendSMS?: boolean;
 }): Promise<NotificationResult> {
   try {
-    // Get user preferences
-    const userSettings = await prisma.systemSetting.findMany({
-      where: {
-        key: {
-          startsWith: `user:${params.userId}:notifications:`,
+    // Fetch user + their notification preferences in one go
+    const [user, userSettings] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: params.userId },
+        select: { email: true, phone: true },
+      }),
+      prisma.systemSetting.findMany({
+        where: {
+          key: { startsWith: `user:${params.userId}:notifications:` },
         },
-      },
-    });
-    
-    const emailEnabled = userSettings.find(s => s.key.endsWith(':email'))?.value === 'true';
-    const smsEnabled = userSettings.find(s => s.key.endsWith(':sms'))?.value === 'true';
-    const pushEnabled = userSettings.find(s => s.key.endsWith(':push'))?.value === 'true';
-    
-    // Check if this notification type is enabled
-    const typeEnabled = userSettings.find(
-      s => s.key === `user:${params.userId}:notifications:type:${params.type}`
-    )?.value === 'true';
-    
-    if (!typeEnabled && userSettings.length > 0) {
-      // Type is disabled, don't send
-      return {
-        success: true,
-        message: "Notification type disabled by user",
-      };
+      }),
+    ]);
+
+    if (!user) {
+      return { success: false, error: "User not found" };
     }
-    
-    // Create in-app notification
+
+    const emailEnabled = userSettings.find(s => s.key.endsWith(':email'))?.value === 'true';
+    const smsEnabled   = userSettings.find(s => s.key.endsWith(':sms'))?.value   === 'true';
+    const pushEnabled  = userSettings.find(s => s.key.endsWith(':push'))?.value  === 'true';
+
+    // Check if this notification type is disabled by the user
+    const typeKey = `user:${params.userId}:notifications:type:${params.type}`;
+    const typeDisabled =
+      userSettings.length > 0 &&
+      userSettings.find(s => s.key === typeKey)?.value === 'false';
+
+    if (typeDisabled) {
+      return { success: true, message: "Notification type disabled by user" };
+    }
+
+    // 1. In-app notification
     if (pushEnabled || userSettings.length === 0) {
-      await createNotification({
-        userId: params.userId,
-        type: params.type,
-        title: params.title,
-        message: params.message,
-        actionUrl: params.actionUrl,
-        metadata: params.metadata,
-        channel: "IN_APP",
+      await prisma.notification.create({
+        data: {
+          userId:    params.userId,
+          type:      params.type as NotificationType,
+          channel:   "IN_APP" as NotificationChannel,
+          title:     params.title,
+          message:   params.message,
+          actionUrl: params.actionUrl,
+          metadata:  params.metadata,
+        },
       });
     }
-    
-    // Send email if enabled and requested
-    if (emailEnabled && params.sendEmail) {
-      // TODO: Implement email sending
-      // await sendEmail({
-      //   to: user.email,
-      //   subject: params.title,
-      //   body: params.message,
-      // });
+
+    // 2. Email notification
+    if (params.sendEmail && emailEnabled && user.email) {
+      const { sendGenericEmail } = await import("@/nodemailer/email");
+      
+      const body = params.actionUrl
+        ? `${params.message}\n\nView details: ${process.env.NEXT_PUBLIC_APP_URL}${params.actionUrl}`
+        : params.message;
+
+      sendGenericEmail({
+        to:      user.email,
+        subject: params.title,
+        body,
+      }).catch(console.error); // non-blocking
     }
-    
-    // Send SMS if enabled and requested
-    if (smsEnabled && params.sendSMS) {
-      // TODO: Implement SMS sending
-      // await sendSMS({
-      //   to: user.phone,
-      //   message: params.message,
-      // });
+
+    // 3. SMS notification (placeholder — wire up Twilio etc. when ready)
+    if (params.sendSMS && smsEnabled && user.phone) {
+      // await sendSMS({ to: user.phone, message: params.message });
+      console.log(`[SMS TODO] To: ${user.phone} | ${params.message}`);
     }
-    
-    return {
-      success: true,
-      message: "Notification sent",
-    };
+
+    return { success: true, message: "Notification sent" };
+
   } catch (error) {
     console.error("Send notification error:", error);
-    return {
-      success: false,
-      error: "Failed to send notification",
-    };
+    return { success: false, error: "Failed to send notification" };
   }
 }
 

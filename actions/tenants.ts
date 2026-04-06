@@ -8,8 +8,9 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 import { ActivityType } from "@/lib/generated/prisma/enums";
 import { Prisma } from "@/lib/generated/prisma/client";
-import crypto from "crypto";
+import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
+import { encrypt as encryptField } from "@/lib/encryption";
 import { sendTenantWelcomeEmail, sendPasswordResetEmail } from "@/nodemailer/email";
 
 // -------------------------
@@ -109,17 +110,40 @@ function serializeTenant(tenant: any) {
 }
 
 /**
- * Generate a secure temporary password
+ * Generate a secure temporary password using cryptographic randomness
+ * 12 characters with guaranteed uppercase, lowercase, digit, and symbol
+ * Uses Fisher-Yates shuffle for unbiased distribution
  */
 function generateTemporaryPassword(): string {
-  // Generate a memorable but secure password
-  const adjectives = ['Swift', 'Blue', 'Green', 'Bright', 'Smart', 'Quick'];
-  const nouns = ['Tiger', 'Eagle', 'River', 'Mountain', 'Ocean', 'Forest'];
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const numbers = Math.floor(1000 + Math.random() * 9000);
-  
-  return `${adjective}${noun}${numbers}!`;
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  const digits = '0123456789';
+  const symbols = '!@#$%&*';
+  const allChars = uppercase + lowercase + digits + symbols;
+
+  // Generate 12 cryptographically random bytes
+  const bytes = randomBytes(12);
+
+  // Build password: ensure at least one of each type, fill rest randomly
+  let chars: string[] = [];
+  chars.push(uppercase[bytes[0] % uppercase.length]);  // 1 uppercase
+  chars.push(lowercase[bytes[1] % lowercase.length]);   // 1 lowercase
+  chars.push(digits[bytes[2] % digits.length]);          // 1 digit
+  chars.push(symbols[bytes[3] % symbols.length]);        // 1 symbol
+
+  // Fill remaining 8 characters
+  for (let i = 4; i < 12; i++) {
+    chars.push(allChars[bytes[i] % allChars.length]);
+  }
+
+  // Fisher-Yates shuffle with crypto-random indices
+  const shuffleBytes = randomBytes(12);
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = shuffleBytes[i] % (i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+
+  return chars.join('');
 }
 
 /**
@@ -207,7 +231,7 @@ export async function createTenant(data: z.infer<typeof createTenantSchema>): Pr
       await tx.activityLog.create({
         data: {
           userId: currentUser.id,
-          type: "PROPERTY_CREATED" as ActivityType,
+          type: "USER_CREATED" as ActivityType,
           action: `Created tenant profile for ${validated.name}`,
           metadata: {
             tenantId: tenant.id,
@@ -232,7 +256,7 @@ export async function createTenant(data: z.infer<typeof createTenantSchema>): Pr
       await prisma.activityLog.create({
         data: {
           userId: currentUser.id,
-          type: "PROPERTY_UPDATED" as ActivityType,
+          type: "NOTIFICATION_SENT" as ActivityType,
           action: `Failed to send welcome email to ${validated.email}`,
           metadata: {
             tenantId: result.tenant.id,
@@ -738,7 +762,7 @@ export async function updateTenant(
       await tx.activityLog.create({
         data: {
           userId: currentUser.id,
-          type: "PROPERTY_UPDATED" as ActivityType,
+          type: "USER_UPDATED" as ActivityType,
           action: `Updated tenant profile for ${tenant.user.name}`,
           metadata: {
             tenantId: tenantId,
@@ -838,7 +862,7 @@ export async function deleteTenant(tenantId: string): Promise<TenantResult> {
       await tx.activityLog.create({
         data: {
           userId: currentUser.id,
-          type: "PROPERTY_DELETED" as ActivityType,
+          type: "USER_LOGOUT" as ActivityType,
           action: `Deleted tenant profile for ${tenant.user.name}`,
           metadata: {
             tenantId: tenantId,
@@ -978,7 +1002,7 @@ export async function changePassword(
     await prisma.activityLog.create({
       data: {
         userId: session.user.id,
-        type: "PROPERTY_UPDATED" as ActivityType,
+        type: "USER_UPDATED" as ActivityType,
         action: "Changed password",
         metadata: {
           timestamp: new Date().toISOString(),
@@ -1029,7 +1053,7 @@ export async function requestPasswordReset(
     }
     
     // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetToken = randomBytes(32).toString("hex");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
     
@@ -1059,7 +1083,7 @@ export async function requestPasswordReset(
     await prisma.activityLog.create({
       data: {
         userId: user.id,
-        type: "PROPERTY_UPDATED" as ActivityType,
+        type: "USER_UPDATED" as ActivityType,
         action: "Requested password reset",
         metadata: {
           email: validated.email,
@@ -1146,7 +1170,7 @@ export async function resendWelcomeEmail(tenantId: string): Promise<TenantResult
     await prisma.activityLog.create({
       data: {
         userId: currentUser.id,
-        type: "PROPERTY_UPDATED" as ActivityType,
+        type: "NOTIFICATION_SENT" as ActivityType,
         action: `Resent welcome email to ${tenant.user.name}`,
         metadata: {
           tenantId: tenantId,

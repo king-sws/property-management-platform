@@ -341,6 +341,7 @@ export async function getTenantPayments(
 export async function getPaymentDetails(paymentId: string): Promise<PaymentResult> {
   try {
     const currentUser = await getCurrentUser();
+    const userRole = currentUser.role as UserRole;
 
     const payment = await prisma.payment.findUnique({
       where: { id: paymentId },
@@ -375,8 +376,18 @@ export async function getPaymentDetails(paymentId: string): Promise<PaymentResul
 
     // Check authorization
     const isOwner = payment.userId === currentUser.id;
-    const isTenant = payment.tenant.userId === currentUser.id;
-    const isLandlord = currentUser.role === UserRole.LANDLORD;
+    const isTenant = payment.tenant?.userId === currentUser.id;
+
+    // Landlords can only view payments for their own properties
+    let isLandlord = false;
+    if (userRole === UserRole.LANDLORD) {
+      const landlord = await prisma.landlord.findUnique({
+        where: { userId: currentUser.id },
+      });
+      if (landlord && payment.lease?.unit?.property) {
+        isLandlord = payment.lease.unit.property.landlordId === landlord.id;
+      }
+    }
 
     if (!isOwner && !isTenant && !isLandlord) {
       return { success: false, error: "Unauthorized" };

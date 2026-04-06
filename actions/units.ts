@@ -12,6 +12,7 @@ import { UnitStatus } from "@/lib/generated/prisma/enums";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { Decimal } from "@prisma/client/runtime/client";
+import { getLandlordAccess, getAccessMessage } from "@/lib/subscription-guard";
 
 // Validation Schema
 const unitSchema = z.object({
@@ -57,6 +58,15 @@ export async function addUnit(
 
     if (!landlord) {
       return { success: false, error: "Landlord profile not found" };
+    }
+
+    // ✅ SUBSCRIPTION GUARD
+    const access = await getLandlordAccess(landlord.id);
+    if (!access.canWrite) {
+      return {
+        success: false,
+        error: getAccessMessage(access) ?? "Your subscription is inactive.",
+      };
     }
 
     // Verify property ownership
@@ -160,6 +170,15 @@ export async function updateUnit(
 
     if (!landlord) {
       return { success: false, error: "Landlord profile not found" };
+    }
+
+    // ✅ SUBSCRIPTION GUARD
+    const access = await getLandlordAccess(landlord.id);
+    if (!access.canWrite) {
+      return {
+        success: false,
+        error: getAccessMessage(access) ?? "Your subscription is inactive.",
+      };
     }
 
     // Verify ownership
@@ -300,6 +319,15 @@ export async function deleteUnit(unitId: string): Promise<ActionResult> {
     return { success: true };
   } catch (error) {
     console.error("Delete unit error:", error);
+
+    // ✅ FIX: Handle Prisma Restrict constraint error gracefully
+    if (error instanceof Error && error.message.includes("restrict")) {
+      return {
+        success: false,
+        error: "Cannot delete this unit because it has existing lease records. Please archive the unit instead.",
+      };
+    }
+
     return {
       success: false,
       error: "Failed to delete unit. Please try again.",
@@ -328,6 +356,15 @@ export async function updateUnitStatus(
 
     if (!landlord) {
       return { success: false, error: "Landlord profile not found" };
+    }
+
+    // ✅ SUBSCRIPTION GUARD
+    const access = await getLandlordAccess(landlord.id);
+    if (!access.canWrite) {
+      return {
+        success: false,
+        error: getAccessMessage(access) ?? "Your subscription is inactive.",
+      };
     }
 
     // Verify ownership

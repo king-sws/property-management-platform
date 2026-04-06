@@ -4,7 +4,7 @@ import { AuthLayout } from '@/components/auth/AuthLayout'
 import { SignUpForm } from '@/components/auth/SignUpForm'
 
 export const metadata: Metadata = {
-  title: 'Create Account | Propely',
+  title: 'Create Account',
   description: 'Create your Propely account and start managing properties in minutes',
   robots: {
     index: false,

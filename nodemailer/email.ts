@@ -7,15 +7,17 @@ import {
   PAYMENT_CONFIRMATION_EMAIL_TEMPLATE,
   LEASE_EXPIRING_EMAIL_TEMPLATE,
 } from './emailtimplate';
+import { LANDLORD_WELCOME_EMAIL_TEMPLATE, VENDOR_WELCOME_EMAIL_TEMPLATE } from './emailtimplate';
+
 
 // -------------------------
 // Email Configuration
 // -------------------------
 const EMAIL_CONFIG = {
-  from: process.env.EMAIL_FROM || 'noreply@oussamaproperty.com',
-  supportEmail: process.env.SUPPORT_EMAIL || 'support@oussamaproperty.com',
-  appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://oussamaproperty.com',
-  companyName: 'Oussama Property',
+  from: process.env.EMAIL_FROM || 'noreply@propely.site',
+  supportEmail: process.env.SUPPORT_EMAIL || 'support@propely.site',
+  appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://www.propely.site',
+  companyName: 'Propely',
 };
 
 // -------------------------
@@ -44,30 +46,43 @@ interface EmailParams {
 
 /**
  * Send email using Nodemailer with Brevo SMTP
+ * Includes automatic retry with exponential backoff
  */
 async function sendEmail({ to, subject, html, text }: EmailParams): Promise<void> {
-  try {
-    // Verify transporter configuration
-    await transporter.verify();
-    
-    // Send email
-    const info = await transporter.sendMail({
-      from: EMAIL_CONFIG.from,
-      to,
-      subject,
-      html,
-      text: text || stripHtml(html),
-    });
-    
-    console.log(`✅ Email sent successfully to ${to}: ${subject}`);
-    console.log(`📧 Message ID: ${info.messageId}`);
-    
-  } catch (error) {
-    console.error('❌ Email sending failed:', error);
-    
-    // Fallback: Log to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`
+  const maxRetries = 3;
+  const baseDelay = 1000; // 1 second
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Verify transporter configuration
+      await transporter.verify();
+
+      // Send email
+      const info = await transporter.sendMail({
+        from: EMAIL_CONFIG.from,
+        to,
+        subject,
+        html,
+        text: text || stripHtml(html),
+      });
+
+      console.log(`✅ Email sent successfully to ${to}: ${subject}`);
+      console.log(`📧 Message ID: ${info.messageId}`);
+      return; // Success, exit function
+
+    } catch (error) {
+      if (attempt < maxRetries) {
+        // Exponential backoff: 1s, 2s, 4s
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        console.warn(`⚠️ Email send attempt ${attempt}/${maxRetries} failed for ${to}. Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        // Final attempt failed
+        console.error('❌ Email sending failed after 3 attempts:', error);
+
+        // Fallback: Log to console in development
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📧 EMAIL WOULD BE SENT (SMTP Error - Logging instead)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -77,9 +92,11 @@ Subject: ${subject}
 ${text || stripHtml(html)}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       `);
-    } else {
-      // In production, throw the error
-      throw error;
+        } else {
+          // In production, throw the error
+          throw error;
+        }
+      }
     }
   }
 }
@@ -164,7 +181,7 @@ export async function sendPasswordResetEmail(
   
   await sendEmail({
     to: email,
-    subject: 'Reset Your Password - Oussama Property',
+    subject: `Reset Your Password - ${EMAIL_CONFIG.companyName}`,
     html,
   });
 }
@@ -610,4 +627,74 @@ export async function sendMaintenanceAssignmentEmail(
     subject: `New Maintenance Assignment: ${ticketTitle}`,
     html: htmlContent,
   });
+}
+
+
+export async function sendLandlordWelcomeEmail(
+  email: string,
+  name: string,
+  trialEndsAt: string
+): Promise<void> {
+  const variables = {
+    userName: name,
+    userEmail: email,
+    trialEndsAt,
+    dashboardLink: `${EMAIL_CONFIG.appUrl}/dashboard`,
+    supportEmail: EMAIL_CONFIG.supportEmail,
+  };
+  const html = replaceTemplateVariables(LANDLORD_WELCOME_EMAIL_TEMPLATE, variables);
+  await sendEmail({
+    to: email,
+    subject: `Welcome to ${EMAIL_CONFIG.companyName} — Your 14-Day Trial Has Started`,
+    html,
+  });
+}
+
+export async function sendVendorWelcomeEmail(
+  email: string,
+  name: string
+): Promise<void> {
+  const variables = {
+    userName: name,
+    userEmail: email,
+    dashboardLink: `${EMAIL_CONFIG.appUrl}/dashboard`,
+    supportEmail: EMAIL_CONFIG.supportEmail,
+  };
+  const html = replaceTemplateVariables(VENDOR_WELCOME_EMAIL_TEMPLATE, variables);
+  await sendEmail({
+    to: email,
+    subject: `Welcome to ${EMAIL_CONFIG.companyName} — Vendor Account Ready`,
+    html,
+  });
+}
+
+export async function sendGenericEmail(params: {
+  to: string;
+  subject: string;
+  body: string;
+}): Promise<void> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; background-color: #f0ece6; }
+        .wrap { max-width: 600px; margin: 32px auto; background: #fff; border-radius: 12px; overflow: hidden; }
+        .hdr { background: #1a1a1a; padding: 32px 40px; text-align: center; }
+        .hdr-logo { font-family: Georgia, serif; font-size: 20px; color: #e3cda7; }
+        .bdy { padding: 40px; font-size: 14px; color: #555; }
+        .ftr-bar { background: #1a1a1a; padding: 20px 40px; text-align: center; font-size: 11px; color: #555; }
+      </style>
+    </head>
+    <body>
+      <div class="wrap">
+        <div class="hdr"><div class="hdr-logo">Propely</div></div>
+        <div class="bdy">${params.body.replace(/\n/g, '<br/>')}</div>
+        <div class="ftr-bar">© 2026 Propely. All rights reserved.</div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  await sendEmail({ to: params.to, subject: params.subject, html });
 }

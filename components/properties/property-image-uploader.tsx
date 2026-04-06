@@ -34,7 +34,6 @@ import {
   Upload,
   Loader2,
   Star,
-  StarOff,
   Trash2,
   Image as ImageIcon,
 } from "lucide-react";
@@ -276,7 +275,7 @@ export default function PropertyImageUploader({
                           onClick={() => handleSetPrimary(image.id)}
                           title="Set as primary"
                         >
-                          <StarOff className="h-4 w-4" />
+                          <Star className="h-4 w-4" />
                         </Button>
                       )}
                       <Button

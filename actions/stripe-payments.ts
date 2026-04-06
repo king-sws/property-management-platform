@@ -13,6 +13,7 @@ import {
   detachPaymentMethod,
   createRefund,
   createStripeCustomer,
+  listPaymentMethods,
 } from "@/services/stripe";
 import {
   PaymentStatus,
@@ -64,9 +65,7 @@ async function getCurrentUser() {
   return session.user;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function ensureStripeCustomer(userId: string, email: string, name: string | null) {
-  // Check if user has stripe customer ID
   const tenant = await prisma.tenant.findUnique({
     where: { userId },
   });
@@ -75,11 +74,27 @@ async function ensureStripeCustomer(userId: string, email: string, name: string 
     throw new Error("Tenant profile not found");
   }
 
-  // If no stripe customer, create one
-  // Note: You'll need to add stripeCustomerId field to Tenant model
-  // For now, we'll create it on the fly in the payment intent
+  // If already has stripeCustomerId, return it
+  if (tenant.stripeCustomerId) {
+    return { success: true, stripeCustomerId: tenant.stripeCustomerId };
+  }
 
-  return tenant;
+  // Create Stripe customer and save it
+  const customerResult = await createStripeCustomer(email, name || "Tenant", {
+    tenantId: tenant.id,
+    userId,
+  });
+
+  if (!customerResult.success || !customerResult.customer) {
+    return { success: false, error: "Failed to create Stripe customer" };
+  }
+
+  await prisma.tenant.update({
+    where: { id: tenant.id },
+    data: { stripeCustomerId: customerResult.customer.id },
+  });
+
+  return { success: true, stripeCustomerId: customerResult.customer.id };
 }
 
 // -------------------------
@@ -260,6 +275,14 @@ export async function initiateACHPayment(
       return { success: false, error: "Failed to create customer account" };
     }
 
+    // Save stripeCustomerId to tenant if not already saved
+    if (!payment.tenant.stripeCustomerId) {
+      await prisma.tenant.update({
+        where: { id: payment.tenant.id },
+        data: { stripeCustomerId: customerResult.customer.id },
+      });
+    }
+
     // Create ACH payment intent
     const paymentIntentResult = await createACHPaymentIntent(
       Number(payment.amount),
@@ -338,17 +361,38 @@ export async function getTenantPaymentMethods(): Promise<PaymentResult> {
 
     const tenant = await prisma.tenant.findUnique({
       where: { userId: currentUser.id },
+      include: { user: true },
     });
 
     if (!tenant) {
       return { success: false, error: "Tenant profile not found" };
     }
 
-    // You'll need to store stripeCustomerId in Tenant model
-    // For now, return empty array
-    // When implemented, use:
-    // const result = await listPaymentMethods(tenant.stripeCustomerId);
+    // If tenant has a stripeCustomerId, list their payment methods
+    if (tenant.stripeCustomerId) {
+      const result = await listPaymentMethods(tenant.stripeCustomerId);
 
+      if (result.success && result.paymentMethods) {
+        return {
+          success: true,
+          data: {
+            paymentMethods: result.paymentMethods.map((pm: any) => ({
+              id: pm.id,
+              type: pm.type,
+              card: pm.card ? {
+                brand: pm.card.brand,
+                last4: pm.card.last4,
+                expMonth: pm.card.exp_month,
+                expYear: pm.card.exp_year,
+              } : null,
+              isDefault: pm.id === tenant.stripeCustomerId,
+            })),
+          },
+        };
+      }
+    }
+
+    // No Stripe customer or no payment methods yet
     return {
       success: true,
       data: {
@@ -395,6 +439,14 @@ export async function addPaymentMethod(paymentMethodId: string): Promise<Payment
       return { success: false, error: "Failed to create customer account" };
     }
 
+    // Save stripeCustomerId to tenant if not already saved
+    if (!tenant.stripeCustomerId) {
+      await prisma.tenant.update({
+        where: { id: tenant.id },
+        data: { stripeCustomerId: customerResult.customer.id },
+      });
+    }
+
     // Attach payment method
     const attachResult = await attachPaymentMethod(
       paymentMethodId,
@@ -409,7 +461,7 @@ export async function addPaymentMethod(paymentMethodId: string): Promise<Payment
     await prisma.activityLog.create({
       data: {
         userId: currentUser.id,
-        type: ActivityType.USER_LOGIN,
+        type: ActivityType.PAYMENT_MADE,
         action: "Added payment method",
         metadata: {
           paymentMethodId,
@@ -450,7 +502,7 @@ export async function removePaymentMethod(paymentMethodId: string): Promise<Paym
     await prisma.activityLog.create({
       data: {
         userId: currentUser.id,
-        type: ActivityType.USER_LOGIN,
+        type: ActivityType.PAYMENT_MADE,
         action: "Removed payment method",
         metadata: {
           paymentMethodId,
