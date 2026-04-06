@@ -128,8 +128,8 @@ const FooterSection = () => {
 
               <ul className="flex gap-x-3 flex-col items-start flex-wrap gap-y-1.5">
                 {[
-                  { label: 'About', href: '/about' },
-                  { label: 'Contact', href: '/contact' },
+                  { label: 'About Propely', href: '/about' },
+                  { label: 'Contact Us', href: '/contact' },
                   { label: 'Blog', href: '/blog' },
                 ].map((item) => (
                   <li key={item.label}>
