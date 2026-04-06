@@ -641,7 +641,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
           {/* Share Buttons */}
           <div className="mt-8">
-            <ShareButtons title={post.title} slug={post.slug} />
+            <ShareButtons title={post.title} />
           </div>
 
           {/* Related Posts */}
