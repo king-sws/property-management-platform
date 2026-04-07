@@ -4,21 +4,10 @@ import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { ActivityType } from "@/lib/generated/prisma/enums";
 import sharp from "sharp";
-import { mkdir, writeFile, unlink, access } from "fs/promises";
-import path from "path";
+import { deleteFromBlob, uploadToBlob } from "@/lib/services/storage";
 
 const AVATAR_SIZE = 256;
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-
-/** Async check if file exists — no blocking sync fs calls */
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,19 +57,18 @@ export async function POST(request: NextRequest) {
       .jpeg({ quality: 70 })
       .toBuffer();
 
-    // 📁 Ensure avatar directory exists
-    const avatarDir = path.join(process.cwd(), "public", "avatars");
-    await mkdir(avatarDir, { recursive: true });
-
-    // 🧾 Save file — always {userId}.jpg (overwrites previous)
+    // ☁️ Upload to Vercel Blob
     const fileName = `${session.user.id}.jpg`;
-    const filePath = path.join(avatarDir, fileName);
-
-    await writeFile(filePath, optimizedBuffer);
+    const uploadResult = await uploadToBlob(
+      optimizedBuffer,
+      fileName,
+      "image/jpeg",
+      "avatars"
+    );
 
     // 🌐 Public URL with cache buster
     const timestamp = Date.now();
-    const avatarUrl = `/avatars/${fileName}?t=${timestamp}`;
+    const avatarUrl = `${uploadResult.url}?t=${timestamp}`;
 
     // 🗄️ Update DB
     const updatedUser = await prisma.user.update({
@@ -141,17 +129,9 @@ export async function DELETE() {
       },
     });
 
-    // Remove file (async, no blocking)
-    const filePath = path.join(
-      process.cwd(),
-      "public",
-      "avatars",
-      `${session.user.id}.jpg`
-    );
-
-    if (await fileExists(filePath)) {
-      await unlink(filePath);
-    }
+    // Remove file from cloud storage
+    const storageKey = `avatars/${session.user.id}.jpg`;
+    await deleteFromBlob(storageKey);
 
     // Log activity
     await prisma.activityLog.create({

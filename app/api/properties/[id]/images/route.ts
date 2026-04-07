@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // ============================================================================
 // FILE: src/app/api/properties/[id]/images/route.ts
 // Property Image Upload API - Multiple images support
@@ -8,9 +9,7 @@ import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { ActivityType } from "@/lib/generated/prisma/enums";
 import sharp from "sharp";
-import { mkdir, writeFile, unlink } from "fs/promises";
-import path from "path";
-import fs from "fs";
+import { uploadToBlob, deleteFromBlob, generateUniqueFilename } from "@/lib/services/storage";
 
 const IMAGE_SIZES = {
   large: { width: 1920, height: 1080 },
@@ -112,23 +111,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // 📁 Create directory structure
-    const propertyImagesDir = path.join(
-      process.cwd(),
-      "public",
-      "properties",
-      propertyId
-    );
-    if (!fs.existsSync(propertyImagesDir)) {
-      await mkdir(propertyImagesDir, { recursive: true });
-    }
-
-    // Generate unique filename with UUID to prevent collisions
-    const timestamp = Date.now();
-    const uuid = crypto.randomUUID();
-    const fileName = `${timestamp}-${uuid}.jpg`;
-    const storageKey = `properties/${propertyId}/${fileName}`;
-
     // 🧠 Process image
     const largeBuffer = await sharp(buffer)
       .resize(IMAGE_SIZES.large.width, IMAGE_SIZES.large.height, {
@@ -138,11 +120,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .jpeg({ quality: 85 })
       .toBuffer();
 
-    const filePath = path.join(propertyImagesDir, fileName);
-    await writeFile(filePath, largeBuffer);
+    // ☁️ Upload to Vercel Blob
+    const fileName = generateUniqueFilename(file.name);
+    const uploadResult = await uploadToBlob(
+      largeBuffer,
+      fileName,
+      "image/jpeg",
+      `properties/${propertyId}`
+    );
 
-    // 🌐 Public URL
-    const imageUrl = `/properties/${propertyId}/${fileName}`;
+    const imageUrl = uploadResult.url;
+    const storageKey = uploadResult.storageKey;
 
     // Get next order number (inside transaction)
     const maxOrder = property.images.reduce(
@@ -268,12 +256,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Delete file from disk
+    // Delete file from cloud storage
     if (image.storageKey) {
-      const filePath = path.join(process.cwd(), "public", image.storageKey);
-      if (fs.existsSync(filePath)) {
-        await unlink(filePath);
-      }
+      await deleteFromBlob(image.storageKey);
     }
 
     // Delete from database

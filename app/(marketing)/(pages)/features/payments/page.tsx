@@ -299,7 +299,7 @@ export default function PaymentsPage() {
         {/* Transactions list */}
         <div className="rounded-xl border border-border bg-foreground/[0.02] overflow-hidden">
           <div className="border-b border-border px-4 py-3">
-            <p className="text-xs font-medium text-muted-foreground">June 2025 — Rent Collection</p>
+            <p className="text-xs font-medium text-muted-foreground">June 2026 — Rent Collection</p>
           </div>
           <div className="divide-y divide-border">
             {transactions.map((t) => (

@@ -18,6 +18,7 @@ import {
   Clock,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 export const metadata = {
   title: "Analytics — Propely",
@@ -122,12 +123,12 @@ const steps = [
 ]
 
 const trustedBy = [
-  { initials: "MK", bg: "bg-amber-500/20 text-amber-400" },
-  { initials: "JR", bg: "bg-blue-500/20 text-blue-400" },
-  { initials: "AL", bg: "bg-violet-500/20 text-violet-400" },
-  { initials: "TS", bg: "bg-emerald-500/20 text-emerald-400" },
-  { initials: "PW", bg: "bg-rose-500/20 text-rose-400" },
-]
+  { image: "/images/avatar-4.png", name: "User 1" },
+  { image: "/images/avatar-2.png", name: "User 2" },
+  { image: "/images/avatar-3.png", name: "User 3" },
+  { image: "/images/avatar-5.png", name: "User 4" },
+  { image: "/images/avatar-6.png", name: "User 5" },
+];
 
 export default function AnalyticsPage() {
   return (
@@ -164,10 +165,22 @@ export default function AnalyticsPage() {
           <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
             <div className="flex">
               {trustedBy.map((a, i) => (
-                <div key={a.initials} className={`flex size-7 items-center justify-center rounded-full border-2 border-background text-[10px] font-medium ${a.bg} ${i !== 0 ? "-ml-2" : ""}`}>
-                  {a.initials}
-                </div>
-              ))}
+  <div
+    key={i}
+    className={`size-7 rounded-full border-2 border-background overflow-hidden ${
+      i !== 0 ? "-ml-2" : ""
+    }`}
+  >
+
+    <Image
+      src={a.image}
+      alt="avatar"
+      width={28}
+      height={28}
+      className="object-cover"
+    />
+  </div>
+))}
             </div>
             <span className="text-amber-400">★★★★★</span>
             <span>Trusted by 500+ property managers</span>
@@ -225,7 +238,7 @@ export default function AnalyticsPage() {
         {/* Property performance table */}
         <div className="rounded-xl border border-border bg-foreground/[0.02] overflow-hidden mb-6">
           <div className="border-b border-border px-4 py-3 flex items-center justify-between">
-            <p className="text-xs font-medium">Property performance — June 2025</p>
+            <p className="text-xs font-medium">Propely performance — June 2026</p>
             <span className="text-[10px] text-muted-foreground font-mono">NOI = Revenue − Expenses</span>
           </div>
           <div className="overflow-x-auto">

@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRightIcon, CalendarIcon, ClockIcon, UserIcon } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowRightIcon, CalendarIcon, ClockIcon, ChevronLeftIcon, ChevronRightIcon, UserIcon } from 'lucide-react'
 import { NewsletterSignup } from '@/components/landing/NewsletterSignup'
 
 const categories = [
@@ -168,52 +169,71 @@ const blogPosts = [
  * Vercel env vars once approved and replace the inner content with the real
  * adsbygoogle snippet.
  */
+const POSTS_PER_PAGE = 6
+
 function AdSlot({ className = '' }: { className?: string }) {
-  // Return null until AdSense is live — no placeholder text visible to Google reviewers
   return <div className={className} aria-hidden="true" />
 }
 
-export default function BlogPage() {
-  const featuredPost = blogPosts.find((post) => post.featured)
-  const regularPosts = blogPosts.filter((post) => !post.featured)
 
+export default function BlogPage() {
+  const [currentPage, setCurrentPage] = useState(1)
+  const [activeCategory, setActiveCategory] = useState('All')
+
+  const featuredPost = blogPosts.find((post) => post.featured)
+
+  const filteredPosts = blogPosts
+    .filter((post) => !post.featured)
+    .filter((post) =>
+      activeCategory === 'All' ? true : post.category === activeCategory
+    )
+
+  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE)
+  const paginatedPosts = filteredPosts.slice(
+    (currentPage - 1) * POSTS_PER_PAGE,
+    currentPage * POSTS_PER_PAGE
+  )
+
+  const handleCategoryChange = (name: string) => {
+    setActiveCategory(name)
+    setCurrentPage(1)
+  }
   return (
     <section className="relative w-full py-16 sm:py-20 md:py-24">
       <div className="container px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex flex-col items-center text-center gap-4 mb-12">
-          <p className="font-mono font-medium tracking-wider text-foreground/50 uppercase text-[12px]">
-            BLOG
-          </p>
 
+        {/* Header — unchanged */}
+        <div className="flex flex-col items-center text-center gap-4 mb-12">
+          <p className="font-mono font-medium tracking-wider text-foreground/50 uppercase text-[12px]">BLOG</p>
           <h1 className="font-display font-medium text-pretty text-3xl tracking-tighter md:text-4xl">
             Property management insights & tips
           </h1>
-
           <p className="text-muted-foreground text-base md:text-lg max-w-[42em] text-pretty">
-            Expert advice on managing rentals, screening tenants, maintenance,
-            and growing your property portfolio.
+            Expert advice on managing rentals, screening tenants, maintenance, and growing your property portfolio.
           </p>
         </div>
 
-        {/* Top Ad slot — invisible until approved */}
         <AdSlot className="mb-12" />
 
-        {/* Categories */}
+        {/* Categories — now interactive */}
         <div className="flex flex-wrap justify-center gap-2 mb-12">
           {categories.map((category) => (
-            <Link
+            <button
               key={category.name}
-              href={category.href}
-              className="rounded-full border border-border bg-background px-4 py-1.5 text-sm font-medium text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
+              onClick={() => handleCategoryChange(category.name)}
+              className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeCategory === category.name
+                  ? 'border-foreground bg-foreground text-background'
+                  : 'border-border bg-background text-muted-foreground hover:border-foreground hover:text-foreground'
+              }`}
             >
               {category.name}
-            </Link>
+            </button>
           ))}
         </div>
 
-        {/* Featured Post */}
-        {featuredPost && (
+        {/* Featured Post — only show on page 1 with 'All' */}
+        {featuredPost && currentPage === 1 && activeCategory === 'All' && (
           <article className="mb-12">
             <Link href={featuredPost.href} className="group block">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center">
@@ -265,9 +285,21 @@ export default function BlogPage() {
         {/* Sidebar Ad slot — invisible until approved */}
         <AdSlot className="hidden lg:block mb-12" />
 
+        {/* Divider before grid */}
+        <div className="relative mb-10">
+          <div className="absolute inset-0 flex items-center" aria-hidden="true">
+            <div className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-background px-4 text-xs text-muted-foreground uppercase tracking-widest font-mono">
+              {activeCategory === 'All' ? 'All Articles' : activeCategory} · {filteredPosts.length} posts
+            </span>
+          </div>
+        </div>
+
         {/* Blog Posts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {regularPosts.map((post, idx) => (
+          {paginatedPosts.map((post, idx) => (
             <article
               key={idx}
               className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-background transition hover:border-foreground/30 hover:shadow-lg"
@@ -312,22 +344,78 @@ export default function BlogPage() {
           ))}
         </div>
 
-        {/* In-feed ad slot — invisible until approved */}
+        {/* ── REAL PAGINATION ── */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-1 mb-16">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              aria-label="Previous page"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition hover:border-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+            >
+              <ChevronLeftIcon className="size-4" />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+              const isActive = page === currentPage
+              const isEllipsis =
+                totalPages > 7 &&
+                page !== 1 &&
+                page !== totalPages &&
+                Math.abs(page - currentPage) > 2
+
+              if (isEllipsis) {
+                // Only render one ellipsis on each side
+                const prevPage = page - 1
+                const prevIsEllipsis =
+                  prevPage !== 1 &&
+                  prevPage !== totalPages &&
+                  Math.abs(prevPage - currentPage) > 2
+                if (prevIsEllipsis) return null
+                return (
+                  <span key={page} className="flex h-9 w-9 items-center justify-center text-sm text-muted-foreground">
+                    …
+                  </span>
+                )
+              }
+
+              return (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  aria-label={`Page ${page}`}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-medium transition ${
+                    isActive
+                      ? 'border-foreground bg-foreground text-background'
+                      : 'border-border text-muted-foreground hover:border-foreground hover:text-foreground'
+                  }`}
+                >
+                  {page}
+                </button>
+              )
+            })}
+
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              aria-label="Next page"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition hover:border-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+            >
+              <ChevronRightIcon className="size-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Show count when no pagination */}
+        {totalPages <= 1 && (
+          <p className="text-center text-sm text-muted-foreground mb-16">
+            Showing all {filteredPosts.length} articles
+          </p>
+        )}
+
         <AdSlot className="mb-12" />
-
-        {/* Pagination */}
-        <div className="flex justify-center items-center gap-2 mb-16">
-          <span className="text-sm text-muted-foreground">
-            Showing all {blogPosts.length} articles
-          </span>
-        </div>
-
-        {/* Newsletter Signup */}
-        <div className="mb-12">
-          <NewsletterSignup />
-        </div>
-
-        {/* Bottom ad slot — invisible until approved */}
+        <div className="mb-12"><NewsletterSignup /></div>
         <AdSlot className="mb-8" />
       </div>
     </section>

@@ -18,6 +18,7 @@ import {
   User,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 export const metadata = {
   title: "Lease Management — Propely",
@@ -94,8 +95,7 @@ const solutions = [
 const leases = [
   {
     tenant: "Sarah Mitchell",
-    initials: "SM",
-    avatarColor: "bg-sky-500/20 text-sky-400",
+    avatar: "/images/avatar-5.png",
     property: "Maple Court Apts",
     unit: "Unit 4B",
     status: "Active",
@@ -108,22 +108,20 @@ const leases = [
   },
   {
     tenant: "Priya Sharma",
-    initials: "PS",
-    avatarColor: "bg-violet-500/20 text-violet-400",
+    avatar: "/images/avatar-4.png",
     property: "Birchwood Terrace",
     unit: "Unit 2C",
     status: "Expiring Soon",
     statusColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    startDate: "Sep 1, 2024",
-    endDate: "Aug 31, 2025",
+    startDate: "Sep 1, 2025",
+    endDate: "Aug 31, 2026",
     rent: "$1,950",
     daysLeft: 52,
     urgency: "warn",
   },
   {
     tenant: "James Okafor",
-    initials: "JO",
-    avatarColor: "bg-blue-500/20 text-blue-400",
+    avatar: "/images/avatar-1.png",
     property: "Sunset Villa",
     unit: "Unit 1A",
     status: "Active",
@@ -136,8 +134,7 @@ const leases = [
   },
   {
     tenant: "Marcus Webb",
-    initials: "MW",
-    avatarColor: "bg-amber-500/20 text-amber-400",
+    avatar: "/images/avatar-2.png",
     property: "Maple Court Apts",
     unit: "Unit 7A",
     status: "Active",
@@ -150,22 +147,20 @@ const leases = [
   },
   {
     tenant: "Elena Kovacs",
-    initials: "EK",
-    avatarColor: "bg-rose-500/20 text-rose-400",
+    avatar: "/images/avatar-6.png",
     property: "Elm Street Duplex",
     unit: "Unit B",
     status: "Renewal Pending",
     statusColor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    startDate: "Dec 1, 2024",
-    endDate: "Nov 30, 2025",
+    startDate: "Dec 1, 2025",
+    endDate: "Nov 30, 2026",
     rent: "$1,800",
     daysLeft: 145,
     urgency: "safe",
   },
   {
     tenant: "David Chen",
-    initials: "DC",
-    avatarColor: "bg-emerald-500/20 text-emerald-400",
+    avatar: "/images/avatar-3.png",
     property: "Harbor View Lofts",
     unit: "Unit 3F",
     status: "Expiring Soon",
@@ -186,12 +181,12 @@ const steps = [
 ]
 
 const trustedBy = [
-  { initials: "MK", bg: "bg-sky-500/20 text-sky-400" },
-  { initials: "JR", bg: "bg-blue-500/20 text-blue-400" },
-  { initials: "AL", bg: "bg-violet-500/20 text-violet-400" },
-  { initials: "TS", bg: "bg-amber-500/20 text-amber-400" },
-  { initials: "PW", bg: "bg-emerald-500/20 text-emerald-400" },
-]
+  { image: "/images/avatar-1.png", name: "Mohamed K." },
+  { image: "/images/avatar-2.png", name: "James R." },
+  { image: "/images/avatar-3.png", name: "Amina L." },
+  { image: "/images/avatar-1.png", name: "Thomas S." },
+  { image: "/images/avatar-2.png", name: "Paul W." },
+];
 
 function daysLeftColor(urgency: string) {
   if (urgency === "danger") return "text-rose-400"
@@ -245,10 +240,21 @@ export default function LeasePage() {
           <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
             <div className="flex">
               {trustedBy.map((a, i) => (
-                <div key={a.initials} className={`flex size-7 items-center justify-center rounded-full border-2 border-background text-[10px] font-medium ${a.bg} ${i !== 0 ? "-ml-2" : ""}`}>
-                  {a.initials}
-                </div>
-              ))}
+  <div
+    key={i}
+    className={`size-7 rounded-full border-2 border-background overflow-hidden ${
+      i !== 0 ? "-ml-2" : ""
+    }`}
+  >
+    <Image
+      src={a.image}
+      alt="avatar"
+      width={28}
+      height={28}
+      className="object-cover"
+    />
+  </div>
+))}
             </div>
             <span className="text-amber-400">★★★★★</span>
             <span>Trusted by 500+ property managers</span>
@@ -313,9 +319,15 @@ export default function LeasePage() {
             <div key={l.tenant} className="rounded-xl border border-border bg-foreground/[0.02] p-4 transition-colors hover:border-foreground/20">
               {/* Header */}
               <div className="flex items-center gap-3 mb-4">
-                <div className={`flex size-9 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium ${l.avatarColor}`}>
-                  {l.initials}
-                </div>
+                <div className="size-9 flex-shrink-0 rounded-full overflow-hidden">
+  <Image
+    src={l.avatar}
+    alt={l.tenant}
+    width={36}
+    height={36}
+    className="object-cover"
+  />
+</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <User className="size-3 text-muted-foreground flex-shrink-0" />

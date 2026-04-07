@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeftIcon, CalendarIcon, ClockIcon } from 'lucide-react'
 import ShareButtons from './share-buttons'
+import { Metadata } from 'next'
 
 interface BlogPost {
   title: string
@@ -521,6 +522,23 @@ const getInitials = (name: string) =>
     .toUpperCase()
     .slice(0, 2)
 
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const { slug } = await params
+  const post = blogPosts.find((p) => p.slug === slug)
+  if (!post) return {}
+  return {
+    title: `${post.title} | Propely Blog`,
+    description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      images: [{ url: post.image }],
+      type: 'article',
+      publishedTime: post.isoDate,
+    },
+  }
+}
+
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params
   const post = blogPosts.find((p) => p.slug === slug)
@@ -612,17 +630,20 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
           {/* Content */}
           <div
-            className="
-              prose prose-lg dark:prose-invert max-w-none
-              prose-headings:font-display prose-headings:font-medium prose-headings:tracking-tighter
-              prose-h2:text-2xl prose-h3:text-xl
-              prose-p:text-muted-foreground prose-p:leading-relaxed
-              prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:underline
-              prose-strong:text-foreground
-              prose-li:text-muted-foreground
-            "
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+  className="
+    prose prose-lg dark:prose-invert max-w-none
+    prose-headings:font-display prose-headings:font-medium prose-headings:tracking-tighter
+    prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4 prose-h2:pb-3 prose-h2:border-b prose-h2:border-border
+    prose-h3:text-xl prose-h3:mt-8
+    prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:mt-0 prose-p:mb-5
+    prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:underline
+    prose-strong:text-foreground
+    prose-li:text-muted-foreground prose-li:my-1
+    prose-ul:my-6 prose-ol:my-6
+    [&>h2:first-child]:mt-0
+  "
+  dangerouslySetInnerHTML={{ __html: post.content }}
+/>
 
           {/* Author Box */}
           <div className="mt-16 pt-8 border-t">

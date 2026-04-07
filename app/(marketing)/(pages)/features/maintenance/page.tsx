@@ -18,6 +18,7 @@ import {
   TrendingDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 export const metadata = {
   title: "Maintenance Tracking — Propely",
@@ -104,8 +105,7 @@ const tickets = [
     priority: "Urgent",
     priorityColor: "bg-rose-500/10 text-rose-400 border-rose-500/20",
     vendor: "CoolAir HVAC Services",
-    vendorInitials: "CA",
-    vendorColor: "bg-blue-500/20 text-blue-400",
+    vendorLogo: "/images/avatar-3.png",
     submitted: "2h ago",
     category: "HVAC",
   },
@@ -214,12 +214,12 @@ const steps = [
 ]
 
 const trustedBy = [
-  { initials: "MK", bg: "bg-blue-500/20 text-blue-400" },
-  { initials: "JR", bg: "bg-emerald-500/20 text-emerald-400" },
-  { initials: "AL", bg: "bg-violet-500/20 text-violet-400" },
-  { initials: "TS", bg: "bg-amber-500/20 text-amber-400" },
-  { initials: "PW", bg: "bg-rose-500/20 text-rose-400" },
-]
+  { image: "/images/avatar-1.png" },
+  { image: "/images/avatar-2.png" },
+  { image: "/images/avatar-3.png" },
+  { image: "/images/avatar-1.png" },
+  { image: "/images/avatar-2.png" },
+];
 
 // ─── Ticket card component ────────────────────────────────────────────────────
 
@@ -256,12 +256,27 @@ function TicketCard({ ticket }: { ticket: typeof tickets[0] }) {
       {/* Footer */}
       <div className="flex items-center justify-between pt-3 border-t border-border gap-2">
         {/* Vendor */}
-        <div className="flex items-center gap-2 min-w-0">
-          <div className={`flex size-6 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-medium ${ticket.vendorColor}`}>
-            {ticket.vendorInitials}
-          </div>
-          <span className="text-[11px] text-muted-foreground truncate">{ticket.vendor}</span>
-        </div>
+
+<div className="flex items-center gap-2 min-w-0">
+  <div className="size-6 flex-shrink-0 rounded-full overflow-hidden bg-muted">
+    {ticket.vendorLogo ? (
+      <Image
+        src={ticket.vendorLogo}
+        alt={ticket.vendor}
+        width={24}
+        height={24}
+        className="object-cover"
+      />
+    ) : (
+      <div className="size-6 flex items-center justify-center text-xs font-medium text-muted-foreground">
+        {ticket.vendorInitials}
+      </div>
+    )}
+  </div>
+  <span className="text-[11px] text-muted-foreground truncate">
+    {ticket.vendor}
+  </span>
+</div>
         {/* Status + time */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className="text-[10px] text-muted-foreground">{ticket.submitted}</span>
@@ -318,12 +333,20 @@ export default function MaintenancePage() {
           <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
             <div className="flex">
               {trustedBy.map((a, i) => (
-                <div
-                  key={a.initials}
-                  className={`flex size-7 items-center justify-center rounded-full border-2 border-background text-[10px] font-medium ${a.bg} ${i !== 0 ? "-ml-2" : ""}`}
-                >
-                  {a.initials}
-                </div>
+  <div
+    key={i}
+    className={`size-7 rounded-full border-2 border-background overflow-hidden ${
+      i !== 0 ? "-ml-2" : ""
+    }`}
+  >
+    <Image
+      src={a.image}
+      alt="avatar"
+      width={28}
+      height={28}
+      className="object-cover"
+    />
+  </div>
               ))}
             </div>
             <span className="text-amber-400">★★★★★</span>
@@ -479,7 +502,7 @@ export default function MaintenancePage() {
                 <span className="text-emerald-400">night and day</span>
               </h2>
               <p className="text-[#b4b4b5] leading-relaxed mb-8">
-                Landlords who switch to Propely's maintenance system resolve tickets 3x faster
+                Landlords who switch to Propely&#39;s maintenance system resolve tickets 3x faster
                 and see a measurable drop in tenant complaints within the first 30 days.
               </p>
               <ul className="space-y-3">
