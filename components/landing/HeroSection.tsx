@@ -91,10 +91,11 @@ const HeroSection = () => {
 </div>
 
             {/* Discount badge */}
-<div className="flex gap-x-2 gap-y-1 flex-row items-center place-content-start flex-wrap font-medium text-sm text-secondary-foreground text-center">  {/* The Discount Badge */}
-  <span className="flex gap-x-1 gap-y-0.5 flex-row items-center justify-end place-content-start flex-wrap font-medium text-green-500/80 animate-pulse">
-     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-gift" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path></svg>
-    <span className="font-bold tracking-tight">20% Launch Discount</span>
+<div className="flex gap-x-2 gap-y-1 flex-row items-center justify-center flex-wrap font-medium text-sm text-secondary-foreground text-center">
+  {/* The Discount Badge */}
+  <span className="flex gap-x-1 gap-y-0.5 flex-row items-center justify-center flex-wrap font-bold text-green-400 animate-pulse">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-gift" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path></svg>
+    <span className="tracking-tight">20% launch discount</span>
   </span>
 
   {/* Separator */}
@@ -102,7 +103,7 @@ const HeroSection = () => {
 
   {/* Trust-building copy */}
   <span className="text-muted-foreground flex items-center gap-1.5">
-    Available for our first 
+    Available for our first
     <span className="text-foreground font-semibold">200 early adopters</span>
   </span>
 </div>
